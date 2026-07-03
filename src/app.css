@@ -1,0 +1,249 @@
+/* ═══════════════════════════════════════════
+   App-level theme vars — ORANGE + WHITE
+═══════════════════════════════════════════ */
+
+/* Dark mode (default) */
+.hf-app--dark {
+  --hf-bg:              oklch(0.10 0.015 250);
+  --hf-surface:         oklch(0.14 0.012 250);
+  --hf-surface-2:       oklch(0.18 0.010 250);
+  --hf-surface-3:       oklch(0.22 0.008 250);
+  --hf-border:          oklch(0.28 0.012 250);
+  --hf-border-glow:     oklch(0.75 0.18 55 / 0.35);
+  --hf-text-primary:    oklch(0.96 0.005 60);
+  --hf-text-secondary:  oklch(0.68 0.010 250);
+  --hf-text-muted:      oklch(0.46 0.008 250);
+  --hf-card-bg:         oklch(0.14 0.012 250);
+  --hf-card-hover-bg:   oklch(0.17 0.012 250);
+  --hf-shadow:          oklch(0 0 0 / 0.5);
+  --hf-toolbar-bg:      oklch(0.11 0.015 250 / 0.95);
+
+  /* Orange accent — vivid on dark */
+  --hf-accent:          oklch(0.75 0.18 55);
+  --hf-accent-dim:      oklch(0.60 0.16 50);
+  --hf-accent-glow:     oklch(0.75 0.18 55 / 0.22);
+  --hf-accent-text:     oklch(0.82 0.12 55);
+}
+
+/* Light mode — Clean white Flowmingo-inspired */
+.hf-app--light {
+  --hf-bg:              oklch(0.975 0.003 60);
+  --hf-surface:         oklch(1 0 0);
+  --hf-surface-2:       oklch(0.96 0.004 60);
+  --hf-surface-3:       oklch(0.93 0.006 60);
+  --hf-border:          oklch(0.88 0.008 60);
+  --hf-border-glow:     oklch(0.75 0.18 55 / 0.30);
+  --hf-text-primary:    oklch(0.15 0.010 250);
+  --hf-text-secondary:  oklch(0.38 0.012 250);
+  --hf-text-muted:      oklch(0.55 0.008 250);
+  --hf-card-bg:         oklch(1 0 0);
+  --hf-card-hover-bg:   oklch(0.98 0.005 55);
+  --hf-shadow:          oklch(0.50 0.010 250 / 0.12);
+  --hf-toolbar-bg:      oklch(1 0 0 / 0.96);
+
+  /* Orange accent — slightly deeper for contrast on white */
+  --hf-accent:          oklch(0.70 0.19 52);
+  --hf-accent-dim:      oklch(0.58 0.17 48);
+  --hf-accent-glow:     oklch(0.70 0.19 52 / 0.18);
+  --hf-accent-text:     oklch(0.58 0.17 48);
+
+  /* Status tokens — deeper for readability on white */
+  --hf-score-high:    oklch(0.58 0.18 150);
+  --hf-score-mid:     oklch(0.62 0.15 72);
+  --hf-score-low:     oklch(0.55 0.22 25);
+  --hf-success:       oklch(0.58 0.18 150);
+  --hf-success-bg:    oklch(0.58 0.18 150 / 0.10);
+  --hf-warning:       oklch(0.62 0.15 72);
+  --hf-warning-bg:    oklch(0.62 0.15 72 / 0.10);
+  --hf-danger:        oklch(0.55 0.22 25);
+  --hf-danger-bg:     oklch(0.55 0.22 25 / 0.10);
+  --hf-info:          oklch(0.58 0.18 220);
+  --hf-info-bg:       oklch(0.58 0.18 220 / 0.10);
+}
+
+/* ═══════════════════════════════════════════
+   App shell
+═══════════════════════════════════════════ */
+.hf-app {
+  display: flex;
+  min-height: 100dvh;
+  background: var(--hf-bg);
+  color: var(--hf-text-primary);
+  font-family: 'Geist Variable', sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.hf-main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+/* ═══════════════════════════════════════════
+   Sidebar
+═══════════════════════════════════════════ */
+.hf-sidebar {
+  width: 240px;
+  height: 100dvh;
+  position: sticky;
+  top: 0;
+  background: var(--hf-surface);
+  border-right: 1px solid var(--hf-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+  z-index: 40;
+  overflow: hidden;
+}
+
+.hf-sidebar--collapsed { width: 64px; }
+
+/* Brand row */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 14px;
+  border-bottom: 1px solid var(--hf-border);
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  min-height: 60px;
+}
+
+.sidebar-brand-icon {
+  color: var(--hf-accent);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px var(--hf-accent-glow));
+  display: flex;
+}
+
+.sidebar-brand-name {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--hf-accent), var(--hf-accent-dim));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.3px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Collapse toggle — inline with brand, top of sidebar */
+.sidebar-toggle-top {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--hf-surface-2);
+  border: 1px solid var(--hf-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--hf-text-muted);
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+  margin-left: auto;
+}
+.sidebar-toggle-top:hover {
+  background: var(--hf-surface-3);
+  color: var(--hf-accent);
+  border-color: var(--hf-border-glow);
+}
+
+/* Nav */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  padding: 10px 8px;
+  overflow: hidden;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  color: var(--hf-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all 0.18s ease;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: left;
+  width: 100%;
+}
+.sidebar-nav-item:hover {
+  background: var(--hf-surface-2);
+  color: var(--hf-text-primary);
+  border-color: var(--hf-border);
+}
+.sidebar-nav-item--active {
+  background: var(--hf-accent-glow);
+  border-color: var(--hf-border-glow);
+  color: var(--hf-accent-text);
+  font-weight: 600;
+}
+.sidebar-nav-icon { flex-shrink: 0; display: flex; }
+.sidebar-nav-label { flex: 1; }
+.sidebar-nav-badge {
+  background: var(--hf-accent);
+  color: oklch(0.10 0 0);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 99px;
+  flex-shrink: 0;
+}
+.sidebar-active-bar {
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 55%;
+  background: var(--hf-accent);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 10px var(--hf-accent-glow);
+}
+
+/* Footer: theme toggle */
+.sidebar-footer {
+  padding: 10px 8px 14px;
+  border-top: 1px solid var(--hf-border);
+  flex-shrink: 0;
+}
+.sidebar-theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  width: 100%;
+  border-radius: 10px;
+  background: var(--hf-surface-2);
+  border: 1px solid var(--hf-border);
+  cursor: pointer;
+  color: var(--hf-text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.sidebar-theme-btn:hover {
+  background: var(--hf-surface-3);
+  color: var(--hf-accent);
+  border-color: var(--hf-border-glow);
+}
+.sidebar-theme-btn svg { flex-shrink: 0; }

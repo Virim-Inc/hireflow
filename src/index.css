@@ -1,0 +1,305 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    color-scheme: light dark;
+
+    /* Base colors */
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+
+    /* ── HireFlow brand tokens (ORANGE theme) ── */
+    --hf-bg:            oklch(0.10 0.020 250);
+    --hf-surface:       oklch(0.14 0.018 250);
+    --hf-surface-2:     oklch(0.18 0.016 250);
+    --hf-surface-3:     oklch(0.22 0.014 250);
+    --hf-border:        oklch(0.30 0.018 250);
+    --hf-border-glow:   oklch(0.75 0.18 55 / 0.35);
+
+    --hf-accent:        oklch(0.75 0.18 55);
+    --hf-accent-dim:    oklch(0.60 0.16 50);
+    --hf-accent-glow:   oklch(0.75 0.18 55 / 0.25);
+    --hf-accent-text:   oklch(0.82 0.12 55);
+
+    --hf-text-primary:  oklch(0.96 0.005 250);
+    --hf-text-secondary:oklch(0.68 0.012 250);
+    --hf-text-muted:    oklch(0.50 0.010 250);
+
+    /* Card/toolbar tokens */
+    --hf-card-bg:         oklch(0.15 0.018 250);
+    --hf-card-hover-bg:   oklch(0.17 0.018 250);
+    --hf-shadow:          oklch(0 0 0 / 0.5);
+    --hf-toolbar-bg:      oklch(0.11 0.020 250 / 0.95);
+
+    /* Rank tokens */
+    --hf-gold:          oklch(0.85 0.17 85);
+    --hf-gold-glow:     oklch(0.85 0.17 85 / 0.30);
+    --hf-silver:        oklch(0.78 0.04 250);
+    --hf-silver-glow:   oklch(0.78 0.04 250 / 0.25);
+    --hf-bronze:        oklch(0.68 0.12 48);
+    --hf-bronze-glow:   oklch(0.68 0.12 48 / 0.25);
+
+    /* Status tokens */
+    --hf-success:       oklch(0.72 0.18 160);
+    --hf-success-bg:    oklch(0.72 0.18 160 / 0.12);
+    --hf-warning:       oklch(0.78 0.15 72);
+    --hf-warning-bg:    oklch(0.78 0.15 72 / 0.12);
+    --hf-danger:        oklch(0.65 0.22 25);
+    --hf-danger-bg:     oklch(0.65 0.22 25 / 0.12);
+    --hf-info:          oklch(0.70 0.18 220);
+    --hf-info-bg:       oklch(0.70 0.18 220 / 0.12);
+
+    /* Score range colors */
+    --hf-score-high:    oklch(0.72 0.18 160);
+    --hf-score-mid:     oklch(0.78 0.15 72);
+    --hf-score-low:     oklch(0.65 0.22 25);
+}
+
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0% 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.75 0.18 55);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}
+
+
+/* ─────────────────────────────────────────
+   Glassmorphism utility classes
+───────────────────────────────────────── */
+.glass {
+  background: oklch(1 0 0 / 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(1 0 0 / 0.08);
+}
+
+.glass-strong {
+  background: oklch(1 0 0 / 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid oklch(1 0 0 / 0.12);
+}
+
+.glass-card {
+  background: var(--hf-surface);
+  border: 1px solid var(--hf-border);
+  border-radius: 16px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--hf-border-glow);
+  box-shadow: 0 0 0 1px var(--hf-border-glow), 0 8px 32px oklch(0 0 0 / 0.4);
+}
+
+/* ─────────────────────────────────────────
+   Scrollbar styling
+───────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hf-border) transparent;
+}
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--hf-border); border-radius: 99px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--hf-text-muted); }
+
+/* ─────────────────────────────────────────
+   Keyframe animations
+───────────────────────────────────────── */
+@keyframes hf-spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes hf-pulse-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.05); }
+}
+@keyframes hf-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes hf-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+@keyframes hf-badge-pop {
+  0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+  70%  { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@keyframes hf-skeleton-wave {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+@keyframes hf-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+@keyframes hf-particle-drift {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.3; }
+  100% { transform: translate(var(--dx, 60px), var(--dy, -120px)) rotate(360deg); opacity: 0; }
+}
+
+/* Animated background orb slow drift */
+@keyframes animated-bg-orb-drift {
+  0%   { transform: translate(-50%, -50%) translate(0px, 0px) scale(1); }
+  25%  { transform: translate(-50%, -50%) translate(60px, -40px) scale(1.1); }
+  50%  { transform: translate(-50%, -50%) translate(-30px, 70px) scale(0.95); }
+  75%  { transform: translate(-50%, -50%) translate(-80px, -20px) scale(1.05); }
+  100% { transform: translate(-50%, -50%) translate(0px, 0px) scale(1); }
+}
+
+.animated-bg-orb {
+  animation: animated-bg-orb-drift linear infinite;
+  animation-timing-function: ease-in-out;
+}
+
+/* ─────────────────────────────────────────
+   Skeleton / Loading
+───────────────────────────────────────── */
+.hf-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--hf-surface-2) 25%,
+    var(--hf-surface-3) 50%,
+    var(--hf-surface-2) 75%
+  );
+  background-size: 400px 100%;
+  animation: hf-skeleton-wave 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ─────────────────────────────────────────
+   Gradient text utility
+───────────────────────────────────────── */
+.hf-gradient-text {
+  background: linear-gradient(135deg, var(--hf-accent-text), var(--hf-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hf-gradient-text-gold {
+  background: linear-gradient(135deg, var(--hf-gold), oklch(0.92 0.12 85));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

@@ -1,0 +1,116 @@
+/* ============================================================
+   AnimatedIcon CSS Animations
+   Flaticon-style animated icon presets
+   ============================================================ */
+
+.animated-icon {
+  display: inline-block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Pulse — gentle scale up/down */
+.animated-icon--pulse {
+  animation: icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* Float — gentle up/down drift */
+.animated-icon--float {
+  animation: icon-float 3s ease-in-out infinite;
+}
+
+@keyframes icon-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Wiggle — small rotation shake */
+.animated-icon--wiggle {
+  animation: icon-wiggle 2.5s ease-in-out infinite;
+}
+
+@keyframes icon-wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(-6deg);
+  }
+  30% {
+    transform: rotate(6deg);
+  }
+  45% {
+    transform: rotate(-4deg);
+  }
+  60% {
+    transform: rotate(4deg);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+  90% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Bounce — vertical bounce */
+.animated-icon--bounce {
+  animation: icon-bounce 1.8s ease-in-out infinite;
+}
+
+@keyframes icon-bounce {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  40% {
+    transform: translateY(-6px);
+    animation-timing-function: ease-in;
+  }
+  65% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Spin — continuous rotation */
+.animated-icon--spin {
+  animation: icon-spin 3s linear infinite;
+}
+
+@keyframes icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* None — no animation */
+.animated-icon--none {
+  animation: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animated-icon {
+    animation: none !important;
+  }
+}

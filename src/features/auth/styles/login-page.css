@@ -1,0 +1,523 @@
+/* ============================================================
+   LoginPage Styles — Orange + White Theme
+   Inspired by flowmingo.ai: clean, bold, modern
+   ============================================================ */
+
+/* ---- Splash Intro Overlay ---- */
+.splash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+}
+
+/* The single row: "Hire" + rolling columns */
+.splash-text-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  user-select: none;
+}
+
+/* Static "Hire" word */
+.splash-hire {
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-weight: 800;
+  color: var(--foreground);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+/* Dash separator */
+.splash-dash {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 300;
+  color: var(--muted-foreground);
+  line-height: 1;
+  opacity: 0.6;
+  margin: 0 0.1em;
+  flex-shrink: 0;
+}
+
+/* Container for all rolling char columns */
+.splash-roller-row {
+  display: flex;
+  align-items: center;
+  gap: 0.04em;
+}
+
+/* Individual character column — overflow hidden crops the strip */
+.splash-col {
+  overflow: hidden;
+  /* Height = exactly 1 character row */
+  height: 1.05em;
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  line-height: 1.05;
+}
+
+/* The strip inside each column: 2 rows stacked vertically */
+.splash-col-strip {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Each character cell */
+.splash-char {
+  display: block;
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  height: 1.05em;
+  white-space: pre;
+  text-align: center;
+  min-width: 0.1em;
+}
+
+/* First row: "Smartly." chars — orange accent gradient */
+.splash-char--from {
+  background: linear-gradient(
+    135deg,
+    oklch(0.75 0.18 55) 0%,
+    oklch(0.60 0.16 50) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Second row: "HireFlow" chars — foreground color */
+.splash-char--to {
+  color: var(--foreground);
+}
+
+
+
+/* Full-page layout */
+.login-page {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: oklch(0.12 0.015 250);
+}
+
+/* Decorative gradient mesh behind the card */
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 70vw;
+  height: 70vw;
+  max-width: 800px;
+  max-height: 800px;
+  background: radial-gradient(
+    circle,
+    oklch(0.75 0.18 55 / 0.12) 0%,
+    oklch(0.60 0.16 50 / 0.06) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-page::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  left: -15%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 700px;
+  max-height: 700px;
+  background: radial-gradient(
+    circle,
+    oklch(0.75 0.18 55 / 0.08) 0%,
+    oklch(0.60 0.16 50 / 0.04) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Content layer above background */
+.login-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.25rem;
+  width: 100%;
+  max-width: 440px;
+  padding: 2.5rem 1.5rem;
+}
+
+/* ---- Brand section ---- */
+.login-brand {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.login-brand-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, oklch(0.75 0.18 55 / 0.15), oklch(0.60 0.16 50 / 0.08));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid oklch(0.75 0.18 55 / 0.25);
+  margin-bottom: 0.25rem;
+  box-shadow: 0 0 24px oklch(0.75 0.18 55 / 0.15);
+}
+
+.login-brand-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, oklch(0.82 0.12 55), oklch(0.75 0.18 55));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.login-brand-subtitle {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  letter-spacing: 0.02em;
+  font-weight: 400;
+}
+
+/* ---- Glassmorphism Card ---- */
+.login-card-wrapper {
+  width: 100%;
+}
+
+.login-card {
+  background: oklch(1 0 0 / 0.05) !important;
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border: 1px solid oklch(1 0 0 / 0.10) !important;
+  border-radius: 20px !important;
+  box-shadow:
+    0 0 0 1px oklch(0.75 0.18 55 / 0.06),
+    0 8px 48px oklch(0 0 0 / 0.28),
+    0 2px 8px oklch(0 0 0 / 0.12),
+    inset 0 1px 0 oklch(1 0 0 / 0.08);
+  padding: 8px !important;
+}
+
+.login-card-header {
+  text-align: center;
+  padding-bottom: 0 !important;
+}
+
+.login-card-title {
+  font-size: 1.3rem !important;
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+
+.login-card-desc {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+/* ---- Form ---- */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+/* Lucide icon animations — now orange */
+.login-icon-float {
+  color: oklch(0.75 0.18 55);
+  animation: login-icon-float 3s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.login-icon-wiggle {
+  color: oklch(0.75 0.18 55);
+  animation: login-icon-wiggle 2.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.login-icon-pulse {
+  color: oklch(0.75 0.18 55);
+  animation: login-icon-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes login-icon-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes login-icon-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(-8deg); }
+  30% { transform: rotate(8deg); }
+  45% { transform: rotate(-5deg); }
+  60% { transform: rotate(5deg); }
+  75% { transform: rotate(-2deg); }
+  90% { transform: rotate(0deg); }
+}
+
+@keyframes login-icon-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.18); opacity: 1; }
+}
+
+.login-input {
+  height: 2.85rem !important;
+  border-radius: 12px !important;
+  background: oklch(1 0 0 / 0.06) !important;
+  border-color: oklch(1 0 0 / 0.12) !important;
+  color: var(--foreground) !important;
+  font-size: 0.875rem !important;
+  padding-inline: 0.95rem !important;
+  transition: all 0.2s ease;
+}
+
+.login-input:focus-visible {
+  border-color: oklch(0.75 0.18 55 / 0.6) !important;
+  box-shadow: 0 0 0 3px oklch(0.75 0.18 55 / 0.15) !important;
+  background: oklch(1 0 0 / 0.10) !important;
+}
+
+.login-input::placeholder {
+  color: var(--muted-foreground) !important;
+  opacity: 0.6;
+}
+
+/* ---- Options row ---- */
+.login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.login-remember {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-remember-label {
+  font-size: 0.8125rem !important;
+  font-weight: 400 !important;
+  color: var(--muted-foreground) !important;
+  cursor: pointer;
+}
+
+.login-forgot {
+  font-size: 0.8125rem;
+  color: oklch(0.75 0.18 55);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.login-forgot:hover {
+  color: oklch(0.82 0.12 55);
+  text-decoration: underline;
+}
+
+/* ---- Submit button — Flowmingo-style orange CTA ---- */
+.login-submit {
+  width: 100%;
+  height: 2.85rem !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, oklch(0.75 0.18 55), oklch(0.65 0.19 48)) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 2px 12px oklch(0.75 0.18 55 / 0.30),
+    inset 0 1px 0 oklch(1 0 0 / 0.15);
+  letter-spacing: 0.01em;
+}
+
+.login-submit::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    oklch(1 0 0 / 0.15) 0%,
+    transparent 50%,
+    oklch(1 0 0 / 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.login-submit:hover::before {
+  opacity: 1;
+}
+
+.login-submit:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 28px oklch(0.75 0.18 55 / 0.40),
+    inset 0 1px 0 oklch(1 0 0 / 0.2);
+}
+
+.login-submit:active {
+  transform: translateY(0);
+}
+
+/* Spinner */
+.login-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid oklch(1 0 0 / 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: login-spin 0.6s linear infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- Divider ---- */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.login-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.login-divider-text {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ---- Social buttons ---- */
+.login-social {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.login-social-btn {
+  height: 2.6rem !important;
+  font-size: 0.8125rem !important;
+  gap: 0.5rem !important;
+  border-radius: 12px !important;
+  background: oklch(1 0 0 / 0.05) !important;
+  border-color: oklch(1 0 0 / 0.10) !important;
+  color: var(--foreground) !important;
+  transition: all 0.2s ease;
+}
+
+.login-social-btn:hover {
+  background: oklch(1 0 0 / 0.10) !important;
+  border-color: oklch(0.75 0.18 55 / 0.35) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px oklch(0 0 0 / 0.15);
+}
+
+/* ---- Sign up link ---- */
+.login-signup {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.login-signup-link {
+  color: oklch(0.75 0.18 55);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.login-signup-link:hover {
+  color: oklch(0.82 0.12 55);
+  text-decoration: underline;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 480px) {
+  .login-content {
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
+  }
+
+  .login-brand-title {
+    font-size: 1.5rem;
+  }
+
+  .login-card {
+    padding-top: 1rem !important;
+  }
+
+  .login-social {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .login-submit:hover {
+    transform: none;
+  }
+
+  .login-social-btn:hover {
+    transform: none;
+  }
+
+  .login-spinner {
+    animation-duration: 1.5s;
+  }
+}
