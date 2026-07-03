@@ -585,8 +585,8 @@
   padding: 14px;
 }
 .modal-email-box--reply {
-  border-color: oklch(0.75 0.18 55 / 0.3);
-  background: oklch(0.75 0.18 55 / 0.04);
+  border-color: oklch(0.65 0.20 250 / 0.3);
+  background: oklch(0.65 0.20 250 / 0.04);
 }
 .modal-email-meta {
   display: flex;
@@ -1027,8 +1027,8 @@
   border-radius: 99px;
   font-size: 10.5px;
   font-weight: 500;
-  background: oklch(0.75 0.18 55 / 0.08);
-  border: 1px solid oklch(0.75 0.18 55 / 0.25);
+  background: oklch(0.65 0.20 250 / 0.08);
+  border: 1px solid oklch(0.65 0.20 250 / 0.25);
   color: var(--hf-accent-text);
 }
 
@@ -1294,8 +1294,8 @@
   border-radius: 99px;
   font-size: 10.5px;
   font-weight: 500;
-  background: oklch(0.75 0.18 55 / 0.08);
-  border: 1px solid oklch(0.75 0.18 55 / 0.25);
+  background: oklch(0.65 0.20 250 / 0.08);
+  border: 1px solid oklch(0.65 0.20 250 / 0.25);
   color: var(--hf-accent-text);
 }
 
@@ -1510,7 +1510,7 @@
 
 .cand-card-v2:hover {
   background: var(--hf-surface-2);
-  border-color: oklch(0.75 0.18 55 / 0.4);
+  border-color: oklch(0.65 0.20 250 / 0.4);
 }
 
 .cand-top-new { display: flex; gap: 14px; }

@@ -22,15 +22,16 @@ const LEVEL_COLORS = {
   expert: 'var(--hf-success)',
 };
 
-function BreakdownBar({ label, value }: { label: string; value: number }) {
-  const color = value >= 85 ? 'var(--hf-score-high)' : value >= 65 ? 'var(--hf-score-mid)' : 'var(--hf-score-low)';
+function BreakdownBar({ label, value, max }: { label: string; value: number; max: number }) {
+  const pct = Math.min((value / max) * 100, 100);
+  const color = pct >= 66 ? 'var(--hf-score-high)' : pct >= 33 ? 'var(--hf-score-mid)' : 'var(--hf-score-low)';
   return (
     <div className="modal-breakdown-item">
       <span className="modal-breakdown-label">{label}</span>
       <div className="modal-breakdown-bar-track">
-        <div className="modal-breakdown-bar-fill" style={{ width: `${value}%`, background: color }} />
+        <div className="modal-breakdown-bar-fill" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="modal-breakdown-val" style={{ color }}>{value}</span>
+      <span className="modal-breakdown-val" style={{ color }}>{value}<span style={{ opacity: 0.45, fontSize: '0.7em' }}>/{max}</span></span>
     </div>
   );
 }
@@ -116,7 +117,7 @@ export function EmailPreviewModal({ candidate, onClose, onSend, onResend, action
           </div>
 
           <div className="modal-header-right">
-            <div className="modal-grade-big" style={{ color: candidate.totalScore >= 85 ? 'var(--hf-score-high)' : candidate.totalScore >= 65 ? 'var(--hf-score-mid)' : 'var(--hf-score-low)' }}>
+            <div className="modal-grade-big" style={{ color: candidate.totalScore >= 66 ? 'var(--hf-score-high)' : candidate.totalScore >= 33 ? 'var(--hf-score-mid)' : 'var(--hf-score-low)' }}>
               {candidate.totalScore}
               <span className="modal-grade-label">Total Score</span>
             </div>
@@ -151,12 +152,12 @@ export function EmailPreviewModal({ candidate, onClose, onSend, onResend, action
             <section className="modal-section">
               <div className="modal-section-label">Score Breakdown</div>
               <div className="modal-breakdown-grid">
-                <BreakdownBar label="Frontend" value={candidate.frontendScore} />
-                <BreakdownBar label="Backend" value={candidate.backendScore} />
-                <BreakdownBar label="Database" value={candidate.databaseScore} />
-                <BreakdownBar label="AI / ML" value={candidate.aiMlScore} />
-                <BreakdownBar label="Exp." value={candidate.expScore} />
-                <BreakdownBar label="Soft" value={candidate.softScore} />
+                <BreakdownBar label="Frontend" value={candidate.frontendScore} max={25} />
+                <BreakdownBar label="Backend" value={candidate.backendScore} max={25} />
+                <BreakdownBar label="Database" value={candidate.databaseScore} max={20} />
+                <BreakdownBar label="AI / ML" value={candidate.aiMlScore} max={15} />
+                <BreakdownBar label="Exp." value={candidate.expScore} max={10} />
+                <BreakdownBar label="Soft" value={candidate.softScore} max={5} />
               </div>
             </section>
 

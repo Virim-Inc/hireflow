@@ -1,28 +1,29 @@
 /* ═══════════════════════════════════════════
-   App-level theme vars — ORANGE + WHITE
+   App-level theme vars — BLUE + WHITE
 ═══════════════════════════════════════════ */
 
 /* Dark mode (default) */
 .hf-app--dark {
-  --hf-bg:              oklch(0.10 0.015 250);
-  --hf-surface:         oklch(0.14 0.012 250);
-  --hf-surface-2:       oklch(0.18 0.010 250);
-  --hf-surface-3:       oklch(0.22 0.008 250);
-  --hf-border:          oklch(0.28 0.012 250);
-  --hf-border-glow:     oklch(0.75 0.18 55 / 0.35);
-  --hf-text-primary:    oklch(0.96 0.005 60);
-  --hf-text-secondary:  oklch(0.68 0.010 250);
-  --hf-text-muted:      oklch(0.46 0.008 250);
-  --hf-card-bg:         oklch(0.14 0.012 250);
-  --hf-card-hover-bg:   oklch(0.17 0.012 250);
-  --hf-shadow:          oklch(0 0 0 / 0.5);
-  --hf-toolbar-bg:      oklch(0.11 0.015 250 / 0.95);
+  /* Obsidian Glow Theme */
+  --hf-bg:              oklch(0.12 0.02 270);
+  --hf-surface:         oklch(0.16 0.02 270 / 0.65);
+  --hf-surface-2:       oklch(0.20 0.02 270 / 0.75);
+  --hf-surface-3:       oklch(0.24 0.02 270 / 0.85);
+  --hf-border:          oklch(1 0 0 / 0.08);
+  --hf-border-glow:     oklch(0.70 0.18 240 / 0.5);
+  --hf-text-primary:    oklch(0.98 0 0);
+  --hf-text-secondary:  oklch(0.75 0.01 270);
+  --hf-text-muted:      oklch(0.55 0.01 270);
+  --hf-card-bg:         oklch(0.15 0.02 270 / 0.45);
+  --hf-card-hover-bg:   oklch(0.20 0.03 270 / 0.55);
+  --hf-shadow:          oklch(0 0 0 / 0.8);
+  --hf-toolbar-bg:      oklch(0.14 0.02 270 / 0.75);
 
-  /* Orange accent — vivid on dark */
-  --hf-accent:          oklch(0.75 0.18 55);
-  --hf-accent-dim:      oklch(0.60 0.16 50);
-  --hf-accent-glow:     oklch(0.75 0.18 55 / 0.22);
-  --hf-accent-text:     oklch(0.82 0.12 55);
+  /* Vivid Neon Cyan-Blue Accent */
+  --hf-accent:          oklch(0.70 0.18 240);
+  --hf-accent-dim:      oklch(0.55 0.16 250);
+  --hf-accent-glow:     oklch(0.70 0.18 240 / 0.4);
+  --hf-accent-text:     oklch(0.85 0.12 230);
 }
 
 /* Light mode — Clean white Flowmingo-inspired */
@@ -32,20 +33,20 @@
   --hf-surface-2:       oklch(0.96 0.004 60);
   --hf-surface-3:       oklch(0.93 0.006 60);
   --hf-border:          oklch(0.88 0.008 60);
-  --hf-border-glow:     oklch(0.75 0.18 55 / 0.30);
+  --hf-border-glow:     oklch(0.65 0.20 250 / 0.30);
   --hf-text-primary:    oklch(0.15 0.010 250);
   --hf-text-secondary:  oklch(0.38 0.012 250);
   --hf-text-muted:      oklch(0.55 0.008 250);
   --hf-card-bg:         oklch(1 0 0);
-  --hf-card-hover-bg:   oklch(0.98 0.005 55);
+  --hf-card-hover-bg:   oklch(0.98 0.005 250);
   --hf-shadow:          oklch(0.50 0.010 250 / 0.12);
   --hf-toolbar-bg:      oklch(1 0 0 / 0.96);
 
-  /* Orange accent — slightly deeper for contrast on white */
-  --hf-accent:          oklch(0.70 0.19 52);
-  --hf-accent-dim:      oklch(0.58 0.17 48);
-  --hf-accent-glow:     oklch(0.70 0.19 52 / 0.18);
-  --hf-accent-text:     oklch(0.58 0.17 48);
+  /* Blue accent — slightly deeper for contrast on white */
+  --hf-accent:          oklch(0.55 0.20 250);
+  --hf-accent-dim:      oklch(0.45 0.18 255);
+  --hf-accent-glow:     oklch(0.55 0.20 250 / 0.18);
+  --hf-accent-text:     oklch(0.45 0.18 255);
 
   /* Status tokens — deeper for readability on white */
   --hf-score-high:    oklch(0.58 0.18 150);
@@ -71,6 +72,29 @@
   color: var(--hf-text-primary);
   font-family: 'Geist Variable', sans-serif;
   transition: background 0.3s ease, color 0.3s ease;
+  position: relative;
+  isolation: isolate;
+}
+
+.hf-app--dark::before, .hf-app--dark::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.hf-app--dark::before {
+  background: radial-gradient(circle at 15% 40%, oklch(0.70 0.18 240 / 0.08), transparent 45%);
+  animation: hf-bg-pulse 12s ease-in-out infinite alternate;
+}
+.hf-app--dark::after {
+  background: radial-gradient(circle at 85% 70%, oklch(0.65 0.20 300 / 0.06), transparent 50%);
+  animation: hf-bg-pulse 15s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes hf-bg-pulse {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+  100% { transform: scale(1.1) translate(-2%, 3%); opacity: 1; }
 }
 
 .hf-main-content {
@@ -96,6 +120,8 @@
   transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
   z-index: 40;
   overflow: hidden;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .hf-sidebar--collapsed { width: 64px; }
@@ -189,6 +215,7 @@
   background: var(--hf-surface-2);
   color: var(--hf-text-primary);
   border-color: var(--hf-border);
+  transform: translateX(4px);
 }
 .sidebar-nav-item--active {
   background: var(--hf-accent-glow);

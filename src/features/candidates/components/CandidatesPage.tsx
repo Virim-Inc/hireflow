@@ -17,14 +17,14 @@ function initials(name: string) {
 }
 
 function scoreClass(s: number) {
-  if (s >= 65) return 'cd-score-pill--high';
-  if (s >= 40) return 'cd-score-pill--mid';
+  if (s >= 66) return 'cd-score-pill--high';
+  if (s >= 33) return 'cd-score-pill--mid';
   return 'cd-score-pill--low';
 }
 
 function scoreColor(s: number) {
-  if (s >= 65) return 'var(--hf-score-high)';
-  if (s >= 40) return 'var(--hf-score-mid)';
+  if (s >= 66) return 'var(--hf-score-high)';
+  if (s >= 33) return 'var(--hf-score-mid)';
   return 'var(--hf-score-low)';
 }
 
@@ -80,9 +80,9 @@ function DrawerScoreBar({ label, score, max }: { label: string; score: number; m
     <div className="cd-drawer-score-item">
       <div className="cd-drawer-score-label">{label}</div>
       <div className="cd-drawer-score-bar-wrap">
-        <div ref={barRef} className="cd-drawer-score-bar" style={{ background: scoreColor(score), width: '0%' }} />
+        <div ref={barRef} className="cd-drawer-score-bar" style={{ background: scoreColor(pct), width: '0%' }} />
       </div>
-      <div className="cd-drawer-score-val" style={{ color: scoreColor(score) }}>
+      <div className="cd-drawer-score-val" style={{ color: scoreColor(pct) }}>
         {score}<span style={{ opacity: 0.45, fontSize: '0.7em' }}>/{max}</span>
       </div>
     </div>

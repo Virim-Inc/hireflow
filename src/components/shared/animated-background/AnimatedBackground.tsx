@@ -188,37 +188,37 @@ export function AnimatedBackground({
     });
   }, [orbCount]);
 
-  // Orb gradient colors — orange/amber palette
+  // Orb gradient colors — blue palette
   const orbColors = [
-    "radial-gradient(circle, oklch(0.75 0.18 55 / 0.40), transparent 70%)",
-    "radial-gradient(circle, oklch(0.65 0.19 48 / 0.35), transparent 70%)",
-    "radial-gradient(circle, oklch(0.80 0.14 65 / 0.32), transparent 70%)",
-    "radial-gradient(circle, oklch(0.60 0.16 50 / 0.35), transparent 70%)",
-    "radial-gradient(circle, oklch(0.70 0.17 42 / 0.30), transparent 70%)",
-    "radial-gradient(circle, oklch(0.85 0.12 70 / 0.28), transparent 70%)",
+    "radial-gradient(circle, oklch(0.65 0.20 250 / 0.40), transparent 70%)",
+    "radial-gradient(circle, oklch(0.55 0.20 255 / 0.35), transparent 70%)",
+    "radial-gradient(circle, oklch(0.80 0.14 250 / 0.32), transparent 70%)",
+    "radial-gradient(circle, oklch(0.50 0.18 255 / 0.35), transparent 70%)",
+    "radial-gradient(circle, oklch(0.60 0.18 250 / 0.30), transparent 70%)",
+    "radial-gradient(circle, oklch(0.85 0.10 250 / 0.28), transparent 70%)",
   ];
 
-  // Repellable shape definitions — orange theme
+  // Repellable shape definitions — blue theme
   const shapeConfigs = [
     // Large translucent circles
-    { type: "circle", size: 80, color: "oklch(0.75 0.18 55 / 0.10)", border: "oklch(0.75 0.18 55 / 0.35)", repelRadius: 180, repelStrength: 9, opacity: 0.75 },
-    { type: "circle", size: 55, color: "oklch(0.65 0.19 48 / 0.08)", border: "oklch(0.65 0.19 48 / 0.40)", repelRadius: 140, repelStrength: 10, opacity: 0.7 },
-    { type: "circle", size: 40, color: "transparent", border: "oklch(0.80 0.14 65 / 0.45)", repelRadius: 130, repelStrength: 11, opacity: 0.65 },
-    { type: "circle", size: 65, color: "oklch(0.60 0.16 50 / 0.07)", border: "oklch(0.60 0.16 50 / 0.35)", repelRadius: 160, repelStrength: 8, opacity: 0.7 },
+    { type: "circle", size: 80, color: "oklch(0.65 0.20 250 / 0.10)", border: "oklch(0.65 0.20 250 / 0.35)", repelRadius: 180, repelStrength: 9, opacity: 0.75 },
+    { type: "circle", size: 55, color: "oklch(0.55 0.20 255 / 0.08)", border: "oklch(0.55 0.20 255 / 0.40)", repelRadius: 140, repelStrength: 10, opacity: 0.7 },
+    { type: "circle", size: 40, color: "transparent", border: "oklch(0.80 0.14 250 / 0.45)", repelRadius: 130, repelStrength: 11, opacity: 0.65 },
+    { type: "circle", size: 65, color: "oklch(0.50 0.18 255 / 0.07)", border: "oklch(0.50 0.18 255 / 0.35)", repelRadius: 160, repelStrength: 8, opacity: 0.7 },
     // Diamonds (rotated squares)
-    { type: "diamond", size: 48, color: "oklch(0.70 0.17 42 / 0.08)", border: "oklch(0.70 0.17 42 / 0.45)", repelRadius: 150, repelStrength: 12, opacity: 0.65 },
-    { type: "diamond", size: 30, color: "transparent", border: "oklch(0.85 0.12 70 / 0.50)", repelRadius: 120, repelStrength: 13, opacity: 0.6 },
-    { type: "diamond", size: 62, color: "oklch(0.75 0.18 55 / 0.05)", border: "oklch(0.75 0.18 55 / 0.30)", repelRadius: 170, repelStrength: 7, opacity: 0.55 },
+    { type: "diamond", size: 48, color: "oklch(0.60 0.18 250 / 0.08)", border: "oklch(0.60 0.18 250 / 0.45)", repelRadius: 150, repelStrength: 12, opacity: 0.65 },
+    { type: "diamond", size: 30, color: "transparent", border: "oklch(0.85 0.10 250 / 0.50)", repelRadius: 120, repelStrength: 13, opacity: 0.6 },
+    { type: "diamond", size: 62, color: "oklch(0.65 0.20 250 / 0.05)", border: "oklch(0.65 0.20 250 / 0.30)", repelRadius: 170, repelStrength: 7, opacity: 0.55 },
     // Glowing dots
-    { type: "dot", size: 8, color: "oklch(0.75 0.18 55 / 0.85)", border: "none", repelRadius: 100, repelStrength: 14, opacity: 0.85 },
-    { type: "dot", size: 6, color: "oklch(0.80 0.14 65 / 0.80)", border: "none", repelRadius: 90, repelStrength: 15, opacity: 0.8 },
-    { type: "dot", size: 10, color: "oklch(0.65 0.19 48 / 0.75)", border: "none", repelRadius: 110, repelStrength: 13, opacity: 0.8 },
-    { type: "dot", size: 5, color: "oklch(0.70 0.17 42 / 0.85)", border: "none", repelRadius: 85, repelStrength: 16, opacity: 0.75 },
-    { type: "dot", size: 7, color: "oklch(0.85 0.12 70 / 0.80)", border: "none", repelRadius: 95, repelStrength: 14, opacity: 0.8 },
+    { type: "dot", size: 8, color: "oklch(0.65 0.20 250 / 0.85)", border: "none", repelRadius: 100, repelStrength: 14, opacity: 0.85 },
+    { type: "dot", size: 6, color: "oklch(0.80 0.14 250 / 0.80)", border: "none", repelRadius: 90, repelStrength: 15, opacity: 0.8 },
+    { type: "dot", size: 10, color: "oklch(0.55 0.20 255 / 0.75)", border: "none", repelRadius: 110, repelStrength: 13, opacity: 0.8 },
+    { type: "dot", size: 5, color: "oklch(0.60 0.18 250 / 0.85)", border: "none", repelRadius: 85, repelStrength: 16, opacity: 0.75 },
+    { type: "dot", size: 7, color: "oklch(0.85 0.10 250 / 0.80)", border: "none", repelRadius: 95, repelStrength: 14, opacity: 0.8 },
     // Rings (large hollow circles)
-    { type: "ring", size: 120, color: "transparent", border: "oklch(0.75 0.18 55 / 0.18)", repelRadius: 200, repelStrength: 6, opacity: 0.5 },
-    { type: "ring", size: 90, color: "transparent", border: "oklch(0.80 0.14 65 / 0.15)", repelRadius: 180, repelStrength: 7, opacity: 0.45 },
-    { type: "ring", size: 150, color: "transparent", border: "oklch(0.60 0.16 50 / 0.12)", repelRadius: 220, repelStrength: 5, opacity: 0.4 },
+    { type: "ring", size: 120, color: "transparent", border: "oklch(0.65 0.20 250 / 0.18)", repelRadius: 200, repelStrength: 6, opacity: 0.5 },
+    { type: "ring", size: 90, color: "transparent", border: "oklch(0.80 0.14 250 / 0.15)", repelRadius: 180, repelStrength: 7, opacity: 0.45 },
+    { type: "ring", size: 150, color: "transparent", border: "oklch(0.50 0.18 255 / 0.12)", repelRadius: 220, repelStrength: 5, opacity: 0.4 },
   ];
 
   return (
@@ -240,7 +240,7 @@ export function AnimatedBackground({
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(135deg, var(--background) 0%, oklch(0.14 0.015 45) 50%, var(--background) 100%)",
+            "linear-gradient(135deg, transparent 0%, oklch(0.14 0.015 250 / 0.3) 50%, transparent 100%)",
         }}
       />
 
@@ -340,12 +340,12 @@ export function AnimatedBackground({
             borderRadius: "50%",
             background:
               i % 4 === 0
-                ? "oklch(0.75 0.18 55 / 0.65)"
+                ? "oklch(0.65 0.20 250 / 0.65)"
                 : i % 4 === 1
                   ? "oklch(0.985 0 0 / 0.5)"
                   : i % 4 === 2
-                    ? "oklch(0.80 0.14 65 / 0.60)"
-                    : "oklch(0.65 0.19 48 / 0.55)",
+                    ? "oklch(0.80 0.14 250 / 0.60)"
+                    : "oklch(0.55 0.20 255 / 0.55)",
             willChange: "transform, opacity",
           }}
         />
@@ -367,7 +367,7 @@ export function AnimatedBackground({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at center, transparent 35%, oklch(0.145 0 0 / 0.6) 100%)",
+            "radial-gradient(ellipse at center, transparent 35%, oklch(0.10 0.015 250 / 0.8) 100%)",
         }}
       />
 
@@ -381,7 +381,7 @@ export function AnimatedBackground({
           height: "500px",
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, oklch(0.75 0.18 55 / 0.08) 0%, oklch(0.65 0.19 48 / 0.03) 50%, transparent 70%)",
+            "radial-gradient(circle, oklch(0.65 0.20 250 / 0.08) 0%, oklch(0.55 0.20 255 / 0.03) 50%, transparent 70%)",
           pointerEvents: "none",
           transform: "translate(-50%, -50%)",
           willChange: "left, top, opacity",

@@ -35,10 +35,10 @@ const REC_STYLE: Record<Recommendation, { icon: React.ReactNode; color: string; 
   'Strong No Hire': { icon: <ShieldX size={12} />, color: '#ef4444', border: 'rgba(239, 68, 68, 0.4)' },
 };
 
-function getScoreColor(val: number) {
-  if (val >= 75) return '#22c55e';
-  if (val >= 50) return '#eab308';
-  return '#ef4444';
+function getScoreColor(pct: number) {
+  if (pct >= 66) return 'var(--hf-score-high)';
+  if (pct >= 33) return 'var(--hf-score-mid)';
+  return 'var(--hf-score-low)';
 }
 
 const LEVEL_COLORS = {
@@ -140,24 +140,27 @@ export function CandidateCard({ candidate, onCardClick, onViewEmail, onSend, onR
       {/* ── SCORE BARS ── */}
       <div className="cand-score-bars-new">
         {[
-          { lbl: 'Front', val: candidate.frontendScore },
-          { lbl: 'Back', val: candidate.backendScore },
-          { lbl: 'DB', val: candidate.databaseScore },
-          { lbl: 'AI/ML', val: candidate.aiMlScore },
-          { lbl: 'Exp', val: candidate.expScore },
-          { lbl: 'Soft', val: candidate.softScore },
-        ].map(s => (
-          <div key={s.lbl} className="cand-score-col">
-            <div className="cand-score-col-val" style={{ color: getScoreColor(s.val) }}>{s.val}</div>
-            <div className="cand-score-col-track">
-              <div
-                className="cand-score-col-fill"
-                style={{ width: `${s.val}%`, background: getScoreColor(s.val) }}
-              />
+          { lbl: 'Front', val: candidate.frontendScore, max: 25 },
+          { lbl: 'Back', val: candidate.backendScore, max: 25 },
+          { lbl: 'DB', val: candidate.databaseScore, max: 20 },
+          { lbl: 'AI/ML', val: candidate.aiMlScore, max: 15 },
+          { lbl: 'Exp', val: candidate.expScore, max: 10 },
+          { lbl: 'Soft', val: candidate.softScore, max: 5 },
+        ].map(s => {
+          const pct = Math.min((s.val / s.max) * 100, 100);
+          return (
+            <div key={s.lbl} className="cand-score-col">
+              <div className="cand-score-col-val" style={{ color: getScoreColor(pct) }}>{s.val}</div>
+              <div className="cand-score-col-track">
+                <div
+                  className="cand-score-col-fill"
+                  style={{ width: `${pct}%`, background: getScoreColor(pct) }}
+                />
+              </div>
+              <div className="cand-score-col-lbl">{s.lbl}</div>
             </div>
-            <div className="cand-score-col-lbl">{s.lbl}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ── SKILLS ── */}

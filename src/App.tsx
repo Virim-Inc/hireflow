@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LoginPage } from './features/auth';
 import { EmailRankingPage } from './features/email-ranking';
 import { CandidatesPage } from './features/candidates';
@@ -9,9 +9,16 @@ type Page = 'login' | 'candidates' | 'email-ranking';
 export type Theme = 'dark' | 'light';
 
 function App() {
-  const [page, setPage] = useState<Page>('login');
+  const [page, setPage] = useState<Page>(() => {
+    const saved = localStorage.getItem('hf_currentPage');
+    return (saved as Page) || 'login';
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState<Theme>('dark');
+
+  useEffect(() => {
+    localStorage.setItem('hf_currentPage', page);
+  }, [page]);
 
   const handleLogin = () => setPage('candidates');
   const navigate = (p: Exclude<Page, 'login'>) => setPage(p);

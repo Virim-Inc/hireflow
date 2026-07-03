@@ -1,5 +1,5 @@
 /* ============================================================
-   LoginPage Styles — Orange + White Theme
+   LoginPage Styles — Blue + White Theme
    Inspired by flowmingo.ai: clean, bold, modern
    ============================================================ */
 
@@ -78,12 +78,12 @@
   min-width: 0.1em;
 }
 
-/* First row: "Smartly." chars — orange accent gradient */
+/* First row: "Smartly." chars — blue accent gradient */
 .splash-char--from {
   background: linear-gradient(
     135deg,
-    oklch(0.75 0.18 55) 0%,
-    oklch(0.60 0.16 50) 100%
+    oklch(0.65 0.20 250) 0%,
+    oklch(0.50 0.18 255) 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -120,8 +120,8 @@
   max-height: 800px;
   background: radial-gradient(
     circle,
-    oklch(0.75 0.18 55 / 0.12) 0%,
-    oklch(0.60 0.16 50 / 0.06) 40%,
+    oklch(0.65 0.20 250 / 0.12) 0%,
+    oklch(0.50 0.18 255 / 0.06) 40%,
     transparent 70%
   );
   border-radius: 50%;
@@ -140,8 +140,8 @@
   max-height: 700px;
   background: radial-gradient(
     circle,
-    oklch(0.75 0.18 55 / 0.08) 0%,
-    oklch(0.60 0.16 50 / 0.04) 40%,
+    oklch(0.65 0.20 250 / 0.08) 0%,
+    oklch(0.50 0.18 255 / 0.04) 40%,
     transparent 70%
   );
   border-radius: 50%;
@@ -178,18 +178,18 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, oklch(0.75 0.18 55 / 0.15), oklch(0.60 0.16 50 / 0.08));
+  background: linear-gradient(135deg, oklch(0.65 0.20 250 / 0.15), oklch(0.50 0.18 255 / 0.08));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid oklch(0.75 0.18 55 / 0.25);
+  border: 1px solid oklch(0.65 0.20 250 / 0.25);
   margin-bottom: 0.25rem;
-  box-shadow: 0 0 24px oklch(0.75 0.18 55 / 0.15);
+  box-shadow: 0 0 24px oklch(0.65 0.20 250 / 0.15);
 }
 
 .login-brand-title {
   font-size: 1.85rem;
   font-weight: 800;
-  background: linear-gradient(135deg, oklch(0.82 0.12 55), oklch(0.75 0.18 55));
+  background: linear-gradient(135deg, oklch(0.80 0.14 250), oklch(0.65 0.20 250));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -216,7 +216,7 @@
   border: 1px solid oklch(1 0 0 / 0.10) !important;
   border-radius: 20px !important;
   box-shadow:
-    0 0 0 1px oklch(0.75 0.18 55 / 0.06),
+    0 0 0 1px oklch(0.65 0.20 250 / 0.06),
     0 8px 48px oklch(0 0 0 / 0.28),
     0 2px 8px oklch(0 0 0 / 0.12),
     inset 0 1px 0 oklch(1 0 0 / 0.08);
@@ -262,21 +262,21 @@
   font-weight: 500;
 }
 
-/* Lucide icon animations — now orange */
+/* Lucide icon animations — now blue */
 .login-icon-float {
-  color: oklch(0.75 0.18 55);
+  color: oklch(0.65 0.20 250);
   animation: login-icon-float 3s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 .login-icon-wiggle {
-  color: oklch(0.75 0.18 55);
+  color: oklch(0.65 0.20 250);
   animation: login-icon-wiggle 2.5s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 .login-icon-pulse {
-  color: oklch(0.75 0.18 55);
+  color: oklch(0.65 0.20 250);
   animation: login-icon-pulse 2s ease-in-out infinite;
   flex-shrink: 0;
 }
@@ -313,8 +313,8 @@
 }
 
 .login-input:focus-visible {
-  border-color: oklch(0.75 0.18 55 / 0.6) !important;
-  box-shadow: 0 0 0 3px oklch(0.75 0.18 55 / 0.15) !important;
+  border-color: oklch(0.65 0.20 250 / 0.6) !important;
+  box-shadow: 0 0 0 3px oklch(0.65 0.20 250 / 0.15) !important;
   background: oklch(1 0 0 / 0.10) !important;
 }
 
@@ -345,32 +345,32 @@
 
 .login-forgot {
   font-size: 0.8125rem;
-  color: oklch(0.75 0.18 55);
+  color: oklch(0.65 0.20 250);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .login-forgot:hover {
-  color: oklch(0.82 0.12 55);
+  color: oklch(0.80 0.14 250);
   text-decoration: underline;
 }
 
-/* ---- Submit button — Flowmingo-style orange CTA ---- */
+/* ---- Submit button — Flowmingo-style blue CTA ---- */
 .login-submit {
   width: 100%;
   height: 2.85rem !important;
   font-size: 0.9375rem !important;
   font-weight: 600;
   border-radius: 12px !important;
-  background: linear-gradient(135deg, oklch(0.75 0.18 55), oklch(0.65 0.19 48)) !important;
+  background: linear-gradient(135deg, oklch(0.65 0.20 250), oklch(0.55 0.20 255)) !important;
   color: white !important;
   border: none !important;
   transition: all 0.25s ease;
   position: relative;
   overflow: hidden;
   box-shadow:
-    0 2px 12px oklch(0.75 0.18 55 / 0.30),
+    0 2px 12px oklch(0.65 0.20 250 / 0.30),
     inset 0 1px 0 oklch(1 0 0 / 0.15);
   letter-spacing: 0.01em;
 }
@@ -396,7 +396,7 @@
 .login-submit:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 6px 28px oklch(0.75 0.18 55 / 0.40),
+    0 6px 28px oklch(0.65 0.20 250 / 0.40),
     inset 0 1px 0 oklch(1 0 0 / 0.2);
 }
 
@@ -463,7 +463,7 @@
 
 .login-social-btn:hover {
   background: oklch(1 0 0 / 0.10) !important;
-  border-color: oklch(0.75 0.18 55 / 0.35) !important;
+  border-color: oklch(0.65 0.20 250 / 0.35) !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 16px oklch(0 0 0 / 0.15);
 }
@@ -476,14 +476,14 @@
 }
 
 .login-signup-link {
-  color: oklch(0.75 0.18 55);
+  color: oklch(0.65 0.20 250);
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .login-signup-link:hover {
-  color: oklch(0.82 0.12 55);
+  color: oklch(0.80 0.14 250);
   text-decoration: underline;
 }
 

@@ -35,13 +35,13 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, oklch(0.75 0.18 55) 0%, oklch(0.60 0.16 50) 100%);
+  background: linear-gradient(135deg, oklch(0.65 0.20 250) 0%, oklch(0.50 0.18 255) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 0 20px oklch(0.75 0.18 55 / 0.35);
+  box-shadow: 0 0 20px oklch(0.65 0.20 250 / 0.35);
 }
 
 .cd-header-text h1 {
@@ -74,8 +74,8 @@
 }
 
 .cd-refresh-btn:hover {
-  border-color: oklch(0.75 0.18 55 / 0.6);
-  color: oklch(0.75 0.18 55);
+  border-color: oklch(0.65 0.20 250 / 0.6);
+  color: oklch(0.65 0.20 250);
 }
 
 .cd-refresh-btn:active {
@@ -129,7 +129,7 @@
   border-color: var(--hf-border-glow);
   color: var(--hf-accent-text);
   font-weight: 600;
-  box-shadow: 0 2px 8px oklch(0.75 0.18 55 / 0.12);
+  box-shadow: 0 2px 8px oklch(0.65 0.20 250 / 0.12);
 }
 
 .cd-source-tab-count {
@@ -142,7 +142,7 @@
 }
 
 .cd-source-tab--active .cd-source-tab-count {
-  background: oklch(0.75 0.18 55 / 0.20);
+  background: oklch(0.65 0.20 250 / 0.20);
   color: var(--hf-accent-text);
 }
 
@@ -233,8 +233,8 @@
 }
 
 .cd-search:focus {
-  border-color: oklch(0.75 0.18 55 / 0.5);
-  box-shadow: 0 0 0 3px oklch(0.75 0.18 55 / 0.12);
+  border-color: oklch(0.65 0.20 250 / 0.5);
+  box-shadow: 0 0 0 3px oklch(0.65 0.20 250 / 0.12);
 }
 
 .cd-select {
@@ -255,7 +255,7 @@
 }
 
 .cd-select:focus {
-  border-color: oklch(0.75 0.18 55 / 0.5);
+  border-color: oklch(0.65 0.20 250 / 0.5);
 }
 
 /* ── Table container ─────────────────────────────────────── */
@@ -333,7 +333,7 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: linear-gradient(135deg, oklch(0.75 0.18 55) 0%, oklch(0.60 0.16 50) 100%);
+  background: linear-gradient(135deg, oklch(0.65 0.20 250) 0%, oklch(0.50 0.18 255) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -369,9 +369,9 @@
 }
 
 .cd-source-badge--form {
-  background: oklch(0.75 0.18 55 / 0.10);
+  background: oklch(0.65 0.20 250 / 0.10);
   color: var(--hf-accent);
-  border: 1px solid oklch(0.75 0.18 55 / 0.25);
+  border: 1px solid oklch(0.65 0.20 250 / 0.25);
 }
 
 .cd-source-badge--email {
@@ -569,7 +569,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid var(--hf-border);
-  border-top-color: oklch(0.75 0.18 55);
+  border-top-color: oklch(0.65 0.20 250);
   border-radius: 50%;
   animation: cd-spin 0.8s linear infinite;
 }
@@ -617,8 +617,8 @@
 }
 
 .cd-page-btn:hover:not(:disabled) {
-  border-color: oklch(0.75 0.18 55 / 0.5);
-  color: oklch(0.75 0.18 55);
+  border-color: oklch(0.65 0.20 250 / 0.5);
+  color: oklch(0.65 0.20 250);
 }
 
 .cd-page-btn:disabled {
@@ -627,9 +627,9 @@
 }
 
 .cd-page-btn--active {
-  background: oklch(0.75 0.18 55 / 0.12);
-  border-color: oklch(0.75 0.18 55 / 0.5);
-  color: oklch(0.75 0.18 55);
+  background: oklch(0.65 0.20 250 / 0.12);
+  border-color: oklch(0.65 0.20 250 / 0.5);
+  color: oklch(0.65 0.20 250);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -750,7 +750,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, oklch(0.75 0.18 55 / 0.06) 0%, transparent 50%);
+  background: linear-gradient(135deg, oklch(0.65 0.20 250 / 0.06) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -758,7 +758,7 @@
   width: 72px;
   height: 72px;
   border-radius: 16px;
-  background: linear-gradient(135deg, oklch(0.75 0.18 55) 0%, oklch(0.60 0.16 50) 100%);
+  background: linear-gradient(135deg, oklch(0.65 0.20 250) 0%, oklch(0.50 0.18 255) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -766,7 +766,7 @@
   font-weight: 800;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 4px 20px oklch(0.75 0.18 55 / 0.30);
+  box-shadow: 0 4px 20px oklch(0.65 0.20 250 / 0.30);
 }
 
 .cd-detail-info {
@@ -946,7 +946,7 @@
 /* ── Summary / note box ──────────────────────────────────── */
 .cd-summary-box {
   background: var(--hf-surface-2);
-  border-left: 3px solid oklch(0.75 0.18 55);
+  border-left: 3px solid oklch(0.65 0.20 250);
   border-radius: 0 10px 10px 0;
   padding: 12px 14px;
   font-size: 0.83rem;
