@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import { Users, ChevronLeft, ChevronRight, ShieldCheck, Sun, Moon, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Users, ChevronLeft, ChevronRight, ShieldCheck, Sun, Moon, KanbanSquare } from 'lucide-react';
 import type { Theme } from '../../App';
 
-type Page = 'candidates' | 'email-ranking';
+type Page = 'dashboard' | 'candidates' | 'pipeline';
 
 interface SidebarProps {
   currentPage: Page;
@@ -15,8 +15,9 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS: { id: Page; label: string; icon: React.ReactNode }[] = [
-  { id: 'candidates',     label: 'All Candidates',  icon: <Users size={18} /> },
-  { id: 'email-ranking',  label: 'AI Rankings',     icon: <BarChart3 size={18} /> },
+  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+  { id: 'candidates', label: 'Candidate Explorer', icon: <Users size={18} /> },
+  { id: 'pipeline', label: 'Hiring Pipeline', icon: <KanbanSquare size={18} /> },
 ];
 
 export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, onToggleTheme }: SidebarProps) {

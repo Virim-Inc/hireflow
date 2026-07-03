@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 interface AnimatedBackgroundProps {
   /** Number of floating gradient orbs */
@@ -30,6 +30,11 @@ interface FloatingShape {
   driftAngle: number;
 }
 
+function pseudoRandom(seed: number): number {
+  const value = Math.sin(seed * 12.9898) * 43758.5453;
+  return value - Math.floor(value);
+}
+
 /**
  * Reusable animated background component with cursor-repel physics.
  * Floating shapes drift peacefully; the cursor pushes them away.
@@ -47,6 +52,15 @@ export function AnimatedBackground({
   const cursorGlowRef = useRef<HTMLDivElement>(null);
   const mouseRef = useRef({ x: -9999, y: -9999 });
   const rafRef = useRef<number>(0);
+  const particleSpecs = useMemo(
+    () =>
+      Array.from({ length: particleCount }, (_, i) => ({
+        key: `particle-${i}`,
+        opacity: 0.5 + pseudoRandom(i + 1) * 0.35,
+        size: 1.5 + pseudoRandom(i + 101) * 2.5,
+      })),
+    [particleCount]
+  );
 
   /* ── cursor tracking ─────────────────────────────────────────── */
   useEffect(() => {
@@ -325,18 +339,18 @@ export function AnimatedBackground({
       })}
 
       {/* Small floating particles */}
-      {Array.from({ length: particleCount }).map((_, i) => (
+      {particleSpecs.map((particle, i) => (
         <div
-          key={`particle-${i}`}
+          key={particle.key}
           data-repel-shape
           data-repel-size={3}
-          data-repel-opacity={0.5 + Math.random() * 0.35}
+          data-repel-opacity={particle.opacity}
           data-repel-radius={80}
           data-repel-strength={18}
           style={{
             position: "absolute",
-            width: `${1.5 + Math.random() * 2.5}px`,
-            height: `${1.5 + Math.random() * 2.5}px`,
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
             borderRadius: "50%",
             background:
               i % 4 === 0

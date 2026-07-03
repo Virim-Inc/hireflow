@@ -1,209 +1,243 @@
 import '../styles/dashboard.css';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { Mail, Telescope, TrendingUp, Users, Clock, CheckCheck } from 'lucide-react';
+import {
+  ArrowRight,
+  Briefcase,
+  CheckCheck,
+  Clock3,
+  Inbox,
+  KanbanSquare,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
+import { fetchStats } from '../../candidates/services/candidateService';
+import type { CandidateStats } from '../../candidates/types/candidate.types';
+import { STAGE_META, getStageLabel } from '../../candidates/lib/pipeline';
 
-type Page = 'dashboard' | 'email-ranking' | 'jd-scout';
+type Page = 'dashboard' | 'candidates' | 'pipeline';
 
 interface DashboardHomeProps {
-  onNavigate: (page: Page) => void;
+  onNavigate: (page: Exclude<Page, 'dashboard'>) => void;
 }
 
-interface FeatureCardProps {
-  id: string;
+function StatCard({
+  label,
+  value,
+  helper,
+  icon,
+  accentClass,
+}: {
+  label: string;
+  value: string;
+  helper: string;
   icon: React.ReactNode;
-  emoji: string;
+  accentClass: string;
+}) {
+  return (
+    <article className={`dash-stat-card ${accentClass}`}>
+      <div className="dash-stat-top">
+        <span className="dash-stat-icon">{icon}</span>
+        <span className="dash-stat-label">{label}</span>
+      </div>
+      <strong className="dash-stat-value">{value}</strong>
+      <p className="dash-stat-helper">{helper}</p>
+    </article>
+  );
+}
+
+function ActionCard({
+  title,
+  description,
+  cta,
+  onClick,
+}: {
   title: string;
   description: string;
-  stats: { label: string; value: string; icon: React.ReactNode }[];
-  gradient: string;
-  glow: string;
-  ctaLabel: string;
+  cta: string;
   onClick: () => void;
-  index: number;
-}
-
-function FeatureCard({ id, icon, emoji, title, description, stats, gradient, glow, ctaLabel, onClick, index }: FeatureCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!cardRef.current) return;
-    gsap.fromTo(cardRef.current,
-      { opacity: 0, y: 50, scale: 0.95 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.65, delay: 0.3 + index * 0.15, ease: 'power3.out' }
-    );
-  }, [index]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = cardRef.current?.getBoundingClientRect();
-    if (!rect || !cardRef.current) return;
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    gsap.to(cardRef.current, { rotateY: x * 10, rotateX: -y * 7, duration: 0.3, ease: 'power2.out', transformPerspective: 900 });
-  };
-  const handleMouseLeave = () => {
-    if (!cardRef.current) return;
-    gsap.to(cardRef.current, { rotateY: 0, rotateX: 0, duration: 0.5, ease: 'power2.out' });
-  };
-
+}) {
   return (
-    <div
-      ref={cardRef}
-      id={id}
-      className="dash-feature-card glass-card"
-      style={{ opacity: 0, transformStyle: 'preserve-3d' }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Card glow on hover */}
-      <div className="dash-card-glow" style={{ background: glow }} />
-
-      {/* Top */}
-      <div className="dash-card-top">
-        <div className="dash-card-icon" style={{ background: gradient, boxShadow: `0 0 24px ${glow}` }}>
-          {icon}
-        </div>
-        <span className="dash-card-emoji">{emoji}</span>
+    <button className="dash-action-card glass-card" onClick={onClick}>
+      <div>
+        <h3>{title}</h3>
+        <p>{description}</p>
       </div>
-
-      {/* Content */}
-      <h2 className="dash-card-title">{title}</h2>
-      <p className="dash-card-desc">{description}</p>
-
-      {/* Mini stats */}
-      <div className="dash-card-stats">
-        {stats.map(s => (
-          <div key={s.label} className="dash-stat-item">
-            <span className="dash-stat-icon">{s.icon}</span>
-            <div>
-              <span className="dash-stat-val">{s.value}</span>
-              <span className="dash-stat-label">{s.label}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* CTA */}
-      <button
-        className="dash-cta-btn"
-        id={`${id}-cta`}
-        onClick={onClick}
-        style={{ background: gradient }}
-      >
-        {ctaLabel} →
-      </button>
-    </div>
+      <span>
+        {cta}
+        <ArrowRight size={15} />
+      </span>
+    </button>
   );
 }
 
 export function DashboardHome({ onNavigate }: DashboardHomeProps) {
-  const headerRef = useRef<HTMLDivElement>(null);
-  const welcomeRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [stats, setStats] = useState<CandidateStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    gsap.fromTo(headerRef.current,
-      { opacity: 0, y: -30 },
-      { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }
-    );
-    gsap.fromTo(welcomeRef.current,
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.6, delay: 0.15, ease: 'power3.out' }
-    );
+    if (!heroRef.current) return;
+    gsap.fromTo(heroRef.current, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' });
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadStats() {
+      try {
+        const result = await fetchStats();
+        if (active) setStats(result);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadStats();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const openPipeline = useMemo(() => {
+    if (!stats) return 0;
+    return stats.totalCandidates - stats.stageCounts.hired - stats.stageCounts.rejected;
+  }, [stats]);
+
+  const topPositions = stats?.topPositions.slice(0, 5) ?? [];
 
   return (
     <div className="dash-home">
-      {/* Welcome header */}
-      <div ref={headerRef} className="dash-hero" style={{ opacity: 0 }}>
-        <div className="dash-hero-badge">
-          <span className="dash-hero-dot" />
-          HireFlow Intelligence Platform
+      <section ref={heroRef} className="dash-hero-shell">
+        <div className="dash-hero-copy">
+          <span className="dash-hero-badge">
+            <Sparkles size={13} />
+            Hiring Overview
+          </span>
+          <h1>Dashboard</h1>
+          <p>Start here for hiring volume, pipeline movement, and role distribution before jumping into candidate review.</p>
         </div>
-        <h1 className="dash-hero-title">
-          Welcome back, <span className="hf-gradient-text">Recruiter</span>
-        </h1>
-        <p className="dash-hero-sub">
-          Your AI hiring co-pilot is ready. What would you like to do today?
-        </p>
-      </div>
 
-      {/* Quick stats bar */}
-      <div ref={welcomeRef} className="dash-quick-stats" style={{ opacity: 0 }}>
-        <div className="dash-qs-item">
-          <TrendingUp size={16} className="dash-qs-icon" />
-          <span className="dash-qs-val">8</span>
-          <span className="dash-qs-label">Ranked Today</span>
+        <div className="dash-hero-actions">
+          <ActionCard
+            title="Candidate Explorer"
+            description="Review resumes, filter by role/date/source, and move candidates with notes."
+            cta="Open Explorer"
+            onClick={() => onNavigate('candidates')}
+          />
+          <ActionCard
+            title="Hiring Pipeline"
+            description="See the full stage board from screening through hired."
+            cta="Open Pipeline"
+            onClick={() => onNavigate('pipeline')}
+          />
         </div>
-        <div className="dash-qs-divider" />
-        <div className="dash-qs-item">
-          <CheckCheck size={16} className="dash-qs-icon" style={{ color: 'var(--hf-success)' }} />
-          <span className="dash-qs-val">2</span>
-          <span className="dash-qs-label">Replies Sent</span>
-        </div>
-        <div className="dash-qs-divider" />
-        <div className="dash-qs-item">
-          <Clock size={16} className="dash-qs-icon" style={{ color: 'var(--hf-warning)' }} />
-          <span className="dash-qs-val">3</span>
-          <span className="dash-qs-label">Awaiting Reply</span>
-        </div>
-        <div className="dash-qs-divider" />
-        <div className="dash-qs-item">
-          <Users size={16} className="dash-qs-icon" style={{ color: 'var(--hf-accent)' }} />
-          <span className="dash-qs-val">6</span>
-          <span className="dash-qs-label">In Talent Pool</span>
-        </div>
-      </div>
+      </section>
 
-      {/* Feature cards */}
-      <div className="dash-cards-grid">
-        <FeatureCard
-          id="dash-email-ranking"
-          icon={<Mail size={24} color="white" />}
-          emoji="📧"
-          title="Candidate Ranking"
-          description="Automatically rank candidates who applied via email. AI compares each resume against your JD, scores them, and sends personalized replies — all in one place."
-          stats={[
-            { label: 'Ranked Today', value: '8', icon: <TrendingUp size={13} /> },
-            { label: 'Replied', value: '2', icon: <CheckCheck size={13} /> },
-            { label: 'Pending', value: '3', icon: <Clock size={13} /> },
-          ]}
-          gradient="linear-gradient(135deg, var(--hf-accent-dim), var(--hf-accent))"
-          glow="var(--hf-accent-glow)"
-          ctaLabel="View Rankings"
-          onClick={() => onNavigate('email-ranking')}
-          index={0}
+      <section className="dash-stats-grid">
+        <StatCard
+          label="Total Candidates"
+          value={loading ? '...' : String(stats?.totalCandidates ?? 0)}
+          helper={loading ? 'Loading candidates' : `${stats?.sourceBreakdown.form ?? 0} form and ${stats?.sourceBreakdown.email ?? 0} email applications`}
+          icon={<Users size={17} />}
+          accentClass="is-blue"
         />
-
-        <FeatureCard
-          id="dash-jd-scout"
-          icon={<Telescope size={24} color="white" />}
-          emoji="🔭"
-          title="JD Scout"
-          description="Proactively find top talent. Upload or describe a job role and let AI search the candidate pool, rank matches by skills, location, experience, and more."
-          stats={[
-            { label: 'Talent Pool', value: '6+', icon: <Users size={13} /> },
-            { label: 'Avg Match', value: '86%', icon: <TrendingUp size={13} /> },
-            { label: 'AI Criteria', value: '6', icon: <CheckCheck size={13} /> },
-          ]}
-          gradient="linear-gradient(135deg, oklch(0.45 0.20 300), oklch(0.60 0.22 280))"
-          glow="oklch(0.55 0.22 290 / 0.25)"
-          ctaLabel="Start Scouting"
-          onClick={() => onNavigate('jd-scout')}
-          index={1}
+        <StatCard
+          label="Qualified"
+          value={loading ? '...' : String(stats?.qualifiedCandidates ?? 0)}
+          helper={loading ? 'Loading qualified count' : `${stats?.averageScore ?? 0} average AI score`}
+          icon={<Target size={17} />}
+          accentClass="is-green"
         />
-      </div>
+        <StatCard
+          label="Open Pipeline"
+          value={loading ? '...' : String(openPipeline)}
+          helper={loading ? 'Loading pipeline' : `${stats?.movedThisWeek ?? 0} candidates moved this week`}
+          icon={<KanbanSquare size={17} />}
+          accentClass="is-amber"
+        />
+        <StatCard
+          label="Top Score"
+          value={loading ? '...' : String(stats?.topScore ?? 0)}
+          helper={loading ? 'Loading best score' : `${stats?.recommendationBreakdown.strongHire ?? 0} strong hire recommendations`}
+          icon={<TrendingUp size={17} />}
+          accentClass="is-pink"
+        />
+      </section>
 
-      {/* Bottom flow diagram hint */}
-      <div className="dash-flow-hint">
-        <div className="dash-flow-step">📨 Email Received</div>
-        <div className="dash-flow-arrow">→</div>
-        <div className="dash-flow-step">🧠 AI Compares JD</div>
-        <div className="dash-flow-arrow">→</div>
-        <div className="dash-flow-step">🏆 Ranked & Scored</div>
-        <div className="dash-flow-arrow">→</div>
-        <div className="dash-flow-step">✉️ Auto Reply Sent</div>
-      </div>
+      <section className="dash-lower-grid">
+        <article className="glass-card dash-panel">
+          <div className="dash-panel-head">
+            <h2>Pipeline Stages</h2>
+            <span>{stats?.totalCandidates ?? 0} total</span>
+          </div>
+          <div className="dash-stage-list">
+            {STAGE_META.map((stage) => (
+              <div key={stage.id} className="dash-stage-row">
+                <div>
+                  <strong>{getStageLabel(stage.id)}</strong>
+                  <span>{stage.description}</span>
+                </div>
+                <b>{stats?.stageCounts[stage.id] ?? 0}</b>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="glass-card dash-panel">
+          <div className="dash-panel-head">
+            <h2>Top Positions</h2>
+            <span>{topPositions.length} tracked</span>
+          </div>
+          <div className="dash-role-list">
+            {topPositions.length ? topPositions.map((position) => (
+              <div key={position.position} className="dash-role-row">
+                <div className="dash-role-icon"><Briefcase size={14} /></div>
+                <div className="dash-role-copy">
+                  <strong>{position.position}</strong>
+                  <span>{position.count} applicants</span>
+                </div>
+              </div>
+            )) : (
+              <p className="dash-empty-copy">No role data available yet.</p>
+            )}
+          </div>
+        </article>
+
+        <article className="glass-card dash-panel">
+          <div className="dash-panel-head">
+            <h2>Activity</h2>
+            <span>This week</span>
+          </div>
+          <div className="dash-activity-list">
+            <div className="dash-activity-item">
+              <span className="dash-activity-icon"><Inbox size={15} /></span>
+              <div>
+                <strong>{stats?.activeThisWeek ?? 0} active candidates</strong>
+                <span>Submitted or processed in the last 7 days</span>
+              </div>
+            </div>
+            <div className="dash-activity-item">
+              <span className="dash-activity-icon"><Clock3 size={15} /></span>
+              <div>
+                <strong>{stats?.stageCounts.screening ?? 0} in screening</strong>
+                <span>Fresh applicants waiting on recruiter action</span>
+              </div>
+            </div>
+            <div className="dash-activity-item">
+              <span className="dash-activity-icon"><CheckCheck size={15} /></span>
+              <div>
+                <strong>{stats?.stageCounts.hired ?? 0} hired</strong>
+                <span>Final confirmed outcomes in the current dataset</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
     </div>
   );
 }

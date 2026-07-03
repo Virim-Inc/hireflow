@@ -92,8 +92,35 @@ CREATE TABLE IF NOT EXISTS candidates (
   workdrive_file_name TEXT,
   source_folder_id    TEXT,
   processed_folder_id TEXT,
+  pipeline_stage      TEXT          NOT NULL DEFAULT 'screening'
+                                     CHECK (pipeline_stage IN (
+                                       'screening',
+                                       'shortlisted',
+                                       'ai_interview',
+                                       'in_person_interview',
+                                       'hired',
+                                       'rejected'
+                                     )),
+  pipeline_stage_updated_at TIMESTAMPTZ DEFAULT NOW(),
+  latest_stage_note   TEXT,
 
   created_at          TIMESTAMPTZ   DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS candidate_stage_history (
+  id            BIGSERIAL     PRIMARY KEY,
+  candidate_id  INTEGER       NOT NULL REFERENCES candidates(id) ON DELETE CASCADE,
+  from_stage    TEXT,
+  to_stage      TEXT          NOT NULL CHECK (to_stage IN (
+                    'screening',
+                    'shortlisted',
+                    'ai_interview',
+                    'in_person_interview',
+                    'hired',
+                    'rejected'
+                  )),
+  note          TEXT,
+  changed_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
 
@@ -104,6 +131,11 @@ CREATE INDEX IF NOT EXISTS idx_candidates_recommendation ON candidates (recommen
 CREATE INDEX IF NOT EXISTS idx_candidates_is_qualified   ON candidates (is_qualified);
 CREATE INDEX IF NOT EXISTS idx_candidates_processed_at   ON candidates (processed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_candidates_email          ON candidates (email);
+CREATE INDEX IF NOT EXISTS idx_candidates_pipeline_stage ON candidates (pipeline_stage);
+CREATE INDEX IF NOT EXISTS idx_candidates_position       ON candidates (position);
+CREATE INDEX IF NOT EXISTS idx_candidates_submitted_at   ON candidates (submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_candidate_stage_history_candidate_id
+  ON candidate_stage_history (candidate_id, changed_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_users_email               ON users (email);
 
@@ -116,5 +148,5 @@ SELECT
    AND   table_schema = 'public') AS column_count
 FROM information_schema.tables t
 WHERE table_schema = 'public'
-  AND table_name IN ('users', 'candidates')
+  AND table_name IN ('users', 'candidates', 'candidate_stage_history')
 ORDER BY table_name;

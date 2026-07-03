@@ -1,4 +1,13 @@
-// ── API types matching the PostgreSQL candidates table ──────────────────────
+export const PIPELINE_STAGES = [
+  'screening',
+  'shortlisted',
+  'ai_interview',
+  'in_person_interview',
+  'hired',
+  'rejected',
+] as const;
+
+export type PipelineStage = typeof PIPELINE_STAGES[number];
 
 export interface Candidate {
   id: number;
@@ -9,13 +18,12 @@ export interface Candidate {
   email: string;
   phone: string;
   position: string;
+  position_label: string;
   years_of_exp: number;
   linkedin: string;
   current_job_title: string;
   highest_degree: string;
   certifications: string;
-
-  // Skills
   frontend_skills: string;
   frontend_level: string;
   backend_skills: string;
@@ -27,12 +35,8 @@ export interface Candidate {
   cloud_devops: string;
   programming_langs: string;
   notable_projects: string;
-
-  // JD
   jd_title: string;
   jd_company: string;
-
-  // Scores
   total_score: number;
   frontend_score: number;
   backend_score: number;
@@ -43,8 +47,6 @@ export interface Candidate {
   grade: string;
   recommendation: string;
   is_qualified: boolean;
-
-  // Feedback
   summary: string;
   strengths: string;
   weaknesses: string;
@@ -53,12 +55,13 @@ export interface Candidate {
   database_feedback: string;
   ai_ml_feedback: string;
   hiring_note: string;
-
-  // WorkDrive metadata
   workdrive_file_id: string;
   workdrive_file_name: string;
   source_folder_id: string;
   processed_folder_id: string;
+  pipeline_stage: PipelineStage;
+  pipeline_stage_updated_at: string;
+  latest_stage_note: string | null;
 }
 
 export interface CandidatesResponse {
@@ -69,20 +72,43 @@ export interface CandidatesResponse {
   totalPages: number;
 }
 
+export interface CandidateStageHistoryItem {
+  id: number;
+  candidate_id: number;
+  from_stage: PipelineStage | null;
+  to_stage: PipelineStage;
+  note: string | null;
+  changed_at: string;
+}
+
 export interface CandidateStats {
-  total: string;
-  qualified: string;
-  not_qualified: string;
-  avg_score: string;
-  avg_frontend: string;
-  avg_backend: string;
-  avg_database: string;
-  strong_hire: string;
-  hire: string;
-  consider: string;
-  reject: string;
-  from_form: string;
-  from_email: string;
+  totalCandidates: number;
+  qualifiedCandidates: number;
+  averageScore: number;
+  topScore: number;
+  activeThisWeek: number;
+  movedThisWeek: number;
+  sourceBreakdown: {
+    form: number;
+    email: number;
+  };
+  recommendationBreakdown: {
+    strongHire: number;
+    hire: number;
+    consider: number;
+    reject: number;
+  };
+  stageCounts: Record<PipelineStage, number>;
+  topPositions: Array<{
+    position: string;
+    count: number;
+  }>;
+}
+
+export interface CandidateMeta {
+  positions: string[];
+  stages: PipelineStage[];
+  sources: string[];
 }
 
 export interface CandidateFilters {
@@ -90,8 +116,19 @@ export interface CandidateFilters {
   grade: string;
   recommendation: string;
   qualified: string;
+  stage: PipelineStage | '';
+  source: string;
+  position: string;
+  date_from: string;
+  date_to: string;
+  min_score: string;
   sort: string;
   order: 'asc' | 'desc';
   page: number;
   limit: number;
+}
+
+export interface UpdateCandidateStageInput {
+  stage: PipelineStage;
+  note?: string;
 }

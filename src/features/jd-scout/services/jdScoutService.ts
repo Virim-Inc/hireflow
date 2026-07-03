@@ -74,7 +74,8 @@ export const jdScoutService = {
     };
   },
 
-  async uploadAndParse(_file: File): Promise<Partial<JdFormData>> {
+  async uploadAndParse(file?: File): Promise<Partial<JdFormData>> {
+    void file;
     await new Promise(r => setTimeout(r, 1500));
     return {
       title: 'Senior Full Stack Engineer',

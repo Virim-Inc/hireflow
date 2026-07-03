@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
 import { LoginPage } from './features/auth';
-import { EmailRankingPage } from './features/email-ranking';
 import { CandidatesPage } from './features/candidates';
+import { DashboardHome } from './features/dashboard';
+import { PipelinePage } from './features/pipeline';
 import { Sidebar } from './components/shared/Sidebar';
 import './app.css';
 
-type Page = 'login' | 'candidates' | 'email-ranking';
+type Page = 'login' | 'dashboard' | 'candidates' | 'pipeline';
 export type Theme = 'dark' | 'light';
 
 function App() {
   const [page, setPage] = useState<Page>(() => {
     const saved = localStorage.getItem('hf_currentPage');
+    if (saved === 'email-ranking') return 'pipeline';
+    if (saved === 'dashboard' || saved === 'candidates' || saved === 'pipeline') return saved;
     return (saved as Page) || 'login';
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -20,7 +23,7 @@ function App() {
     localStorage.setItem('hf_currentPage', page);
   }, [page]);
 
-  const handleLogin = () => setPage('candidates');
+  const handleLogin = () => setPage('dashboard');
   const navigate = (p: Exclude<Page, 'login'>) => setPage(p);
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
@@ -39,8 +42,9 @@ function App() {
         onToggleTheme={toggleTheme}
       />
       <main className="hf-main-content">
+        {page === 'dashboard' && <DashboardHome onNavigate={navigate} />}
         {page === 'candidates' && <CandidatesPage />}
-        {page === 'email-ranking' && <EmailRankingPage />}
+        {page === 'pipeline' && <PipelinePage />}
       </main>
     </div>
   );

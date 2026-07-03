@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Candidate, CandidateFilters, EmailStats } from '../types/candidate.types';
 import { emailRankingService } from '../services/emailRankingService';
 
 export function useCandidates() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
   const [stats, setStats] = useState<EmailStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<CandidateFilters>({
@@ -29,9 +28,14 @@ export function useCandidates() {
     }
   }, []);
 
-  useEffect(() => { fetchCandidates(); }, [fetchCandidates]);
-
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      void fetchCandidates();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [fetchCandidates]);
+
+  const filteredCandidates = useMemo(() => {
     let result = [...candidates];
 
     // Filter by status
@@ -63,7 +67,7 @@ export function useCandidates() {
       return filters.sortOrder === 'asc' ? val : -val;
     });
 
-    setFilteredCandidates(result);
+    return result;
   }, [candidates, filters]);
 
   const updateCandidateStatus = useCallback((id: string, status: Candidate['status']) => {
