@@ -89,8 +89,19 @@ interface CandidateHistoryRow {
 interface StatsSummaryRow {
   total: string;
   qualified: string;
+  qualified_today: string;
+  qualified_this_month: string;
   avg_score: string | null;
   top_score: string | null;
+  top_score_today: string | null;
+  top_score_this_month: string | null;
+  open_pipeline: string;
+  open_today: string;
+  open_this_month: string;
+  active_today: string;
+  moved_today: string;
+  active_this_month: string;
+  moved_this_month: string;
   active_this_week: string;
   moved_this_week: string;
   from_form: string;
@@ -625,8 +636,19 @@ app.get('/api/stats', async (_req: Request, res: Response): Promise<void> => {
         SELECT
           COUNT(*)::text AS total,
           COUNT(*) FILTER (WHERE is_qualified = true)::text AS qualified,
+          COUNT(*) FILTER (WHERE is_qualified = true AND DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE)::text AS qualified_today,
+          COUNT(*) FILTER (WHERE is_qualified = true AND DATE_TRUNC('month', COALESCE(submitted_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE))::text AS qualified_this_month,
           ROUND(AVG(total_score)::numeric, 1)::text AS avg_score,
           COALESCE(MAX(total_score), 0)::text AS top_score,
+          COALESCE(MAX(total_score) FILTER (WHERE DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE), 0)::text AS top_score_today,
+          COALESCE(MAX(total_score) FILTER (WHERE DATE_TRUNC('month', COALESCE(submitted_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE)), 0)::text AS top_score_this_month,
+          COUNT(*) FILTER (WHERE pipeline_stage NOT IN ('hired', 'rejected'))::text AS open_pipeline,
+          COUNT(*) FILTER (WHERE pipeline_stage NOT IN ('hired', 'rejected') AND DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE)::text AS open_today,
+          COUNT(*) FILTER (WHERE pipeline_stage NOT IN ('hired', 'rejected') AND DATE_TRUNC('month', COALESCE(submitted_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE))::text AS open_this_month,
+          COUNT(*) FILTER (WHERE DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE)::text AS active_today,
+          COUNT(*) FILTER (WHERE DATE(COALESCE(pipeline_stage_updated_at, processed_at, NOW())) = CURRENT_DATE)::text AS moved_today,
+          COUNT(*) FILTER (WHERE DATE_TRUNC('month', COALESCE(submitted_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE))::text AS active_this_month,
+          COUNT(*) FILTER (WHERE DATE_TRUNC('month', COALESCE(pipeline_stage_updated_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE))::text AS moved_this_month,
           COUNT(*) FILTER (WHERE COALESCE(submitted_at, processed_at, NOW()) >= NOW() - INTERVAL '7 days')::text AS active_this_week,
           COUNT(*) FILTER (WHERE COALESCE(pipeline_stage_updated_at, processed_at, NOW()) >= NOW() - INTERVAL '7 days')::text AS moved_this_week,
           COUNT(*) FILTER (WHERE LOWER(source) = 'form')::text AS from_form,
@@ -656,8 +678,19 @@ app.get('/api/stats', async (_req: Request, res: Response): Promise<void> => {
     res.json({
       totalCandidates: asNumber(summary.total),
       qualifiedCandidates: asNumber(summary.qualified),
+      qualifiedToday: asNumber(summary.qualified_today),
+      qualifiedThisMonth: asNumber(summary.qualified_this_month),
       averageScore: asNumber(summary.avg_score),
       topScore: asNumber(summary.top_score),
+      topScoreToday: asNumber(summary.top_score_today),
+      topScoreThisMonth: asNumber(summary.top_score_this_month),
+      openPipeline: asNumber(summary.open_pipeline),
+      openToday: asNumber(summary.open_today),
+      openThisMonth: asNumber(summary.open_this_month),
+      activeToday: asNumber(summary.active_today),
+      movedToday: asNumber(summary.moved_today),
+      activeThisMonth: asNumber(summary.active_this_month),
+      movedThisMonth: asNumber(summary.moved_this_month),
       activeThisWeek: asNumber(summary.active_this_week),
       movedThisWeek: asNumber(summary.moved_this_week),
       sourceBreakdown: {

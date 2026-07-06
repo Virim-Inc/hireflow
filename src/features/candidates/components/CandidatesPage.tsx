@@ -1,6 +1,7 @@
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, Filter, RefreshCw, Search, Users } from 'lucide-react';
 import gsap from 'gsap';
+import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import { CandidateDetailDrawer } from './CandidateDetailDrawer';
 import {
   checkHealth,
@@ -128,7 +129,7 @@ function FilterDropdown({
   );
 }
 
-export function CandidatesPage() {
+export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<CandidateFilters> | null }) {
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState<CandidateFilters>(DEFAULT_FILTERS);
@@ -156,8 +157,21 @@ export function CandidatesPage() {
   }, [searchInput]);
 
   useEffect(() => {
+    if (!initialFilters) return;
+
+    setFilters({
+      ...DEFAULT_FILTERS,
+      ...initialFilters,
+      page: 1,
+    });
+    setSearchInput(initialFilters.search ?? '');
+  }, [initialFilters]);
+
+  useEffect(() => {
     if (!heroRef.current) return;
+    const textItems = heroRef.current.querySelectorAll('.hf-animate-text');
     gsap.fromTo(heroRef.current, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' });
+    gsap.fromTo(textItems, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, delay: 0.12, ease: 'power2.out' });
   }, []);
 
   useEffect(() => {
@@ -297,7 +311,7 @@ export function CandidatesPage() {
       <section ref={heroRef} className="hf-hero">
         <div className="hf-hero-copy">
           <div className="hf-hero-title-row">
-            <h1>Candidates</h1>
+            <h1 className="hf-animate-text">Candidates</h1>
             <button className="hf-primary-btn" onClick={() => void loadPage(true)}>
               <RefreshCw size={15} />
               Refresh Data
@@ -306,19 +320,19 @@ export function CandidatesPage() {
           <div className="hf-mini-stats-row">
             <div className="hf-mini-stat-card">
               <span>Total</span>
-              <strong>{stats?.totalCandidates ?? 0}</strong>
+              <strong><AnimatedCount value={stats?.totalCandidates ?? 0} /></strong>
             </div>
             <div className="hf-mini-stat-card">
               <span>Qualified</span>
-              <strong>{stats?.qualifiedCandidates ?? 0}</strong>
+              <strong><AnimatedCount value={stats?.qualifiedCandidates ?? 0} /></strong>
             </div>
             <div className="hf-mini-stat-card">
               <span>Screening</span>
-              <strong>{stats?.stageCounts.screening ?? 0}</strong>
+              <strong><AnimatedCount value={stats?.stageCounts.screening ?? 0} /></strong>
             </div>
             <div className="hf-mini-stat-card">
               <span>Shortlisted</span>
-              <strong>{stats?.stageCounts.shortlisted ?? 0}</strong>
+              <strong><AnimatedCount value={stats?.stageCounts.shortlisted ?? 0} /></strong>
             </div>
           </div>
           <div className="hf-hero-actions">

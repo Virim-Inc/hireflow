@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "api": "tsx server/index.ts",
+    "build:api": "tsc -p tsconfig.server.json",
+    "start:api:build": "node build-server/index.js",
     "dev:all": "concurrently -n \"vite,api\" -c \"cyan,green\" \"npm run dev\" \"npm run api\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

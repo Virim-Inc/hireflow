@@ -4,6 +4,7 @@ import { CandidatesPage } from './features/candidates';
 import { DashboardHome } from './features/dashboard';
 import { PipelinePage } from './features/pipeline';
 import { Sidebar } from './components/shared/Sidebar';
+import type { CandidateFilters } from './features/candidates/types/candidate.types';
 import './app.css';
 
 type Page = 'login' | 'dashboard' | 'candidates' | 'pipeline';
@@ -18,13 +19,26 @@ function App() {
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState<Theme>('dark');
+  const [candidateFilters, setCandidateFilters] = useState<Partial<CandidateFilters> | null>(null);
 
   useEffect(() => {
     localStorage.setItem('hf_currentPage', page);
   }, [page]);
 
   const handleLogin = () => setPage('dashboard');
-  const navigate = (p: Exclude<Page, 'login'>) => setPage(p);
+  const handleLogout = () => {
+    localStorage.clear();
+    setCandidateFilters(null);
+    setSidebarCollapsed(false);
+    setTheme('dark');
+    setPage('login');
+  };
+  const navigate = (p: Exclude<Page, 'login'>, nextFilters?: Partial<CandidateFilters>) => {
+    setPage(p);
+    if (p === 'candidates') {
+      setCandidateFilters(nextFilters ?? null);
+    }
+  };
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
   if (page === 'login') {
@@ -40,10 +54,11 @@ function App() {
         onToggle={() => setSidebarCollapsed(p => !p)}
         theme={theme}
         onToggleTheme={toggleTheme}
+        onLogout={handleLogout}
       />
       <main className="hf-main-content">
         {page === 'dashboard' && <DashboardHome onNavigate={navigate} />}
-        {page === 'candidates' && <CandidatesPage />}
+        {page === 'candidates' && <CandidatesPage initialFilters={candidateFilters} />}
         {page === 'pipeline' && <PipelinePage />}
       </main>
     </div>

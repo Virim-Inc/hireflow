@@ -1,28 +1,25 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Briefcase, RefreshCw, Search, Shuffle, TimerReset } from 'lucide-react';
+import { RefreshCw, Search, TimerReset } from 'lucide-react';
 import gsap from 'gsap';
+import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import { CandidateDetailDrawer } from '../../candidates/components/CandidateDetailDrawer';
 import {
   fetchCandidateHistory,
   fetchCandidateMeta,
   fetchCandidates,
-  fetchStats,
   updateCandidateStage,
 } from '../../candidates/services/candidateService';
 import type {
   Candidate,
   CandidateMeta,
   CandidateStageHistoryItem,
-  CandidateStats,
   PipelineStage,
 } from '../../candidates/types/candidate.types';
 import {
   STAGE_META,
   formatDate,
-  getStageLabel,
   initials,
   scoreClass,
-  sourceClass,
 } from '../../candidates/lib/pipeline';
 import '../../candidates/styles/candidates.css';
 import '../styles/pipeline.css';
@@ -30,7 +27,6 @@ import '../styles/pipeline.css';
 export function PipelinePage() {
   const boardRef = useRef<HTMLDivElement>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [stats, setStats] = useState<CandidateStats | null>(null);
   const [meta, setMeta] = useState<CandidateMeta | null>(null);
   const [selected, setSelected] = useState<Candidate | null>(null);
   const [history, setHistory] = useState<CandidateStageHistoryItem[]>([]);
@@ -39,32 +35,36 @@ export function PipelinePage() {
   const [search, setSearch] = useState('');
   const [position, setPosition] = useState('');
   const [source, setSource] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [draggedId, setDraggedId] = useState<number | null>(null);
+  const [dropStage, setDropStage] = useState<PipelineStage | null>(null);
 
   const loadBoard = useCallback(async (includeMeta = false) => {
     setLoading(true);
     try {
-      const [candidateRes, statsRes, metaRes] = await Promise.all([
+      const [candidateRes, metaRes] = await Promise.all([
         fetchCandidates({
           search,
           position,
           source,
+          date_from: dateFrom,
+          date_to: dateTo,
           sort: 'pipeline_stage_updated_at',
           order: 'desc',
           page: 1,
           limit: 200,
         }),
-        fetchStats(),
         includeMeta || !meta ? fetchCandidateMeta() : Promise.resolve(null),
       ]);
 
       setCandidates(candidateRes.data);
-      setStats(statsRes);
       if (metaRes) setMeta(metaRes);
     } finally {
       setLoading(false);
     }
-  }, [meta, position, search, source]);
+  }, [dateFrom, dateTo, meta, position, search, source]);
 
   const loadHistory = useCallback(async (candidateId: number) => {
     setHistoryLoading(true);
@@ -85,6 +85,8 @@ export function PipelinePage() {
   useEffect(() => {
     if (!boardRef.current || loading) return;
     const columns = boardRef.current.querySelectorAll('.pl-column');
+    const texts = boardRef.current.querySelectorAll('.pl-animate-text');
+    gsap.fromTo(texts, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, stagger: 0.05, ease: 'power2.out' });
     gsap.fromTo(columns, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.05 });
   }, [loading, candidates]);
 
@@ -96,53 +98,60 @@ export function PipelinePage() {
     return () => window.cancelAnimationFrame(frame);
   }, [loadHistory, selected]);
 
-  const grouped = useMemo(() => {
-    return STAGE_META.map((stage) => ({
+  const grouped = useMemo(() => (
+    STAGE_META.map((stage) => ({
       ...stage,
       candidates: candidates.filter((candidate) => candidate.pipeline_stage === stage.id),
-    }));
-  }, [candidates]);
+    }))
+  ), [candidates]);
 
   async function handleStageMove(candidate: Candidate, stage: PipelineStage, note?: string) {
+    if (candidate.pipeline_stage === stage) return;
+
     setUpdatingId(candidate.id);
+    setCandidates((current) =>
+      current.map((item) => (
+        item.id === candidate.id
+          ? {
+              ...item,
+              pipeline_stage: stage,
+              pipeline_stage_updated_at: new Date().toISOString(),
+              latest_stage_note: note ?? item.latest_stage_note,
+            }
+          : item
+      )),
+    );
+
     try {
       const updated = await updateCandidateStage(candidate.id, { stage, note });
       startTransition(() => {
         setSelected((current) => (current?.id === updated.id ? updated : current));
       });
+      setCandidates((current) => current.map((item) => (item.id === updated.id ? updated : item)));
       await Promise.all([loadBoard(false), loadHistory(candidate.id)]);
     } finally {
       setUpdatingId(null);
+      setDraggedId(null);
+      setDropStage(null);
     }
+  }
+
+  function handleDrop(targetStage: PipelineStage) {
+    if (draggedId === null) return;
+    const candidate = candidates.find((item) => item.id === draggedId);
+    if (!candidate) return;
+    void handleStageMove(candidate, targetStage);
   }
 
   return (
     <div className="pl-page">
-      <section className="pl-header glass-card">
-        <div>
-          <span className="hf-kicker">Operational Pipeline Board</span>
-          <h1>Move every applicant through the same hiring path with clear stage ownership.</h1>
-          <p>
-            Each candidate is grouped by current stage so recruiters can see backlog, advance interviews, and spot bottlenecks across roles.
-          </p>
-        </div>
-        <div className="pl-header-actions">
-          <button className="hf-primary-btn" onClick={() => void loadBoard(true)}>
-            <RefreshCw size={15} />
-            Refresh Board
-          </button>
-          <div className="pl-mini-stats">
-            <div><span>Open pipeline</span><strong>{stats ? stats.totalCandidates - stats.stageCounts.hired - stats.stageCounts.rejected : '-'}</strong></div>
-            <div><span>Shortlist</span><strong>{stats?.stageCounts.shortlisted ?? '-'}</strong></div>
-            <div><span>Hired</span><strong>{stats?.stageCounts.hired ?? '-'}</strong></div>
-          </div>
-        </div>
-      </section>
-
       <section className="pl-toolbar glass-card">
         <label className="hf-search-field">
-          <Search size={15} />
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search candidate, role, or email" />
+          <span>Search</span>
+          <div className="hf-search-box">
+            <Search size={15} />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search candidate" />
+          </div>
         </label>
 
         <label className="hf-select-field">
@@ -162,66 +171,76 @@ export function PipelinePage() {
           </select>
         </label>
 
-        <button className="hf-ghost-btn" onClick={() => { setSearch(''); setPosition(''); setSource(''); }}>
+        <label className="hf-select-field">
+          <span>Date from</span>
+          <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+        </label>
+
+        <label className="hf-select-field">
+          <span>Date to</span>
+          <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+        </label>
+
+        <button className="hf-ghost-btn" onClick={() => { setSearch(''); setPosition(''); setSource(''); setDateFrom(''); setDateTo(''); }}>
           <TimerReset size={14} />
           Reset
+        </button>
+
+        <button className="hf-primary-btn" onClick={() => void loadBoard(true)}>
+          <RefreshCw size={15} />
+          Refresh
         </button>
       </section>
 
       <div ref={boardRef} className="pl-board">
         {grouped.map((column) => (
-          <section key={column.id} className={`pl-column pl-column--${column.id}`}>
+          <section
+            key={column.id}
+            className={`pl-column pl-column--${column.id} ${dropStage === column.id ? 'is-drop-target' : ''}`}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDropStage(column.id);
+            }}
+            onDragLeave={() => setDropStage((current) => (current === column.id ? null : current))}
+            onDrop={(event) => {
+              event.preventDefault();
+              handleDrop(column.id);
+            }}
+          >
             <header className="pl-column-head">
-              <div>
-                <h2>{column.label}</h2>
-                <p>{column.description}</p>
-              </div>
-              <span>{column.candidates.length}</span>
+              <h2 className="pl-animate-text">{column.label}</h2>
+              <span><AnimatedCount value={column.candidates.length} /></span>
             </header>
 
             <div className="pl-column-body">
               {loading ? (
                 <div className="pl-empty">Loading...</div>
               ) : column.candidates.length === 0 ? (
-                <div className="pl-empty">No candidates here</div>
+                <div className="pl-empty">Drop candidate here</div>
               ) : (
                 column.candidates.map((candidate) => (
-                  <article key={candidate.id} className="pl-card glass-card">
-                    <button className="pl-card-main" onClick={() => setSelected(candidate)}>
-                      <div className="pl-card-headline">
+                  <article
+                    key={candidate.id}
+                    className={`pl-card glass-card ${draggedId === candidate.id ? 'is-dragging' : ''}`}
+                    draggable={updatingId !== candidate.id}
+                    onDragStart={() => setDraggedId(candidate.id)}
+                    onDragEnd={() => {
+                      setDraggedId(null);
+                      setDropStage(null);
+                    }}
+                  >
+                    <button className="pl-card-main pl-card-main--compact" onClick={() => setSelected(candidate)}>
+                      <div className="pl-card-identity">
                         <div className="hf-avatar">{initials(candidate.candidate_name)}</div>
-                        <div>
+                        <div className="pl-card-copy">
                           <strong>{candidate.candidate_name}</strong>
-                          <span>{candidate.position_label}</span>
+                          <span>{formatDate(candidate.submitted_at)}</span>
                         </div>
                       </div>
-
-                      <div className="hf-inline-meta">
+                      <div className="pl-card-right">
                         <span className={`hf-score-pill ${scoreClass(candidate.total_score)}`}>{candidate.total_score}</span>
-                        <span className={`hf-source-badge ${sourceClass(candidate.source)}`}>
-                          {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 'Form'}
-                        </span>
                       </div>
-
-                      <div className="pl-card-facts">
-                        <span><Briefcase size={12} />{candidate.years_of_exp} yrs</span>
-                        <span><Shuffle size={12} />{getStageLabel(candidate.pipeline_stage)}</span>
-                        <span>{formatDate(candidate.submitted_at)}</span>
-                      </div>
-
-                      <p>{candidate.summary || 'Open candidate details for the AI fit summary and next-step notes.'}</p>
                     </button>
-
-                    <div className="pl-card-actions">
-                      <select
-                        value={candidate.pipeline_stage}
-                        onChange={(event) => void handleStageMove(candidate, event.target.value as PipelineStage)}
-                        disabled={updatingId === candidate.id}
-                      >
-                        {STAGE_META.map((stage) => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
-                      </select>
-                      <button className="hf-ghost-btn" onClick={() => setSelected(candidate)}>Open</button>
-                    </div>
                   </article>
                 ))
               )}

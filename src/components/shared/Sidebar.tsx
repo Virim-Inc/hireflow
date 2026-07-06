@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import { LayoutDashboard, Users, ChevronLeft, ChevronRight, ShieldCheck, Sun, Moon, KanbanSquare } from 'lucide-react';
+import { LayoutDashboard, Users, ChevronLeft, ChevronRight, ShieldCheck, Sun, Moon, KanbanSquare, LogOut } from 'lucide-react';
 import type { Theme } from '../../App';
 
 type Page = 'dashboard' | 'candidates' | 'pipeline';
@@ -12,6 +12,7 @@ interface SidebarProps {
   onToggle: () => void;
   theme: Theme;
   onToggleTheme: () => void;
+  onLogout: () => void;
 }
 
 const NAV_ITEMS: { id: Page; label: string; icon: React.ReactNode }[] = [
@@ -20,7 +21,7 @@ const NAV_ITEMS: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'pipeline', label: 'Hiring Pipeline', icon: <KanbanSquare size={18} /> },
 ];
 
-export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, onToggleTheme }: SidebarProps) {
+export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, onToggleTheme, onLogout }: SidebarProps) {
   const sidebarRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -86,6 +87,16 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, o
             ? <><Sun size={15} />{!collapsed && <span>Light Mode</span>}</>
             : <><Moon size={15} />{!collapsed && <span>Dark Mode</span>}</>
           }
+        </button>
+        <button
+          id="logout-btn"
+          className="sidebar-theme-btn"
+          onClick={onLogout}
+          title="Logout"
+          aria-label="Logout"
+        >
+          <LogOut size={15} />
+          {!collapsed && <span>Logout</span>}
         </button>
       </div>
     </aside>

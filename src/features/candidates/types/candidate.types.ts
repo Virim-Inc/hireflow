@@ -84,8 +84,19 @@ export interface CandidateStageHistoryItem {
 export interface CandidateStats {
   totalCandidates: number;
   qualifiedCandidates: number;
+  qualifiedToday: number;
+  qualifiedThisMonth: number;
   averageScore: number;
   topScore: number;
+  topScoreToday: number;
+  topScoreThisMonth: number;
+  openPipeline: number;
+  openToday: number;
+  openThisMonth: number;
+  activeToday: number;
+  movedToday: number;
+  activeThisMonth: number;
+  movedThisMonth: number;
   activeThisWeek: number;
   movedThisWeek: number;
   sourceBreakdown: {

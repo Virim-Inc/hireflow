@@ -14,26 +14,36 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import { fetchStats } from '../../candidates/services/candidateService';
-import type { CandidateStats } from '../../candidates/types/candidate.types';
+import type { CandidateFilters, CandidateStats } from '../../candidates/types/candidate.types';
 import { STAGE_META, getStageLabel } from '../../candidates/lib/pipeline';
 
 type Page = 'dashboard' | 'candidates' | 'pipeline';
 
 interface DashboardHomeProps {
-  onNavigate: (page: Exclude<Page, 'dashboard'>) => void;
+  onNavigate: (page: Exclude<Page, 'dashboard'>, filters?: Partial<CandidateFilters>) => void;
+}
+
+function formatFilterDate(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function StatCard({
   label,
   value,
   helper,
+  breakdown,
   icon,
   accentClass,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   helper: string;
+  breakdown: Array<{ label: string; value: React.ReactNode; onClick: () => void }>;
   icon: React.ReactNode;
   accentClass: string;
 }) {
@@ -44,6 +54,14 @@ function StatCard({
         <span className="dash-stat-label">{label}</span>
       </div>
       <strong className="dash-stat-value">{value}</strong>
+      <div className="dash-stat-breakdown">
+        {breakdown.map((item) => (
+          <button key={item.label} className="dash-stat-breakdown-item" onClick={item.onClick}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+          </button>
+        ))}
+      </div>
       <p className="dash-stat-helper">{helper}</p>
     </article>
   );
@@ -81,7 +99,9 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
 
   useEffect(() => {
     if (!heroRef.current) return;
+    const textItems = heroRef.current.querySelectorAll('.dash-animate-text');
     gsap.fromTo(heroRef.current, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' });
+    gsap.fromTo(textItems, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, delay: 0.12, ease: 'power2.out' });
   }, []);
 
   useEffect(() => {
@@ -105,10 +125,29 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
 
   const openPipeline = useMemo(() => {
     if (!stats) return 0;
+    if (typeof stats.openPipeline === 'number') return stats.openPipeline;
     return stats.totalCandidates - stats.stageCounts.hired - stats.stageCounts.rejected;
   }, [stats]);
 
+  const openToday = stats?.openToday ?? stats?.activeToday ?? 0;
+  const openThisMonth = stats?.openThisMonth ?? stats?.activeThisMonth ?? 0;
+  const qualifiedToday = stats?.qualifiedToday ?? 0;
+  const qualifiedThisMonth = stats?.qualifiedThisMonth ?? 0;
+  const topScoreToday = stats?.topScoreToday ?? 0;
+  const topScoreThisMonth = stats?.topScoreThisMonth ?? 0;
+
   const topPositions = stats?.topPositions.slice(0, 5) ?? [];
+  const today = formatFilterDate(new Date());
+  const monthStart = formatFilterDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+
+  function openCandidates(filters: Partial<CandidateFilters>) {
+    onNavigate('candidates', {
+      sort: 'processed_at',
+      order: 'desc',
+      page: 1,
+      ...filters,
+    });
+  }
 
   return (
     <div className="dash-home">
@@ -118,8 +157,8 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
             <Sparkles size={13} />
             Hiring Overview
           </span>
-          <h1>Dashboard</h1>
-          <p>Start here for hiring volume, pipeline movement, and role distribution before jumping into candidate review.</p>
+          <h1 className="dash-animate-text">Dashboard</h1>
+          <p className="dash-animate-text">Start here for hiring volume, pipeline movement, and role distribution before jumping into candidate review.</p>
         </div>
 
         <div className="dash-hero-actions">
@@ -141,29 +180,45 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
       <section className="dash-stats-grid">
         <StatCard
           label="Total Candidates"
-          value={loading ? '...' : String(stats?.totalCandidates ?? 0)}
+          value={loading ? '...' : <AnimatedCount value={stats?.totalCandidates ?? 0} />}
           helper={loading ? 'Loading candidates' : `${stats?.sourceBreakdown.form ?? 0} form and ${stats?.sourceBreakdown.email ?? 0} email applications`}
+          breakdown={[
+            { label: 'Today', value: loading ? '...' : <AnimatedCount value={stats?.activeToday ?? 0} />, onClick: () => openCandidates({ date_from: today, date_to: today }) },
+            { label: 'This Month', value: loading ? '...' : <AnimatedCount value={stats?.activeThisMonth ?? 0} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today }) },
+          ]}
           icon={<Users size={17} />}
           accentClass="is-blue"
         />
         <StatCard
           label="Qualified"
-          value={loading ? '...' : String(stats?.qualifiedCandidates ?? 0)}
+          value={loading ? '...' : <AnimatedCount value={stats?.qualifiedCandidates ?? 0} />}
           helper={loading ? 'Loading qualified count' : `${stats?.averageScore ?? 0} average AI score`}
+          breakdown={[
+            { label: 'Today', value: loading ? '...' : <AnimatedCount value={qualifiedToday} />, onClick: () => openCandidates({ date_from: today, date_to: today, qualified: 'true' }) },
+            { label: 'This Month', value: loading ? '...' : <AnimatedCount value={qualifiedThisMonth} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today, qualified: 'true' }) },
+          ]}
           icon={<Target size={17} />}
           accentClass="is-green"
         />
         <StatCard
           label="Open Pipeline"
-          value={loading ? '...' : String(openPipeline)}
+          value={loading ? '...' : <AnimatedCount value={openPipeline} />}
           helper={loading ? 'Loading pipeline' : `${stats?.movedThisWeek ?? 0} candidates moved this week`}
+          breakdown={[
+            { label: 'Today', value: loading ? '...' : <AnimatedCount value={openToday} />, onClick: () => openCandidates({ date_from: today, date_to: today }) },
+            { label: 'This Month', value: loading ? '...' : <AnimatedCount value={openThisMonth} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today }) },
+          ]}
           icon={<KanbanSquare size={17} />}
           accentClass="is-amber"
         />
         <StatCard
           label="Top Score"
-          value={loading ? '...' : String(stats?.topScore ?? 0)}
+          value={loading ? '...' : <AnimatedCount value={stats?.topScore ?? 0} />}
           helper={loading ? 'Loading best score' : `${stats?.recommendationBreakdown.strongHire ?? 0} strong hire recommendations`}
+          breakdown={[
+            { label: 'Today', value: loading ? '...' : <AnimatedCount value={topScoreToday} />, onClick: () => openCandidates({ date_from: today, date_to: today, sort: 'total_score' }) },
+            { label: 'This Month', value: loading ? '...' : <AnimatedCount value={topScoreThisMonth} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today, sort: 'total_score' }) },
+          ]}
           icon={<TrendingUp size={17} />}
           accentClass="is-pink"
         />
@@ -177,13 +232,17 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
           </div>
           <div className="dash-stage-list">
             {STAGE_META.map((stage) => (
-              <div key={stage.id} className="dash-stage-row">
+              <button
+                key={stage.id}
+                className="dash-stage-row"
+                onClick={() => openCandidates({ stage: stage.id })}
+              >
                 <div>
                   <strong>{getStageLabel(stage.id)}</strong>
                   <span>{stage.description}</span>
                 </div>
-                <b>{stats?.stageCounts[stage.id] ?? 0}</b>
-              </div>
+                <b><AnimatedCount value={stats?.stageCounts[stage.id] ?? 0} /></b>
+              </button>
             ))}
           </div>
         </article>
@@ -199,7 +258,7 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
                 <div className="dash-role-icon"><Briefcase size={14} /></div>
                 <div className="dash-role-copy">
                   <strong>{position.position}</strong>
-                  <span>{position.count} applicants</span>
+                  <span><AnimatedCount value={position.count} /> applicants</span>
                 </div>
               </div>
             )) : (
@@ -211,21 +270,21 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
         <article className="glass-card dash-panel">
           <div className="dash-panel-head">
             <h2>Activity</h2>
-            <span>This week</span>
+            <span>Today and month</span>
           </div>
           <div className="dash-activity-list">
             <div className="dash-activity-item">
               <span className="dash-activity-icon"><Inbox size={15} /></span>
               <div>
-                <strong>{stats?.activeThisWeek ?? 0} active candidates</strong>
-                <span>Submitted or processed in the last 7 days</span>
+                <strong>{stats?.activeToday ?? 0} today</strong>
+                <span>{stats?.activeThisMonth ?? 0} candidates this month</span>
               </div>
             </div>
             <div className="dash-activity-item">
               <span className="dash-activity-icon"><Clock3 size={15} /></span>
               <div>
-                <strong>{stats?.stageCounts.screening ?? 0} in screening</strong>
-                <span>Fresh applicants waiting on recruiter action</span>
+                <strong>{stats?.movedToday ?? 0} moved today</strong>
+                <span>{stats?.movedThisMonth ?? 0} stage updates this month</span>
               </div>
             </div>
             <div className="dash-activity-item">

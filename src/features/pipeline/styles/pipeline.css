@@ -1,71 +1,17 @@
 .pl-page {
-  max-width: 1600px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 28px 28px 42px;
+  padding: 24px 28px 40px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-}
-
-.pl-header,
-.pl-toolbar {
-  padding: 22px;
-  border-radius: 26px;
-}
-
-.pl-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-  gap: 18px;
-}
-
-.pl-header h1 {
-  margin: 16px 0 10px;
-  font-size: clamp(1.8rem, 3vw, 2.8rem);
-  line-height: 1.05;
-  letter-spacing: -0.04em;
-}
-
-.pl-header p {
-  margin: 0;
-  color: var(--hf-text-secondary);
-  line-height: 1.7;
-}
-
-.pl-header-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  justify-content: center;
-}
-
-.pl-mini-stats {
-  display: grid;
-  gap: 10px;
-}
-
-.pl-mini-stats div {
-  padding: 14px;
-  border-radius: 18px;
-  border: 1px solid var(--hf-border);
-  background: color-mix(in oklab, var(--hf-surface-2) 84%, transparent);
-}
-
-.pl-mini-stats span,
-.pl-card-facts span {
-  color: var(--hf-text-muted);
-  font-size: 0.76rem;
-}
-
-.pl-mini-stats strong {
-  display: block;
-  margin-top: 6px;
-  font-size: 1.3rem;
+  gap: 16px;
 }
 
 .pl-toolbar {
+  padding: 20px;
+  border-radius: 24px;
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(180px, 0.55fr)) auto;
+  grid-template-columns: minmax(0, 1.45fr) repeat(4, minmax(155px, 0.7fr)) auto auto;
   gap: 12px;
   align-items: end;
 }
@@ -75,46 +21,56 @@
   grid-template-columns: repeat(6, minmax(250px, 1fr));
   gap: 16px;
   align-items: start;
+  overflow-x: auto;
+  padding-bottom: 6px;
 }
 
 .pl-column {
-  min-height: 520px;
-  border-radius: 26px;
-  padding: 16px;
+  min-height: 460px;
+  min-width: 250px;
+  border-radius: 24px;
+  padding: 14px;
   border: 1px solid var(--hf-border);
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--hf-surface) 88%, transparent), color-mix(in oklab, var(--hf-card-bg) 92%, transparent));
-  box-shadow: 0 20px 40px color-mix(in oklab, var(--hf-shadow) 82%, transparent);
+    linear-gradient(180deg, color-mix(in oklab, var(--hf-surface) 90%, transparent), color-mix(in oklab, var(--hf-card-bg) 94%, transparent));
+  box-shadow: 0 18px 36px color-mix(in oklab, var(--hf-shadow) 18%, transparent);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
 .pl-column--screening {
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--hf-info-bg) 55%, transparent), color-mix(in oklab, var(--hf-card-bg) 92%, transparent));
+    linear-gradient(180deg, color-mix(in oklab, var(--hf-info-bg) 45%, transparent), color-mix(in oklab, var(--hf-card-bg) 94%, transparent));
 }
 
 .pl-column--shortlisted {
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--hf-warning-bg) 55%, transparent), color-mix(in oklab, var(--hf-card-bg) 92%, transparent));
+    linear-gradient(180deg, color-mix(in oklab, var(--hf-warning-bg) 45%, transparent), color-mix(in oklab, var(--hf-card-bg) 94%, transparent));
 }
 
 .pl-column--ai_interview {
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--hf-accent-glow) 65%, transparent), color-mix(in oklab, var(--hf-card-bg) 92%, transparent));
+    linear-gradient(180deg, color-mix(in oklab, var(--hf-accent-glow) 54%, transparent), color-mix(in oklab, var(--hf-card-bg) 94%, transparent));
 }
 
 .pl-column--in_person_interview {
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--hf-gold-glow) 65%, transparent), color-mix(in oklab, var(--hf-card-bg) 92%, transparent));
+    linear-gradient(180deg, color-mix(in oklab, var(--hf-gold-glow) 54%, transparent), color-mix(in oklab, var(--hf-card-bg) 94%, transparent));
 }
 
 .pl-column--hired {
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--hf-success-bg) 60%, transparent), color-mix(in oklab, var(--hf-card-bg) 92%, transparent));
+    linear-gradient(180deg, color-mix(in oklab, var(--hf-success-bg) 48%, transparent), color-mix(in oklab, var(--hf-card-bg) 94%, transparent));
 }
 
 .pl-column--rejected {
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--hf-danger-bg) 60%, transparent), color-mix(in oklab, var(--hf-card-bg) 92%, transparent));
+    linear-gradient(180deg, color-mix(in oklab, var(--hf-danger-bg) 48%, transparent), color-mix(in oklab, var(--hf-card-bg) 94%, transparent));
+}
+
+.pl-column.is-drop-target {
+  border-color: color-mix(in oklab, var(--hf-accent) 52%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--hf-accent-glow) 80%, transparent);
+  transform: translateY(-2px);
 }
 
 .pl-column-head {
@@ -122,135 +78,151 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .pl-column-head h2 {
   margin: 0;
-  font-size: 1rem;
-}
-
-.pl-column-head p {
-  margin: 5px 0 0;
-  color: var(--hf-text-muted);
-  font-size: 0.8rem;
-  line-height: 1.5;
+  font-size: 0.98rem;
+  line-height: 1.25;
+  flex: 1;
 }
 
 .pl-column-head span {
-  min-width: 34px;
-  height: 34px;
-  border-radius: 12px;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
+  font-size: 0.84rem;
   background: color-mix(in oklab, var(--hf-surface-2) 90%, transparent);
 }
 
 .pl-column-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .pl-card {
-  border-radius: 22px;
+  border-radius: 18px;
   border: 1px solid var(--hf-border);
   overflow: hidden;
+  transition: transform 0.18s ease, opacity 0.18s ease, border-color 0.18s ease;
+}
+
+.pl-card.is-dragging {
+  opacity: 0.52;
+  transform: scale(0.98);
 }
 
 .pl-card-main {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  text-align: left;
   background: transparent;
   border: 0;
-  cursor: pointer;
   color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pl-card-main--compact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  min-width: 0;
 }
 
 .pl-card-main:hover {
-  background: color-mix(in oklab, var(--hf-card-hover-bg) 82%, transparent);
+  background: color-mix(in oklab, var(--hf-card-hover-bg) 84%, transparent);
 }
 
-.pl-card-headline {
+.pl-card-identity {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.pl-card-headline strong,
-.pl-card-headline span {
+.pl-card-identity .hf-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 0.96rem;
+  flex-shrink: 0;
+}
+
+.pl-card-copy {
+  min-width: 0;
+}
+
+.pl-card-copy strong,
+.pl-card-copy span {
   display: block;
 }
 
-.pl-card-headline span {
-  margin-top: 3px;
+.pl-card-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.pl-card-copy span {
+  margin-top: 4px;
   color: var(--hf-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 
-.pl-card-facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.pl-card-facts span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.pl-card-main p {
-  margin: 0;
-  color: var(--hf-text-secondary);
-  font-size: 0.84rem;
-  line-height: 1.6;
-}
-
-.pl-card-actions {
+.pl-card-right {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 16px 16px;
+  width: 52px;
+  justify-content: flex-end;
 }
 
-.pl-card-actions select {
-  flex: 1;
-  min-height: 42px;
+.pl-card-right .hf-score-pill {
+  min-width: 52px;
+  padding: 6px 8px;
+  font-size: 0.72rem;
 }
 
 .pl-empty {
-  min-height: 120px;
-  border-radius: 18px;
+  min-height: 96px;
+  border-radius: 16px;
   border: 1px dashed var(--hf-border);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--hf-text-muted);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 10px;
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1450px) {
+  .pl-toolbar {
+    grid-template-columns: minmax(0, 1fr) repeat(3, minmax(150px, 1fr));
+  }
+
   .pl-board {
     grid-template-columns: repeat(3, minmax(250px, 1fr));
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1080px) {
   .pl-page {
     padding-left: 16px;
     padding-right: 16px;
   }
 
-  .pl-header,
   .pl-toolbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .pl-board {
@@ -259,6 +231,7 @@
 }
 
 @media (max-width: 720px) {
+  .pl-toolbar,
   .pl-board {
     grid-template-columns: 1fr;
   }
