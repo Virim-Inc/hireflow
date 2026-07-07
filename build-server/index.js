@@ -8,6 +8,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: join(__dirname, '..', '.env.local') });
 const app = express();
 const PORT = process.env.API_PORT ?? 3001;
+const API_HOST = process.env.API_HOST ?? '0.0.0.0';
 const PIPELINE_STAGES = [
     'screening',
     'shortlisted',
@@ -102,6 +103,18 @@ function buildWhereClause(query) {
     if (query.grade) {
         where.push(`grade = $${idx}`);
         params.push(query.grade);
+        idx++;
+    }
+    if (query.skill) {
+        where.push(`(
+      frontend_skills ILIKE $${idx}
+      OR backend_skills ILIKE $${idx}
+      OR database_skills ILIKE $${idx}
+      OR ai_ml_skills ILIKE $${idx}
+      OR cloud_devops ILIKE $${idx}
+      OR programming_langs ILIKE $${idx}
+    )`);
+        params.push(`%${query.skill}%`);
         idx++;
     }
     if (query.recommendation) {
@@ -515,12 +528,9 @@ app.get('/api/stats', async (_req, res) => {
 async function startServer() {
     await testConnection();
     await ensurePipelineSchema();
-    app.listen(PORT, () => {
-        console.log(`\nHiring API running on http://localhost:${PORT}`);
-        console.log(`  Health:     GET http://localhost:${PORT}/api/health`);
-        console.log(`  Candidates: GET http://localhost:${PORT}/api/candidates`);
-        console.log(`  Meta:       GET http://localhost:${PORT}/api/candidates/meta`);
-        console.log(`  Stats:      GET http://localhost:${PORT}/api/stats`);
+    app.listen(Number(PORT), API_HOST, () => {
+        console.log(`\nHiring API running on ${API_HOST}:${PORT}`);
+        console.log('  Endpoints: /api/health, /api/candidates, /api/candidates/meta, /api/stats');
     });
 }
 startServer().catch((err) => {

@@ -10,6 +10,7 @@ dotenv.config({ path: join(__dirname, '..', '.env.local') });
 
 const app = express();
 const PORT = process.env.API_PORT ?? 3001;
+const API_HOST = process.env.API_HOST ?? '0.0.0.0';
 
 const PIPELINE_STAGES = [
   'screening',
@@ -123,8 +124,18 @@ interface PositionCountRow {
   count: string;
 }
 
+interface CandidateSkillRow {
+  frontend_skills: string | null;
+  backend_skills: string | null;
+  database_skills: string | null;
+  ai_ml_skills: string | null;
+  cloud_devops: string | null;
+  programming_langs: string | null;
+}
+
 interface CandidatesQuery {
   search?: string;
+  skill?: string;
   grade?: string;
   recommendation?: string;
   qualified?: string;
@@ -214,6 +225,38 @@ function parseNumeric(value: string | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function parseMultiValueFilter(value: string | undefined): string[] {
+  return (value ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function collectUniqueSkills(rows: CandidateSkillRow[]): string[] {
+  const unique = new Map<string, string>();
+
+  rows.forEach((row) => {
+    [
+      row.frontend_skills,
+      row.backend_skills,
+      row.database_skills,
+      row.ai_ml_skills,
+      row.cloud_devops,
+      row.programming_langs,
+    ]
+      .flatMap((value) => parseMultiValueFilter(value ?? undefined))
+      .forEach((skill) => {
+        const normalized = skill.trim().toLowerCase();
+        if (!normalized || normalized === 'n/a' || normalized === 'none') return;
+        if (!unique.has(normalized)) {
+          unique.set(normalized, skill.trim());
+        }
+      });
+  });
+
+  return Array.from(unique.values()).sort((a, b) => a.localeCompare(b));
+}
+
 function asNumber(value: string | null | undefined): number {
   return Number.parseFloat(value ?? '0') || 0;
 }
@@ -245,6 +288,22 @@ function buildWhereClause(query: CandidatesQuery): { whereClause: string; params
     where.push(`grade = $${idx}`);
     params.push(query.grade);
     idx++;
+  }
+
+  const skillFilters = parseMultiValueFilter(query.skill);
+  if (skillFilters.length) {
+    skillFilters.forEach((skill) => {
+      where.push(`(
+        frontend_skills ILIKE $${idx}
+        OR backend_skills ILIKE $${idx}
+        OR database_skills ILIKE $${idx}
+        OR ai_ml_skills ILIKE $${idx}
+        OR cloud_devops ILIKE $${idx}
+        OR programming_langs ILIKE $${idx}
+      )`);
+      params.push(`%${skill}%`);
+      idx++;
+    });
   }
 
   if (query.recommendation) {
@@ -497,17 +556,24 @@ app.get('/api/candidates', async (req: Request<EmptyParams, unknown, unknown, Ca
 
 app.get('/api/candidates/meta', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const positionsRes = await pool.query<PositionCountRow>(
-      `SELECT ${POSITION_EXPR} AS position_label, COUNT(*)::text AS count
-       FROM candidates
-       GROUP BY 1
-       ORDER BY COUNT(*) DESC, 1 ASC`,
-    );
+    const [positionsRes, skillsRes] = await Promise.all([
+      pool.query<PositionCountRow>(
+        `SELECT ${POSITION_EXPR} AS position_label, COUNT(*)::text AS count
+         FROM candidates
+         GROUP BY 1
+         ORDER BY COUNT(*) DESC, 1 ASC`,
+      ),
+      pool.query<CandidateSkillRow>(
+        `SELECT frontend_skills, backend_skills, database_skills, ai_ml_skills, cloud_devops, programming_langs
+         FROM candidates`,
+      ),
+    ]);
 
     res.json({
       positions: positionsRes.rows.map((row) => row.position_label),
       stages: PIPELINE_STAGES,
       sources: ['form', 'email'],
+      skills: collectUniqueSkills(skillsRes.rows),
     });
   } catch (err) {
     const error = err as Error;
@@ -727,12 +793,9 @@ async function startServer(): Promise<void> {
   await testConnection();
   await ensurePipelineSchema();
 
-  app.listen(PORT, () => {
-    console.log(`\nHiring API running on http://localhost:${PORT}`);
-    console.log(`  Health:     GET http://localhost:${PORT}/api/health`);
-    console.log(`  Candidates: GET http://localhost:${PORT}/api/candidates`);
-    console.log(`  Meta:       GET http://localhost:${PORT}/api/candidates/meta`);
-    console.log(`  Stats:      GET http://localhost:${PORT}/api/stats`);
+  app.listen(Number(PORT), API_HOST, () => {
+    console.log(`\nHiring API running on ${API_HOST}:${PORT}`);
+    console.log('  Endpoints: /api/health, /api/candidates, /api/candidates/meta, /api/stats');
   });
 }
 

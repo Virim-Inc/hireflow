@@ -208,6 +208,29 @@
   box-shadow: 0 0 0 1px var(--hf-border-glow), 0 8px 32px oklch(0 0 0 / 0.4);
 }
 
+.hf-app--light .glass-card {
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in oklab, white 82%, var(--hf-accent-glow) 18%),
+      color-mix(in oklab, white 92%, var(--hf-accent-glow) 8%)
+    );
+  border-color: color-mix(in oklab, var(--hf-border) 88%, white 12%);
+  box-shadow:
+    0 20px 44px color-mix(in oklab, var(--hf-shadow) 65%, transparent),
+    inset 0 1px 0 oklch(1 0 0 / 0.75);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.hf-app--light .glass-card:hover {
+  border-color: color-mix(in oklab, var(--hf-accent-glow) 78%, var(--hf-border));
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--hf-accent-glow) 52%, transparent),
+    0 24px 52px color-mix(in oklab, var(--hf-shadow) 72%, transparent),
+    inset 0 1px 0 oklch(1 0 0 / 0.85);
+}
+
 /* ─────────────────────────────────────────
    Scrollbar styling
 ───────────────────────────────────────── */

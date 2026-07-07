@@ -58,7 +58,12 @@ function App() {
       />
       <main className="hf-main-content">
         {page === 'dashboard' && <DashboardHome onNavigate={navigate} />}
-        {page === 'candidates' && <CandidatesPage initialFilters={candidateFilters} />}
+        {page === 'candidates' && (
+          <CandidatesPage
+            key={JSON.stringify(candidateFilters ?? {})}
+            initialFilters={candidateFilters}
+          />
+        )}
         {page === 'pipeline' && <PipelinePage />}
       </main>
     </div>

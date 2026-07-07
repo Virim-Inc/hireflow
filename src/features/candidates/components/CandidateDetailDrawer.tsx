@@ -63,11 +63,6 @@ export function CandidateDetailDrawer({
     };
   }, [onClose]);
 
-  useEffect(() => {
-    setSelectedStage(candidate.pipeline_stage);
-    setNote(candidate.latest_stage_note ?? '');
-  }, [candidate.pipeline_stage, candidate.latest_stage_note, candidate.id]);
-
   async function handleStageMove() {
     await onMoveStage(selectedStage, note.trim() || undefined);
   }

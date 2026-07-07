@@ -120,10 +120,12 @@ export interface CandidateMeta {
   positions: string[];
   stages: PipelineStage[];
   sources: string[];
+  skills: string[];
 }
 
 export interface CandidateFilters {
   search: string;
+  skill: string;
   grade: string;
   recommendation: string;
   qualified: string;

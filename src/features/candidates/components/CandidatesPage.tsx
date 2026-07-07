@@ -1,7 +1,20 @@
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, Filter, RefreshCw, Search, Users } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, Filter, RefreshCw, Search, Users, X } from 'lucide-react';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
+import {
+  Combobox,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxToggle,
+  ComboboxTrigger,
+  ComboboxValue,
+  useComboboxAnchor,
+} from '@/components/ui/combobox';
 import { CandidateDetailDrawer } from './CandidateDetailDrawer';
 import {
   checkHealth,
@@ -31,8 +44,62 @@ import {
 } from '../lib/pipeline';
 import '../styles/candidates.css';
 
+const DEFAULT_SKILL_OPTIONS = [
+  'React',
+  'Next.js',
+  'Vue.js',
+  'Angular',
+  'HTML',
+  'CSS',
+  'JavaScript',
+  'TypeScript',
+  'Tailwind CSS',
+  'Bootstrap',
+  'Node.js',
+  'Express',
+  'NestJS',
+  'REST API',
+  'GraphQL',
+  'MongoDB',
+  'PostgreSQL',
+  'MySQL',
+  'SQL',
+  'Redis',
+  'Firebase',
+  'Python',
+  'Java',
+  'Spring Boot',
+  'C#',
+  '.NET',
+  'ASP.NET',
+  'Go',
+  'PHP',
+  'Laravel',
+  'FastAPI',
+  'Docker',
+  'Kubernetes',
+  'AWS',
+  'Azure',
+  'GCP',
+  'Git',
+  'AI',
+  'AI Tools',
+  'OpenAI',
+  'ChatGPT',
+  'LangChain',
+  'LLMs',
+  'RAG',
+  'Prompt Engineering',
+  'TensorFlow',
+  'PyTorch',
+  'Machine Learning',
+  'NLP',
+  'Computer Vision',
+] as const;
+
 const DEFAULT_FILTERS: CandidateFilters = {
   search: '',
+  skill: '',
   grade: '',
   recommendation: '',
   qualified: '',
@@ -47,6 +114,40 @@ const DEFAULT_FILTERS: CandidateFilters = {
   page: 1,
   limit: 12,
 };
+
+function parseSkillFilters(value: string): string[] {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeSkill(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function mergeSkillOptions(values: string[]): string[] {
+  const unique = new Map<string, string>();
+
+  values.forEach((value) => {
+    const cleaned = value.trim();
+    const normalized = normalizeSkill(cleaned);
+    if (!cleaned || !normalized || normalized === 'n/a' || normalized === 'none') return;
+    if (!unique.has(normalized)) {
+      unique.set(normalized, cleaned);
+    }
+  });
+
+  return Array.from(unique.values());
+}
+
+function buildInitialFilters(initialFilters?: Partial<CandidateFilters> | null): CandidateFilters {
+  return {
+    ...DEFAULT_FILTERS,
+    ...initialFilters,
+    page: 1,
+  };
+}
 
 interface FilterOption {
   label: string;
@@ -132,8 +233,11 @@ function FilterDropdown({
 export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<CandidateFilters> | null }) {
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const [filters, setFilters] = useState<CandidateFilters>(DEFAULT_FILTERS);
-  const [searchInput, setSearchInput] = useState('');
+  const skillAnchor = useComboboxAnchor();
+  const [filters, setFilters] = useState<CandidateFilters>(() => buildInitialFilters(initialFilters));
+  const [searchInput, setSearchInput] = useState(() => initialFilters?.search ?? '');
+  const [skillInput, setSkillInput] = useState('');
+  const [skillFilters, setSkillFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.skill ?? ''));
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [stats, setStats] = useState<CandidateStats | null>(null);
   const [meta, setMeta] = useState<CandidateMeta | null>(null);
@@ -148,6 +252,15 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(true);
 
+  function syncSkillFilter(nextSkills: string[]) {
+    setSkillFilters(nextSkills);
+    updateFilter('skill', nextSkills.join(', '));
+  }
+
+  function removeSkillFilter(skillToRemove: string) {
+    syncSkillFilter(skillFilters.filter((skill) => skill !== skillToRemove));
+  }
+
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       setFilters((current) => ({ ...current, search: searchInput, page: 1 }));
@@ -155,17 +268,6 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
     return () => window.clearTimeout(timeout);
   }, [searchInput]);
-
-  useEffect(() => {
-    if (!initialFilters) return;
-
-    setFilters({
-      ...DEFAULT_FILTERS,
-      ...initialFilters,
-      page: 1,
-    });
-    setSearchInput(initialFilters.search ?? '');
-  }, [initialFilters]);
 
   useEffect(() => {
     if (!heroRef.current) return;
@@ -305,6 +407,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     { label: 'Descending', value: 'desc' },
     { label: 'Ascending', value: 'asc' },
   ];
+  const skillOptions = mergeSkillOptions([...DEFAULT_SKILL_OPTIONS, ...(meta?.skills ?? [])]);
 
   return (
     <div className="hf-page">
@@ -360,7 +463,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
               {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
-            <button className="hf-ghost-btn" onClick={() => { setSearchInput(''); setFilters(DEFAULT_FILTERS); }}>
+            <button className="hf-ghost-btn" onClick={() => { setSearchInput(''); setSkillInput(''); setSkillFilters([]); setFilters(DEFAULT_FILTERS); }}>
               <Filter size={14} />
               Clear Filters
             </button>
@@ -381,6 +484,83 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   />
                 </div>
               </label>
+
+              <div className="hf-select-field hf-skill-select">
+                <span>Skill</span>
+                <Combobox
+                  multiple
+                  autoHighlight
+                  items={skillOptions}
+                  value={skillFilters}
+                  inputValue={skillInput}
+                  onInputValueChange={setSkillInput}
+                  onValueChange={(value) => syncSkillFilter(Array.isArray(value) ? value : [])}
+                  className="hf-skill-combobox-root"
+                >
+                  <ComboboxChips ref={skillAnchor} className="hf-skill-combobox">
+                    <ComboboxValue>
+                      {(values) => (
+                        <ComboboxTrigger className="hf-skill-combobox-input">
+                          <div className="hf-skill-combobox-values">
+                            {values.length > 0 ? (
+                              <div className="hf-selected-skills-summary">
+                                {values.map((value) => (
+                                  <button
+                                    type="button"
+                                    key={value}
+                                    className="hf-selected-skill-item"
+                                    onMouseDown={(event) => event.preventDefault()}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      removeSkillFilter(value);
+                                    }}
+                                    aria-label={`Remove ${value}`}
+                                  >
+                                    <span className="hf-selected-skill-text">{value}</span>
+                                    <span className="hf-selected-skill-remove">
+                                      <X size={12} />
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="hf-skill-combobox-placeholder">Select skills</span>
+                            )}
+                          </div>
+                          <ComboboxToggle className="hf-skill-combobox-toggle hf-skill-combobox-toggle--field" aria-label="Toggle skill dropdown">
+                            <ChevronDown size={14} />
+                          </ComboboxToggle>
+                        </ComboboxTrigger>
+                      )}
+                    </ComboboxValue>
+                  </ComboboxChips>
+                  <ComboboxContent anchor={skillAnchor} className="hf-skill-combobox-menu">
+                    <div className="hf-skill-dropdown-search">
+                      <Search size={15} />
+                      <ComboboxChipsInput
+                        className="hf-skill-dropdown-search-input"
+                        placeholder="Search skills"
+                        autoFocus
+                        onKeyDown={(event) => {
+                          if (event.key === 'Backspace' && !skillInput && skillFilters.length) {
+                            event.preventDefault();
+                            removeSkillFilter(skillFilters[skillFilters.length - 1]);
+                          }
+                        }}
+                      />
+                    </div>
+                    <ComboboxEmpty className="hf-skill-combobox-empty">No matching skills</ComboboxEmpty>
+                    <ComboboxList className="hf-skill-combobox-list">
+                      {(item) => (
+                        <ComboboxItem key={item} value={item} className="hf-skill-combobox-option">
+                          <span>{item}</span>
+                          <Check size={14} />
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </div>
 
               <FilterDropdown label="Position" value={filters.position} options={positionOptions} onChange={(value) => updateFilter('position', value)} />
               <FilterDropdown label="Source" value={filters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
@@ -526,7 +706,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
       {selected && (
         <CandidateDetailDrawer
-          key={selected.id}
+          key={`${selected.id}-${selected.pipeline_stage}-${selected.pipeline_stage_updated_at}-${selected.latest_stage_note ?? ''}`}
           candidate={selected}
           history={history}
           historyLoading={historyLoading}

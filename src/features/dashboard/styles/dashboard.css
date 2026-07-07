@@ -80,6 +80,26 @@
   border-color: var(--hf-border-glow);
 }
 
+.hf-app--light .dash-hero-copy,
+.hf-app--light .dash-panel,
+.hf-app--light .dash-action-card,
+.hf-app--light .dash-stat-card {
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--hf-accent-glow) 68%, transparent), transparent 34%),
+    linear-gradient(160deg, color-mix(in oklab, white 86%, var(--hf-accent-glow) 14%), color-mix(in oklab, white 96%, var(--hf-accent-glow) 4%));
+  border-color: color-mix(in oklab, var(--hf-border) 84%, white 16%);
+  box-shadow:
+    0 20px 42px color-mix(in oklab, var(--hf-shadow) 56%, transparent),
+    inset 0 1px 0 oklch(1 0 0 / 0.82);
+}
+
+.hf-app--light .dash-stat-icon,
+.hf-app--light .dash-stat-breakdown-item {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, white 74%, var(--hf-accent-glow) 26%), color-mix(in oklab, white 90%, var(--hf-accent-glow) 10%));
+  border-color: color-mix(in oklab, var(--hf-border) 80%, white 20%);
+}
+
 .dash-action-card h3,
 .dash-panel-head h2 {
   margin: 0;

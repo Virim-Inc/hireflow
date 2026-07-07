@@ -28,19 +28,19 @@
 
 /* Light mode — Clean white Flowmingo-inspired */
 .hf-app--light {
-  --hf-bg:              oklch(0.975 0.003 60);
-  --hf-surface:         oklch(1 0 0);
-  --hf-surface-2:       oklch(0.96 0.004 60);
-  --hf-surface-3:       oklch(0.93 0.006 60);
-  --hf-border:          oklch(0.88 0.008 60);
+  --hf-bg:              oklch(0.982 0.004 245);
+  --hf-surface:         oklch(0.992 0.004 245 / 0.82);
+  --hf-surface-2:       oklch(0.972 0.010 245 / 0.88);
+  --hf-surface-3:       oklch(0.948 0.014 245 / 0.94);
+  --hf-border:          oklch(0.88 0.014 245 / 0.90);
   --hf-border-glow:     oklch(0.65 0.20 250 / 0.30);
   --hf-text-primary:    oklch(0.15 0.010 250);
   --hf-text-secondary:  oklch(0.38 0.012 250);
   --hf-text-muted:      oklch(0.55 0.008 250);
-  --hf-card-bg:         oklch(1 0 0);
-  --hf-card-hover-bg:   oklch(0.98 0.005 250);
-  --hf-shadow:          oklch(0.50 0.010 250 / 0.12);
-  --hf-toolbar-bg:      oklch(1 0 0 / 0.96);
+  --hf-card-bg:         oklch(0.995 0.004 245 / 0.88);
+  --hf-card-hover-bg:   oklch(0.985 0.010 245 / 0.96);
+  --hf-shadow:          oklch(0.42 0.020 245 / 0.14);
+  --hf-toolbar-bg:      oklch(0.995 0.004 245 / 0.90);
 
   /* Blue accent — slightly deeper for contrast on white */
   --hf-accent:          oklch(0.55 0.20 250);
