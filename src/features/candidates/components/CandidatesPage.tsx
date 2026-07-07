@@ -115,6 +115,8 @@ const DEFAULT_FILTERS: CandidateFilters = {
   limit: 12,
 };
 
+const SKELETON_CARD_COUNT = 6;
+
 function parseSkillFilters(value: string): string[] {
   return value
     .split(',')
@@ -613,9 +615,54 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
       </section>
 
       {loading ? (
-        <div className="glass-card hf-empty-state">
-          <div className="hf-loader" />
-          <p>Loading candidates from PostgreSQL...</p>
+        <div className="hf-candidate-grid">
+          {Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
+            <article key={`candidate-skeleton-${index}`} className="glass-card hf-candidate-card hf-candidate-card--skeleton">
+              <div className="hf-card-main">
+                <div className="hf-card-head">
+                  <div className="hf-card-person">
+                    <div className="hf-avatar hf-avatar--skeleton hf-skeleton" />
+                    <div className="hf-skeleton-copy">
+                      <div className="hf-skeleton hf-skeleton-line hf-skeleton-line--title" />
+                      <div className="hf-skeleton hf-skeleton-line hf-skeleton-line--subtitle" />
+                    </div>
+                  </div>
+                  <div className="hf-skeleton hf-skeleton-pill" />
+                </div>
+
+                <div className="hf-inline-meta">
+                  <div className="hf-skeleton hf-skeleton-badge" />
+                  <div className="hf-skeleton hf-skeleton-badge hf-skeleton-badge--wide" />
+                  <div className="hf-skeleton hf-skeleton-badge" />
+                </div>
+
+                <div className="hf-card-stats">
+                  {Array.from({ length: 4 }).map((__, statIndex) => (
+                    <div key={`candidate-skeleton-stat-${statIndex}`}>
+                      <div className="hf-skeleton hf-skeleton-line hf-skeleton-line--label" />
+                      <div className="hf-skeleton hf-skeleton-line hf-skeleton-line--value" />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hf-skeleton-copy">
+                  <div className="hf-skeleton hf-skeleton-line hf-skeleton-line--body" />
+                  <div className="hf-skeleton hf-skeleton-line hf-skeleton-line--body-short" />
+                </div>
+
+                <div className="hf-tag-row">
+                  {Array.from({ length: 4 }).map((__, tagIndex) => (
+                    <span key={`candidate-skeleton-tag-${tagIndex}`} className="hf-skeleton hf-skeleton-chip" />
+                  ))}
+                </div>
+              </div>
+
+              <div className="hf-card-footer">
+                <div className="hf-skeleton hf-skeleton-input" />
+                <div className="hf-skeleton hf-skeleton-button" />
+              </div>
+            </article>
+          ))}
         </div>
       ) : error ? (
         <div className="glass-card hf-empty-state">

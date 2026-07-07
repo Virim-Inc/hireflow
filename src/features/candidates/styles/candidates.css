@@ -766,6 +766,92 @@
   overflow: hidden;
 }
 
+.hf-candidate-card--skeleton .hf-card-main,
+.hf-candidate-card--skeleton .hf-card-footer {
+  cursor: default;
+}
+
+.hf-avatar--skeleton {
+  box-shadow: none;
+  background: transparent;
+}
+
+.hf-skeleton-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.hf-skeleton-line,
+.hf-skeleton-pill,
+.hf-skeleton-badge,
+.hf-skeleton-chip,
+.hf-skeleton-input,
+.hf-skeleton-button {
+  border-radius: 999px;
+}
+
+.hf-skeleton-line--title {
+  width: min(180px, 72%);
+  height: 14px;
+}
+
+.hf-skeleton-line--subtitle {
+  width: min(130px, 54%);
+  height: 11px;
+}
+
+.hf-skeleton-line--label {
+  width: 60%;
+  height: 10px;
+  margin-bottom: 8px;
+}
+
+.hf-skeleton-line--value {
+  width: 72%;
+  height: 13px;
+}
+
+.hf-skeleton-line--body {
+  width: 100%;
+  height: 12px;
+}
+
+.hf-skeleton-line--body-short {
+  width: 78%;
+  height: 12px;
+}
+
+.hf-skeleton-pill {
+  width: 52px;
+  height: 32px;
+}
+
+.hf-skeleton-badge {
+  width: 88px;
+  height: 28px;
+}
+
+.hf-skeleton-badge--wide {
+  width: 110px;
+}
+
+.hf-skeleton-chip {
+  width: 74px;
+  height: 28px;
+}
+
+.hf-skeleton-input {
+  flex: 1;
+  min-height: 42px;
+}
+
+.hf-skeleton-button {
+  width: 88px;
+  min-height: 42px;
+}
+
 .hf-app--light .hf-hero-copy,
 .hf-app--light .hf-filter-panel,
 .hf-app--light .hf-candidate-card,

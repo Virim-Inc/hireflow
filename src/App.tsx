@@ -18,7 +18,7 @@ function App() {
     return (saved as Page) || 'login';
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('light');
   const [candidateFilters, setCandidateFilters] = useState<Partial<CandidateFilters> | null>(null);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ function App() {
     localStorage.clear();
     setCandidateFilters(null);
     setSidebarCollapsed(false);
-    setTheme('dark');
+    setTheme('light');
     setPage('login');
   };
   const navigate = (p: Exclude<Page, 'login'>, nextFilters?: Partial<CandidateFilters>) => {
