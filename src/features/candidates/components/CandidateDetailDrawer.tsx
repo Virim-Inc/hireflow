@@ -287,10 +287,18 @@ export function CandidateDetailDrawer({
                 <div><span>City</span><strong>{candidate.city || '-'}</strong></div>
                 <div><span>Grade</span><strong>{candidate.grade || '-'}</strong></div>
                 <div><span>Qualified</span><strong>{candidate.is_qualified ? 'Yes' : 'No'}</strong></div>
-                <div><span>Degree</span><strong>{candidate.highest_degree || '-'}</strong></div>
                 <div><span>Current title</span><strong>{candidate.current_job_title || '-'}</strong></div>
                 <div><span>Submitted</span><strong>{formatDate(candidate.submitted_at)}</strong></div>
                 <div><span>Stage updated</span><strong>{formatDate(candidate.pipeline_stage_updated_at)}</strong></div>
+              </div>
+              <div style={{ marginTop: '16px', borderTop: '1px solid var(--hf-border)', paddingTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: '600', color: 'var(--hf-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <span>Education & Internship</span>
+              </div>
+              <div className="hf-info-grid" style={{ marginTop: '8px' }}>
+                <div><span>Degree</span><strong>{candidate.degree || '-'}</strong></div>
+                <div><span>College</span><strong>{candidate.college || '-'}</strong></div>
+                <div><span>Passout Year</span><strong>{candidate.passout_year || '-'}</strong></div>
+                <div><span>Internship</span><strong>{candidate.internship_completed === true ? 'Yes' : candidate.internship_completed === false ? 'No' : '-'}</strong></div>
               </div>
               <div className="hf-skill-cloud">
                 {skills.length ? skills.map((skill) => <span key={skill} className="hf-skill-chip">{skill}</span>) : <span className="hf-placeholder">No key skill tags</span>}

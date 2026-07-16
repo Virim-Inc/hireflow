@@ -1,29 +1,6 @@
-import { Pool, PoolConfig } from 'pg';
-import dotenv from 'dotenv';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { pool } from './config/db.js';
+import type { PipelineStage } from './types/candidate.types.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: join(__dirname, '..', '.env.local') });
-
-const PG_CONFIG: PoolConfig = {
-  host: process.env.PG_HOST ?? 'localhost',
-  port: Number(process.env.PG_PORT) || 5432,
-  database: process.env.PG_DATABASE ?? 'hireflow',
-  user: process.env.PG_USER ?? 'hireflow',
-  password: process.env.PG_PASSWORD ?? '',
-  ssl: process.env.PG_SSL === 'false' ? false : { rejectUnauthorized: false },
-};
-
-const pool = new Pool(PG_CONFIG);
-
-type Stage =
-  | 'screening'
-  | 'shortlisted'
-  | 'ai_interview'
-  | 'in_person_interview'
-  | 'hired'
-  | 'rejected';
 
 interface SeedCandidate {
   candidate_name: string;
@@ -67,12 +44,16 @@ interface SeedCandidate {
   database_feedback: string;
   ai_ml_feedback: string;
   hiring_note: string;
-  pipeline_stage: Stage;
+  pipeline_stage: PipelineStage;
   latest_stage_note: string;
   submitted_at: string;
   processed_at: string;
   pipeline_stage_updated_at: string;
   city: string | null;
+  internship_completed: boolean | null;
+  passout_year: number | null;
+  college: string | null;
+  degree: string | null;
 }
 
 const candidates: SeedCandidate[] = [
@@ -124,6 +105,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-14T10:20:00.000Z',
     pipeline_stage_updated_at: '2026-06-16T09:00:00.000Z',
     city: 'Mumbai',
+    internship_completed: true,
+    passout_year: 2023,
+    college: 'IIT Bombay',
+    degree: 'B.Tech',
   },
   {
     candidate_name: 'Diya Sharma',
@@ -173,6 +158,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-11T09:05:00.000Z',
     pipeline_stage_updated_at: '2026-06-18T13:30:00.000Z',
     city: 'Bangalore',
+    internship_completed: false,
+    passout_year: 2022,
+    college: 'BITS Pilani',
+    degree: 'B.Tech',
   },
   {
     candidate_name: 'Rahul Verma',
@@ -222,6 +211,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-08T11:50:00.000Z',
     pipeline_stage_updated_at: '2026-06-23T10:00:00.000Z',
     city: 'Delhi',
+    internship_completed: true,
+    passout_year: 2024,
+    college: 'DTU',
+    degree: 'M.Tech',
   },
   {
     candidate_name: 'Sneha Kulkarni',
@@ -271,6 +264,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-17T08:15:00.000Z',
     pipeline_stage_updated_at: '2026-06-17T08:15:00.000Z',
     city: 'Pune',
+    internship_completed: true,
+    passout_year: 2023,
+    college: 'COEP Pune',
+    degree: 'B.Tech',
   },
   {
     candidate_name: 'Karan Patel',
@@ -320,6 +317,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-19T09:40:00.000Z',
     pipeline_stage_updated_at: '2026-06-19T09:40:00.000Z',
     city: 'Ahmedabad',
+    internship_completed: false,
+    passout_year: 2021,
+    college: 'Nirma University',
+    degree: 'B.Tech',
   },
   {
     candidate_name: 'Nisha Iyer',
@@ -369,6 +370,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-12T07:15:00.000Z',
     pipeline_stage_updated_at: '2026-06-20T12:45:00.000Z',
     city: 'Chennai',
+    internship_completed: true,
+    passout_year: 2022,
+    college: 'IIT Madras',
+    degree: 'B.Tech',
   },
   {
     candidate_name: 'Manav Singh',
@@ -418,6 +423,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-05-28T08:30:00.000Z',
     pipeline_stage_updated_at: '2026-06-25T15:00:00.000Z',
     city: 'Hyderabad',
+    internship_completed: true,
+    passout_year: 2024,
+    college: 'IIT Hyderabad',
+    degree: 'B.Tech',
   },
   {
     candidate_name: 'Pooja Nair',
@@ -467,6 +476,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-10T05:50:00.000Z',
     pipeline_stage_updated_at: '2026-06-21T09:15:00.000Z',
     city: 'Kochi',
+    internship_completed: false,
+    passout_year: 2023,
+    college: 'CUSAT',
+    degree: 'MCA',
   },
   {
     candidate_name: 'Yash Agarwal',
@@ -516,6 +529,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-22T10:30:00.000Z',
     pipeline_stage_updated_at: '2026-06-22T10:30:00.000Z',
     city: 'Kolkata',
+    internship_completed: true,
+    passout_year: 2022,
+    college: 'JU Kolkata',
+    degree: 'B.Tech',
   },
   {
     candidate_name: 'Fatima Khan',
@@ -565,6 +582,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-09T04:40:00.000Z',
     pipeline_stage_updated_at: '2026-06-13T11:00:00.000Z',
     city: 'Mumbai',
+    internship_completed: true,
+    passout_year: 2023,
+    college: 'IIT Bombay',
+    degree: 'M.Tech',
   },
   {
     candidate_name: 'Vikram Joshi',
@@ -614,6 +635,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-24T06:20:00.000Z',
     pipeline_stage_updated_at: '2026-06-26T10:45:00.000Z',
     city: 'Bangalore',
+    internship_completed: false,
+    passout_year: 2024,
+    college: 'PES University',
+    degree: 'MCA',
   },
   {
     candidate_name: 'Isha Gupta',
@@ -663,6 +688,10 @@ const candidates: SeedCandidate[] = [
     processed_at: '2026-06-26T08:30:00.000Z',
     pipeline_stage_updated_at: '2026-06-26T08:30:00.000Z',
     city: 'Delhi',
+    internship_completed: false,
+    passout_year: 2021,
+    college: 'DU',
+    degree: 'Diploma',
   },
 ];
 
@@ -700,7 +729,7 @@ async function main(): Promise<void> {
           frontend_feedback, backend_feedback, database_feedback,
           ai_ml_feedback, hiring_note,
           pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
-          city
+          city, internship_completed, passout_year, college, degree
         ) VALUES (
           $1, $2, $3,
           $4, $5, $6, $7, $8,
@@ -717,7 +746,7 @@ async function main(): Promise<void> {
           $36, $37, $38,
           $39, $40, $41,
           $42, $43,
-          $44, $45, $46, $47
+          $44, $45, $46, $47, $48, $49, $50, $51
         )
         RETURNING id`,
         [
@@ -768,6 +797,10 @@ async function main(): Promise<void> {
           candidate.pipeline_stage_updated_at,
           candidate.latest_stage_note,
           candidate.city,
+          candidate.internship_completed,
+          candidate.passout_year,
+          candidate.college,
+          candidate.degree,
         ],
       );
 
@@ -791,7 +824,8 @@ async function main(): Promise<void> {
     throw error;
   } finally {
     client.release();
-    await pool.end();
+    // Note: we do not call pool.end() because pool is the shared instance.
+    // It will be garbage-collected when the script process exits.
   }
 }
 

@@ -107,6 +107,10 @@ const DEFAULT_FILTERS: CandidateFilters = {
   source: '',
   position: '',
   city: '',
+  internship_completed: '',
+  passout_year: '',
+  college: '',
+  degree: '',
   date_from: '',
   date_to: '',
   min_score: '',
@@ -407,6 +411,27 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     ...(meta?.cities.map((city) => ({ label: city, value: city })) ?? []),
   ];
 
+  const internshipOptions: FilterOption[] = [
+    { label: 'All', value: '' },
+    { label: 'Yes', value: 'true' },
+    { label: 'No', value: 'false' },
+  ];
+
+  const passoutYearOptions: FilterOption[] = [
+    { label: 'All passout years', value: '' },
+    ...(meta?.passoutYears.map((year) => ({ label: String(year), value: String(year) })) ?? []),
+  ];
+
+  const collegeOptions: FilterOption[] = [
+    { label: 'All colleges', value: '' },
+    ...(meta?.colleges.map((college) => ({ label: college, value: college })) ?? []),
+  ];
+
+  const degreeOptions: FilterOption[] = [
+    { label: 'All degrees', value: '' },
+    ...(meta?.degrees.map((degree) => ({ label: degree, value: degree })) ?? []),
+  ];
+
   const sourceOptions: FilterOption[] = [
     { label: 'All sources', value: '' },
     { label: 'Form', value: 'form' },
@@ -602,6 +627,10 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
               <FilterDropdown label="Position" value={filters.position} options={positionOptions} onChange={(value) => updateFilter('position', value)} />
               <FilterDropdown label="City" value={filters.city} options={cityOptions} onChange={(value) => updateFilter('city', value)} />
+              <FilterDropdown label="Internship" value={filters.internship_completed} options={internshipOptions} onChange={(value) => updateFilter('internship_completed', value)} />
+              <FilterDropdown label="Passout Year" value={filters.passout_year} options={passoutYearOptions} onChange={(value) => updateFilter('passout_year', value)} />
+              <FilterDropdown label="College" value={filters.college} options={collegeOptions} onChange={(value) => updateFilter('college', value)} />
+              <FilterDropdown label="Degree" value={filters.degree} options={degreeOptions} onChange={(value) => updateFilter('degree', value)} />
               <FilterDropdown label="Source" value={filters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
               <FilterDropdown label="Stage" value={filters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} />
               <FilterDropdown label="Recommendation" value={filters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} />

@@ -63,6 +63,10 @@ export interface Candidate {
   pipeline_stage_updated_at: string;
   latest_stage_note: string | null;
   city?: string | null;
+  internship_completed?: boolean | null;
+  passout_year?: number | null;
+  college?: string | null;
+  degree?: string | null;
 }
 
 export interface CandidatesResponse {
@@ -123,6 +127,9 @@ export interface CandidateMeta {
   sources: string[];
   skills: string[];
   cities: string[];
+  colleges: string[];
+  degrees: string[];
+  passoutYears: number[];
 }
 
 export interface CandidateFilters {
@@ -135,6 +142,10 @@ export interface CandidateFilters {
   source: string;
   position: string;
   city: string;
+  internship_completed: string;
+  passout_year: string;
+  college: string;
+  degree: string;
   date_from: string;
   date_to: string;
   min_score: string;
