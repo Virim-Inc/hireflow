@@ -11,19 +11,67 @@ type Page = 'login' | 'dashboard' | 'candidates' | 'pipeline';
 export type Theme = 'dark' | 'light';
 
 function App() {
-  const [page, setPage] = useState<Page>(() => {
-    const saved = localStorage.getItem('hf_currentPage');
-    if (saved === 'email-ranking') return 'pipeline';
-    if (saved === 'dashboard' || saved === 'candidates' || saved === 'pipeline') return saved;
-    return (saved as Page) || 'login';
-  });
+  const [page, setPage] = useState<Page>('login');
+  const [isValidating, setIsValidating] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState<Theme>('light');
   const [candidateFilters, setCandidateFilters] = useState<Partial<CandidateFilters> | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('hf_currentPage', page);
-  }, [page]);
+    const verifyToken = async () => {
+      const token = localStorage.getItem('hf_token');
+      if (!token) {
+        setPage('login');
+        setIsValidating(false);
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const saved = localStorage.getItem('hf_currentPage');
+          if (saved === 'email-ranking') {
+            setPage('pipeline');
+          } else if (saved === 'dashboard' || saved === 'candidates' || saved === 'pipeline') {
+            setPage(saved);
+          } else {
+            setPage('dashboard');
+          }
+        } else {
+          localStorage.removeItem('hf_token');
+          setPage('login');
+        }
+      } catch {
+        // Network error, assume offline access if already authenticated
+        const saved = localStorage.getItem('hf_currentPage');
+        if (saved && saved !== 'login') {
+          setPage(saved as Page);
+        } else {
+          setPage('dashboard');
+        }
+      } finally {
+        setIsValidating(false);
+      }
+    };
+    verifyToken();
+  }, []);
+
+  useEffect(() => {
+    if (!isValidating) {
+      localStorage.setItem('hf_currentPage', page);
+    }
+  }, [page, isValidating]);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      localStorage.clear();
+      setCandidateFilters(null);
+      setSidebarCollapsed(false);
+      setTheme('light');
+      setPage('login');
+    };
+    window.addEventListener('hf_unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('hf_unauthorized', handleUnauthorized);
+  }, []);
 
   const handleLogin = () => setPage('dashboard');
   const handleLogout = () => {
@@ -40,6 +88,24 @@ function App() {
     }
   };
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+
+  if (isValidating) {
+    return (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: '#0a0a0c',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ffffff',
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '15px'
+      }}>
+        <span>Initializing HireFlow…</span>
+      </div>
+    );
+  }
 
   if (page === 'login') {
     return <LoginPage onLogin={handleLogin} />;

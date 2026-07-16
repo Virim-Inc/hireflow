@@ -139,13 +139,31 @@ export function LoginPage({ onLogin }: { onLogin?: () => void }) {
     };
   }, [animateLoginEntrance]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to sign in");
+      }
+      localStorage.setItem("hf_token", data.token);
       onLogin?.();
-    }, 1500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // The first word shown, and the word it rolls into
@@ -225,6 +243,22 @@ export function LoginPage({ onLogin }: { onLogin?: () => void }) {
               </CardHeader>
 
               <CardContent>
+                {error && (
+                  <div style={{
+                    color: '#ef4444',
+                    backgroundColor: '#fef2f2',
+                    border: '1px solid #fee2e2',
+                    borderRadius: '8px',
+                    padding: '10px 14px',
+                    fontSize: '13px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <span>{error}</span>
+                  </div>
+                )}
                 <form
                   ref={formRef}
                   onSubmit={handleSubmit}
@@ -249,6 +283,8 @@ export function LoginPage({ onLogin }: { onLogin?: () => void }) {
                       placeholder="you@company.com"
                       required
                       autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="login-input"
                     />
                   </div>
@@ -272,6 +308,8 @@ export function LoginPage({ onLogin }: { onLogin?: () => void }) {
                       placeholder="••••••••"
                       required
                       autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="login-input"
                     />
                   </div>

@@ -21,6 +21,8 @@ import cors from 'cors';
 import healthRouter from './routes/health.route.js';
 import candidatesRouter from './routes/candidates.route.js';
 import statsRouter from './routes/stats.route.js';
+import authRouter from './routes/auth.route.js';
+import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 async function startServer() {
     // 1. Verify DB is reachable (logs connection info)
@@ -34,8 +36,9 @@ async function startServer() {
     app.use(express.json());
     // 4. Mount routers
     app.use('/api/health', healthRouter);
-    app.use('/api/candidates', candidatesRouter);
-    app.use('/api/stats', statsRouter);
+    app.use('/api/auth', authRouter);
+    app.use('/api/candidates', requireAuth, candidatesRouter);
+    app.use('/api/stats', requireAuth, statsRouter);
     // 5. Central error handler — must be last middleware
     app.use(errorHandler);
     // 6. Start listening

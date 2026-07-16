@@ -1,4 +1,4 @@
-﻿import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -35,4 +35,5 @@ export const config = Object.freeze({
         ? (false as const)
         : ({ rejectUnauthorized: false } as const),
   }),
+  jwtSecret: required('JWT_SECRET'),
 });

@@ -28,5 +28,6 @@ export const config = Object.freeze({
             ? false
             : { rejectUnauthorized: false },
     }),
+    jwtSecret: required('JWT_SECRET'),
 });
 //# sourceMappingURL=env.js.map
