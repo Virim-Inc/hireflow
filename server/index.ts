@@ -76,6 +76,7 @@ interface CandidateRow {
   pipeline_stage: PipelineStage;
   pipeline_stage_updated_at: string;
   latest_stage_note: string | null;
+  city: string | null;
 }
 
 interface CandidateHistoryRow {
@@ -142,6 +143,7 @@ interface CandidatesQuery {
   stage?: string;
   source?: string;
   position?: string;
+  city?: string;
   date_from?: string;
   date_to?: string;
   min_score?: string;
@@ -193,7 +195,8 @@ const SELECT_COLUMNS = `
   ai_ml_feedback, hiring_note,
   workdrive_file_id, workdrive_file_name,
   source_folder_id, processed_folder_id,
-  pipeline_stage, pipeline_stage_updated_at, latest_stage_note
+  pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
+  city
 `;
 
 const SORT_COLUMNS: Record<string, string> = {
@@ -336,6 +339,12 @@ function buildWhereClause(query: CandidatesQuery): { whereClause: string; params
     idx++;
   }
 
+  if (query.city) {
+    where.push(`city = $${idx}`);
+    params.push(query.city);
+    idx++;
+  }
+
   const minScore = parseNumeric(query.min_score);
   if (minScore !== null) {
     where.push(`total_score >= $${idx}`);
@@ -397,7 +406,8 @@ async function ensurePipelineSchema(): Promise<void> {
     ALTER TABLE candidates
       ADD COLUMN IF NOT EXISTS pipeline_stage TEXT,
       ADD COLUMN IF NOT EXISTS pipeline_stage_updated_at TIMESTAMPTZ DEFAULT NOW(),
-      ADD COLUMN IF NOT EXISTS latest_stage_note TEXT
+      ADD COLUMN IF NOT EXISTS latest_stage_note TEXT,
+      ADD COLUMN IF NOT EXISTS city TEXT
   `);
 
   await pool.query(`
@@ -556,7 +566,7 @@ app.get('/api/candidates', async (req: Request<EmptyParams, unknown, unknown, Ca
 
 app.get('/api/candidates/meta', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const [positionsRes, skillsRes] = await Promise.all([
+    const [positionsRes, skillsRes, citiesRes] = await Promise.all([
       pool.query<PositionCountRow>(
         `SELECT ${POSITION_EXPR} AS position_label, COUNT(*)::text AS count
          FROM candidates
@@ -567,6 +577,13 @@ app.get('/api/candidates/meta', async (_req: Request, res: Response): Promise<vo
         `SELECT frontend_skills, backend_skills, database_skills, ai_ml_skills, cloud_devops, programming_langs
          FROM candidates`,
       ),
+      pool.query<{ city: string | null }>(
+        `SELECT DISTINCT TRIM(city) AS city
+         FROM candidates
+         WHERE city IS NOT NULL
+         AND TRIM(city) <> ''
+         ORDER BY city`,
+      ),
     ]);
 
     res.json({
@@ -574,6 +591,7 @@ app.get('/api/candidates/meta', async (_req: Request, res: Response): Promise<vo
       stages: PIPELINE_STAGES,
       sources: ['form', 'email'],
       skills: collectUniqueSkills(skillsRes.rows),
+      cities: citiesRes.rows.map((row) => row.city).filter(Boolean),
     });
   } catch (err) {
     const error = err as Error;

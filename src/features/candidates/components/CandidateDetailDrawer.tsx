@@ -284,6 +284,7 @@ export function CandidateDetailDrawer({
               <div className="hf-info-grid">
                 <div><span>Role</span><strong>{candidate.position_label}</strong></div>
                 <div><span>Experience</span><strong>{candidate.years_of_exp} years</strong></div>
+                <div><span>City</span><strong>{candidate.city || '-'}</strong></div>
                 <div><span>Grade</span><strong>{candidate.grade || '-'}</strong></div>
                 <div><span>Qualified</span><strong>{candidate.is_qualified ? 'Yes' : 'No'}</strong></div>
                 <div><span>Degree</span><strong>{candidate.highest_degree || '-'}</strong></div>

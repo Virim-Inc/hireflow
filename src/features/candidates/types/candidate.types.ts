@@ -62,6 +62,7 @@ export interface Candidate {
   pipeline_stage: PipelineStage;
   pipeline_stage_updated_at: string;
   latest_stage_note: string | null;
+  city?: string | null;
 }
 
 export interface CandidatesResponse {
@@ -121,6 +122,7 @@ export interface CandidateMeta {
   stages: PipelineStage[];
   sources: string[];
   skills: string[];
+  cities: string[];
 }
 
 export interface CandidateFilters {
@@ -132,6 +134,7 @@ export interface CandidateFilters {
   stage: PipelineStage | '';
   source: string;
   position: string;
+  city: string;
   date_from: string;
   date_to: string;
   min_score: string;

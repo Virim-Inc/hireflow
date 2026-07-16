@@ -106,6 +106,7 @@ const DEFAULT_FILTERS: CandidateFilters = {
   stage: '',
   source: '',
   position: '',
+  city: '',
   date_from: '',
   date_to: '',
   min_score: '',
@@ -172,8 +173,15 @@ function FilterDropdown({
   direction?: 'down' | 'up';
 }) {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const rootRef = useRef<HTMLDivElement>(null);
   const selected = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery('');
+    }
+  }, [open]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -196,6 +204,10 @@ function FilterDropdown({
     };
   }, []);
 
+  const filteredOptions = options.filter((option) =>
+    option.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div ref={rootRef} className={`hf-select-field hf-modern-select hf-modern-select--${direction} ${open ? 'is-open' : ''}`}>
       <span>{label}</span>
@@ -212,20 +224,39 @@ function FilterDropdown({
       </button>
       {open && (
         <div className="hf-modern-select-menu">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`hf-modern-select-option ${option.value === value ? 'is-selected' : ''}`}
-              onClick={() => {
-                onChange(option.value);
-                setOpen(false);
-              }}
-            >
-              <span>{option.label}</span>
-              {option.value === value ? <Check size={14} /> : null}
-            </button>
-          ))}
+          {options.length > 5 && (
+            <div className="hf-modern-select-search" onClick={(e) => e.stopPropagation()}>
+              <Search size={13} className="hf-modern-select-search-icon" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="hf-modern-select-search-input"
+                autoFocus
+              />
+            </div>
+          )}
+          <div className="hf-modern-select-options-list">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`hf-modern-select-option ${option.value === value ? 'is-selected' : ''}`}
+                  onClick={() => {
+                    onChange(option.value);
+                    setOpen(false);
+                  }}
+                >
+                  <span>{option.label}</span>
+                  {option.value === value ? <Check size={14} /> : null}
+                </button>
+              ))
+            ) : (
+              <div className="hf-modern-select-empty">No results found</div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -369,6 +400,11 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   const positionOptions: FilterOption[] = [
     { label: 'All positions', value: '' },
     ...(meta?.positions.map((position) => ({ label: position, value: position })) ?? []),
+  ];
+
+  const cityOptions: FilterOption[] = [
+    { label: 'All cities', value: '' },
+    ...(meta?.cities.map((city) => ({ label: city, value: city })) ?? []),
   ];
 
   const sourceOptions: FilterOption[] = [
@@ -565,6 +601,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
               </div>
 
               <FilterDropdown label="Position" value={filters.position} options={positionOptions} onChange={(value) => updateFilter('position', value)} />
+              <FilterDropdown label="City" value={filters.city} options={cityOptions} onChange={(value) => updateFilter('city', value)} />
               <FilterDropdown label="Source" value={filters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
               <FilterDropdown label="Stage" value={filters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} />
               <FilterDropdown label="Recommendation" value={filters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} />

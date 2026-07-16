@@ -72,6 +72,7 @@ interface SeedCandidate {
   submitted_at: string;
   processed_at: string;
   pipeline_stage_updated_at: string;
+  city: string | null;
 }
 
 const candidates: SeedCandidate[] = [
@@ -122,6 +123,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-14T10:00:00.000Z',
     processed_at: '2026-06-14T10:20:00.000Z',
     pipeline_stage_updated_at: '2026-06-16T09:00:00.000Z',
+    city: 'Mumbai',
   },
   {
     candidate_name: 'Diya Sharma',
@@ -170,6 +172,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-11T08:45:00.000Z',
     processed_at: '2026-06-11T09:05:00.000Z',
     pipeline_stage_updated_at: '2026-06-18T13:30:00.000Z',
+    city: 'Bangalore',
   },
   {
     candidate_name: 'Rahul Verma',
@@ -218,6 +221,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-08T11:30:00.000Z',
     processed_at: '2026-06-08T11:50:00.000Z',
     pipeline_stage_updated_at: '2026-06-23T10:00:00.000Z',
+    city: 'Delhi',
   },
   {
     candidate_name: 'Sneha Kulkarni',
@@ -266,6 +270,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-17T07:45:00.000Z',
     processed_at: '2026-06-17T08:15:00.000Z',
     pipeline_stage_updated_at: '2026-06-17T08:15:00.000Z',
+    city: 'Pune',
   },
   {
     candidate_name: 'Karan Patel',
@@ -314,6 +319,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-19T09:20:00.000Z',
     processed_at: '2026-06-19T09:40:00.000Z',
     pipeline_stage_updated_at: '2026-06-19T09:40:00.000Z',
+    city: 'Ahmedabad',
   },
   {
     candidate_name: 'Nisha Iyer',
@@ -362,6 +368,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-12T06:55:00.000Z',
     processed_at: '2026-06-12T07:15:00.000Z',
     pipeline_stage_updated_at: '2026-06-20T12:45:00.000Z',
+    city: 'Chennai',
   },
   {
     candidate_name: 'Manav Singh',
@@ -410,6 +417,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-05-28T08:05:00.000Z',
     processed_at: '2026-05-28T08:30:00.000Z',
     pipeline_stage_updated_at: '2026-06-25T15:00:00.000Z',
+    city: 'Hyderabad',
   },
   {
     candidate_name: 'Pooja Nair',
@@ -458,6 +466,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-10T05:25:00.000Z',
     processed_at: '2026-06-10T05:50:00.000Z',
     pipeline_stage_updated_at: '2026-06-21T09:15:00.000Z',
+    city: 'Kochi',
   },
   {
     candidate_name: 'Yash Agarwal',
@@ -506,6 +515,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-22T10:10:00.000Z',
     processed_at: '2026-06-22T10:30:00.000Z',
     pipeline_stage_updated_at: '2026-06-22T10:30:00.000Z',
+    city: 'Kolkata',
   },
   {
     candidate_name: 'Fatima Khan',
@@ -554,6 +564,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-09T04:15:00.000Z',
     processed_at: '2026-06-09T04:40:00.000Z',
     pipeline_stage_updated_at: '2026-06-13T11:00:00.000Z',
+    city: 'Mumbai',
   },
   {
     candidate_name: 'Vikram Joshi',
@@ -602,6 +613,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-24T06:00:00.000Z',
     processed_at: '2026-06-24T06:20:00.000Z',
     pipeline_stage_updated_at: '2026-06-26T10:45:00.000Z',
+    city: 'Bangalore',
   },
   {
     candidate_name: 'Isha Gupta',
@@ -650,6 +662,7 @@ const candidates: SeedCandidate[] = [
     submitted_at: '2026-06-26T08:10:00.000Z',
     processed_at: '2026-06-26T08:30:00.000Z',
     pipeline_stage_updated_at: '2026-06-26T08:30:00.000Z',
+    city: 'Delhi',
   },
 ];
 
@@ -686,7 +699,8 @@ async function main(): Promise<void> {
           summary, strengths, weaknesses,
           frontend_feedback, backend_feedback, database_feedback,
           ai_ml_feedback, hiring_note,
-          pipeline_stage, pipeline_stage_updated_at, latest_stage_note
+          pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
+          city
         ) VALUES (
           $1, $2, $3,
           $4, $5, $6, $7, $8,
@@ -703,7 +717,7 @@ async function main(): Promise<void> {
           $36, $37, $38,
           $39, $40, $41,
           $42, $43,
-          $44, $45, $46
+          $44, $45, $46, $47
         )
         RETURNING id`,
         [
@@ -753,6 +767,7 @@ async function main(): Promise<void> {
           candidate.pipeline_stage,
           candidate.pipeline_stage_updated_at,
           candidate.latest_stage_note,
+          candidate.city,
         ],
       );
 

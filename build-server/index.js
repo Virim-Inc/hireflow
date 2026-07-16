@@ -49,7 +49,8 @@ const SELECT_COLUMNS = `
   ai_ml_feedback, hiring_note,
   workdrive_file_id, workdrive_file_name,
   source_folder_id, processed_folder_id,
-  pipeline_stage, pipeline_stage_updated_at, latest_stage_note
+  pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
+  city
 `;
 const SORT_COLUMNS = {
     processed_at: 'processed_at',
@@ -76,6 +77,35 @@ function parseNumeric(value) {
     }
     const parsed = Number.parseFloat(value);
     return Number.isFinite(parsed) ? parsed : null;
+}
+function parseMultiValueFilter(value) {
+    return (value ?? '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+}
+function collectUniqueSkills(rows) {
+    const unique = new Map();
+    rows.forEach((row) => {
+        [
+            row.frontend_skills,
+            row.backend_skills,
+            row.database_skills,
+            row.ai_ml_skills,
+            row.cloud_devops,
+            row.programming_langs,
+        ]
+            .flatMap((value) => parseMultiValueFilter(value ?? undefined))
+            .forEach((skill) => {
+            const normalized = skill.trim().toLowerCase();
+            if (!normalized || normalized === 'n/a' || normalized === 'none')
+                return;
+            if (!unique.has(normalized)) {
+                unique.set(normalized, skill.trim());
+            }
+        });
+    });
+    return Array.from(unique.values()).sort((a, b) => a.localeCompare(b));
 }
 function asNumber(value) {
     return Number.parseFloat(value ?? '0') || 0;
@@ -105,17 +135,20 @@ function buildWhereClause(query) {
         params.push(query.grade);
         idx++;
     }
-    if (query.skill) {
-        where.push(`(
-      frontend_skills ILIKE $${idx}
-      OR backend_skills ILIKE $${idx}
-      OR database_skills ILIKE $${idx}
-      OR ai_ml_skills ILIKE $${idx}
-      OR cloud_devops ILIKE $${idx}
-      OR programming_langs ILIKE $${idx}
-    )`);
-        params.push(`%${query.skill}%`);
-        idx++;
+    const skillFilters = parseMultiValueFilter(query.skill);
+    if (skillFilters.length) {
+        skillFilters.forEach((skill) => {
+            where.push(`(
+        frontend_skills ILIKE $${idx}
+        OR backend_skills ILIKE $${idx}
+        OR database_skills ILIKE $${idx}
+        OR ai_ml_skills ILIKE $${idx}
+        OR cloud_devops ILIKE $${idx}
+        OR programming_langs ILIKE $${idx}
+      )`);
+            params.push(`%${skill}%`);
+            idx++;
+        });
     }
     if (query.recommendation) {
         where.push(`recommendation ILIKE $${idx}`);
@@ -141,6 +174,11 @@ function buildWhereClause(query) {
     if (query.position) {
         where.push(`${POSITION_EXPR} = $${idx}`);
         params.push(query.position);
+        idx++;
+    }
+    if (query.city) {
+        where.push(`city = $${idx}`);
+        params.push(query.city);
         idx++;
     }
     const minScore = parseNumeric(query.min_score);
@@ -195,7 +233,8 @@ async function ensurePipelineSchema() {
     ALTER TABLE candidates
       ADD COLUMN IF NOT EXISTS pipeline_stage TEXT,
       ADD COLUMN IF NOT EXISTS pipeline_stage_updated_at TIMESTAMPTZ DEFAULT NOW(),
-      ADD COLUMN IF NOT EXISTS latest_stage_note TEXT
+      ADD COLUMN IF NOT EXISTS latest_stage_note TEXT,
+      ADD COLUMN IF NOT EXISTS city TEXT
   `);
     await pool.query(`
     UPDATE candidates
@@ -328,14 +367,25 @@ app.get('/api/candidates', async (req, res) => {
 });
 app.get('/api/candidates/meta', async (_req, res) => {
     try {
-        const positionsRes = await pool.query(`SELECT ${POSITION_EXPR} AS position_label, COUNT(*)::text AS count
-       FROM candidates
-       GROUP BY 1
-       ORDER BY COUNT(*) DESC, 1 ASC`);
+        const [positionsRes, skillsRes, citiesRes] = await Promise.all([
+            pool.query(`SELECT ${POSITION_EXPR} AS position_label, COUNT(*)::text AS count
+         FROM candidates
+         GROUP BY 1
+         ORDER BY COUNT(*) DESC, 1 ASC`),
+            pool.query(`SELECT frontend_skills, backend_skills, database_skills, ai_ml_skills, cloud_devops, programming_langs
+         FROM candidates`),
+            pool.query(`SELECT DISTINCT TRIM(city) AS city
+         FROM candidates
+         WHERE city IS NOT NULL
+         AND TRIM(city) <> ''
+         ORDER BY city`),
+        ]);
         res.json({
             positions: positionsRes.rows.map((row) => row.position_label),
             stages: PIPELINE_STAGES,
             sources: ['form', 'email'],
+            skills: collectUniqueSkills(skillsRes.rows),
+            cities: citiesRes.rows.map((row) => row.city).filter(Boolean),
         });
     }
     catch (err) {
