@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import { LayoutDashboard, Users, ChevronLeft, ChevronRight, ShieldCheck, Sun, Moon, KanbanSquare, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, ChevronLeft, ChevronRight, ShieldCheck, Sun, Moon, KanbanSquare, LogOut, User } from 'lucide-react';
 import type { Theme } from '../../App';
 
-type Page = 'dashboard' | 'candidates' | 'pipeline';
+type Page = 'dashboard' | 'candidates' | 'pipeline' | 'profile';
 
 interface SidebarProps {
   currentPage: Page;
@@ -13,6 +13,7 @@ interface SidebarProps {
   theme: Theme;
   onToggleTheme: () => void;
   onLogout: () => void;
+  user: { name: string | null; email: string } | null;
 }
 
 const NAV_ITEMS: { id: Page; label: string; icon: React.ReactNode }[] = [
@@ -21,7 +22,7 @@ const NAV_ITEMS: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'pipeline', label: 'Hiring Pipeline', icon: <KanbanSquare size={18} /> },
 ];
 
-export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, onToggleTheme, onLogout }: SidebarProps) {
+export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, onToggleTheme, onLogout, user }: SidebarProps) {
   const sidebarRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -76,6 +77,24 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, o
 
       {/* ── Theme toggle at bottom ── */}
       <div className="sidebar-footer">
+        <button
+          id="nav-profile"
+          className={`sidebar-profile-btn ${currentPage === 'profile' ? 'sidebar-profile-btn--active' : ''}`}
+          onClick={() => onNavigate('profile')}
+          title={collapsed ? (user?.name || 'Admin Profile') : undefined}
+          aria-label="Profile"
+        >
+          <div className="sidebar-profile-avatar">
+            {(user?.name || 'A').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+          </div>
+          {!collapsed && (
+            <div className="sidebar-profile-meta">
+              <span className="sidebar-profile-name">{user?.name || 'Administrator'}</span>
+              <span className="sidebar-profile-sub">View Profile</span>
+            </div>
+          )}
+        </button>
+
         <button
           id="theme-toggle"
           className="sidebar-theme-btn"

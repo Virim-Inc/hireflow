@@ -11,7 +11,7 @@ export async function findUserByEmail(email: string): Promise<AdminUser | null> 
 
 export async function findUserById(id: number): Promise<AdminUser | null> {
   const result = await pool.query<AdminUser>(
-    'SELECT id, email, password_hash, name, created_at FROM admin_users WHERE id = ',
+    'SELECT id, email, password_hash, name, created_at FROM admin_users WHERE id = $1',
     [id],
   );
   return result.rows[0] ?? null;

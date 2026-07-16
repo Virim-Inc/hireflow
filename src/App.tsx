@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LoginPage } from './features/auth';
+import { LoginPage, ProfilePage } from './features/auth';
 import { CandidatesPage } from './features/candidates';
 import { DashboardHome } from './features/dashboard';
 import { PipelinePage } from './features/pipeline';
@@ -7,7 +7,7 @@ import { Sidebar } from './components/shared/Sidebar';
 import type { CandidateFilters } from './features/candidates/types/candidate.types';
 import './app.css';
 
-type Page = 'login' | 'dashboard' | 'candidates' | 'pipeline';
+export type Page = 'login' | 'dashboard' | 'candidates' | 'pipeline' | 'profile';
 export type Theme = 'dark' | 'light';
 
 function App() {
@@ -16,6 +16,7 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState<Theme>('light');
   const [candidateFilters, setCandidateFilters] = useState<Partial<CandidateFilters> | null>(null);
+  const [user, setUser] = useState<{ id: number; email: string; name: string | null } | null>(null);
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -28,11 +29,13 @@ function App() {
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
           const saved = localStorage.getItem('hf_currentPage');
           if (saved === 'email-ranking') {
             setPage('pipeline');
-          } else if (saved === 'dashboard' || saved === 'candidates' || saved === 'pipeline') {
-            setPage(saved);
+          } else if (saved === 'dashboard' || saved === 'candidates' || saved === 'pipeline' || saved === 'profile') {
+            setPage(saved as Page);
           } else {
             setPage('dashboard');
           }
@@ -73,9 +76,13 @@ function App() {
     return () => window.removeEventListener('hf_unauthorized', handleUnauthorized);
   }, []);
 
-  const handleLogin = () => setPage('dashboard');
+  const handleLogin = (userInfo: { id: number; email: string; name: string | null }) => {
+    setUser(userInfo);
+    setPage('dashboard');
+  };
   const handleLogout = () => {
     localStorage.clear();
+    setUser(null);
     setCandidateFilters(null);
     setSidebarCollapsed(false);
     setTheme('light');
@@ -121,6 +128,7 @@ function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onLogout={handleLogout}
+        user={user}
       />
       <main className="hf-main-content">
         {page === 'dashboard' && <DashboardHome onNavigate={navigate} />}
@@ -131,6 +139,7 @@ function App() {
           />
         )}
         {page === 'pipeline' && <PipelinePage />}
+        {page === 'profile' && <ProfilePage user={user} onNavigate={navigate} onLogout={handleLogout} />}
       </main>
     </div>
   );

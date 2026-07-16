@@ -4,7 +4,7 @@ export async function findUserByEmail(email) {
     return result.rows[0] ?? null;
 }
 export async function findUserById(id) {
-    const result = await pool.query('SELECT id, email, password_hash, name, created_at FROM admin_users WHERE id = ', [id]);
+    const result = await pool.query('SELECT id, email, password_hash, name, created_at FROM admin_users WHERE id = $1', [id]);
     return result.rows[0] ?? null;
 }
 //# sourceMappingURL=auth.repo.js.map

@@ -27,7 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
  *  3. Brief hold, then splash slides away
  *  4. Login form animates in
  */
-export function LoginPage({ onLogin }: { onLogin?: () => void }) {
+export function LoginPage({ onLogin }: { onLogin?: (user: { id: number; email: string; name: string | null }) => void }) {
   const splashRef = useRef<HTMLDivElement>(null);
   const hireRef = useRef<HTMLSpanElement>(null);
   const dashRef = useRef<HTMLSpanElement>(null);
@@ -158,7 +158,7 @@ export function LoginPage({ onLogin }: { onLogin?: () => void }) {
         throw new Error(data.error || "Failed to sign in");
       }
       localStorage.setItem("hf_token", data.token);
-      onLogin?.();
+      onLogin?.(data.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
