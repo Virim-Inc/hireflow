@@ -107,6 +107,10 @@ export interface StatsSummaryRow {
   moved_this_month: string;
   active_this_week: string;
   moved_this_week: string;
+  candidates_today: string;
+  candidates_yesterday: string;
+  candidates_last_7_days: string;
+  candidates_last_30_days: string;
   from_form: string;
   from_email: string;
   stage_screening: string;

@@ -1,14 +1,48 @@
-﻿import * as statsRepo from '../repositories/stats.repo.js';
+import * as statsRepo from '../repositories/stats.repo.js';
 
 function asNumber(value: string | null | undefined): number {
   return Number.parseFloat(value ?? '0') || 0;
 }
 
+export function buildTimeline(
+  rawPoints: Array<{ date: string; received: number; shortlisted: number }>,
+  days: number
+): Array<{ date: string; received: number; shortlisted: number }> {
+  const dailyMap = new Map<string, { received: number; shortlisted: number }>();
+  
+  // Initialize map with all dates in the past N days
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    dailyMap.set(key, { received: 0, shortlisted: 0 });
+  }
+
+  // Populate data points from DB
+  for (const point of rawPoints) {
+    if (dailyMap.has(point.date)) {
+      dailyMap.set(point.date, {
+        received: Number(point.received) || 0,
+        shortlisted: Number(point.shortlisted) || 0,
+      });
+    }
+  }
+
+  return Array.from(dailyMap.entries()).map(([date, vals]) => ({
+    date,
+    received: vals.received,
+    shortlisted: vals.shortlisted,
+  }));
+}
+
 export async function getStats(): Promise<Record<string, unknown>> {
-  const [summary, positions] = await Promise.all([
+  const [summary, positions, rawDailyAcq] = await Promise.all([
     statsRepo.fetchStatsSummary(),
     statsRepo.fetchTopPositions(),
+    statsRepo.fetchDailyAcquisition(90),
   ]);
+
+  const dailyAcquisition = buildTimeline(rawDailyAcq, 90);
 
   return {
     totalCandidates: asNumber(summary.total),
@@ -28,6 +62,11 @@ export async function getStats(): Promise<Record<string, unknown>> {
     movedThisMonth: asNumber(summary.moved_this_month),
     activeThisWeek: asNumber(summary.active_this_week),
     movedThisWeek: asNumber(summary.moved_this_week),
+    candidatesToday: asNumber(summary.candidates_today),
+    candidatesYesterday: asNumber(summary.candidates_yesterday),
+    candidatesLast7Days: asNumber(summary.candidates_last_7_days),
+    candidatesLast30Days: asNumber(summary.candidates_last_30_days),
+    dailyAcquisition,
     sourceBreakdown: {
       form: asNumber(summary.from_form),
       email: asNumber(summary.from_email),

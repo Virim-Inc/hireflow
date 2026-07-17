@@ -86,6 +86,12 @@ export interface CandidateStageHistoryItem {
   changed_at: string;
 }
 
+export interface DailyAcquisitionPoint {
+  date: string;
+  received: number;
+  shortlisted: number;
+}
+
 export interface CandidateStats {
   totalCandidates: number;
   qualifiedCandidates: number;
@@ -104,6 +110,11 @@ export interface CandidateStats {
   movedThisMonth: number;
   activeThisWeek: number;
   movedThisWeek: number;
+  candidatesToday: number;
+  candidatesYesterday: number;
+  candidatesLast7Days: number;
+  candidatesLast30Days: number;
+  dailyAcquisition: DailyAcquisitionPoint[];
   sourceBreakdown: {
     form: number;
     email: number;

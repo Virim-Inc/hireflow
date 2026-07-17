@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import { LayoutDashboard, Users, ChevronLeft, ChevronRight, ShieldCheck, Sun, Moon, KanbanSquare, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, Users, ChevronLeft, ChevronRight, ShieldCheck, Sun, Moon, KanbanSquare, LogOut } from 'lucide-react';
 import type { Theme } from '../../App';
 
 type Page = 'dashboard' | 'candidates' | 'pipeline' | 'profile';

@@ -1,4 +1,4 @@
-import { User, Mail, ShieldAlert, Calendar, Activity, Key, LogOut, ArrowLeft } from 'lucide-react';
+import { Mail, ShieldAlert, Calendar, Activity, Key, LogOut, ArrowLeft } from 'lucide-react';
 import type { Page } from '../../../App';
 
 interface ProfilePageProps {

@@ -20,7 +20,11 @@ export async function fetchStatsSummary() {
       COUNT(*) FILTER (WHERE DATE_TRUNC('month', COALESCE(pipeline_stage_updated_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE))::text AS moved_this_month,
       COUNT(*) FILTER (WHERE COALESCE(submitted_at, processed_at, NOW()) >= NOW() - INTERVAL '7 days')::text AS active_this_week,
       COUNT(*) FILTER (WHERE COALESCE(pipeline_stage_updated_at, processed_at, NOW()) >= NOW() - INTERVAL '7 days')::text AS moved_this_week,
-      COUNT(*) FILTER (WHERE LOWER(source) = 'form')::text AS from_form,
+      COUNT(*) FILTER (WHERE DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE)::text AS candidates_today,
+      COUNT(*) FILTER (WHERE DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE - INTERVAL '1 day')::text AS candidates_yesterday,
+      COUNT(*) FILTER (WHERE COALESCE(submitted_at, processed_at, NOW()) >= CURRENT_DATE - INTERVAL '7 days')::text AS candidates_last_7_days,
+      COUNT(*) FILTER (WHERE COALESCE(submitted_at, processed_at, NOW()) >= CURRENT_DATE - INTERVAL '30 days')::text AS candidates_last_30_days,
+      COUNT(*) FILTER (WHERE LOWER(source) IN ('form', 'workdrive'))::text AS from_form,
       COUNT(*) FILTER (WHERE LOWER(source) = 'email')::text AS from_email,
       COUNT(*) FILTER (WHERE pipeline_stage = 'screening')::text AS stage_screening,
       COUNT(*) FILTER (WHERE pipeline_stage = 'shortlisted')::text AS stage_shortlisted,
@@ -35,6 +39,19 @@ export async function fetchStatsSummary() {
     FROM candidates
   `);
     return res.rows[0];
+}
+export async function fetchDailyAcquisition(limitDays = 30) {
+    const res = await pool.query(`
+    SELECT
+      TO_CHAR(COALESCE(submitted_at, processed_at, NOW()), 'YYYY-MM-DD') AS date,
+      COUNT(*)::integer AS received,
+      COUNT(*) FILTER (WHERE pipeline_stage = 'shortlisted')::integer AS shortlisted
+    FROM candidates
+    WHERE COALESCE(submitted_at, processed_at, NOW()) >= CURRENT_DATE - CAST($1 || ' days' AS INTERVAL)
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `, [limitDays]);
+    return res.rows;
 }
 export async function fetchTopPositions(limit = 8) {
     const res = await pool.query(`SELECT ${POSITION_EXPR} AS position_label, COUNT(*)::text AS count

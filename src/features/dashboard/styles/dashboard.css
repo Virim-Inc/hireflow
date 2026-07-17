@@ -349,3 +349,84 @@
     align-items: flex-start;
   }
 }
+
+/* ── View Toggle Switch ── */
+.dash-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.dash-section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--hf-text-primary);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.dash-toggle-switch {
+  display: flex;
+  padding: 3px;
+  background: color-mix(in oklab, var(--hf-surface-2) 90%, transparent);
+  border: 1px solid var(--hf-border);
+  border-radius: 12px;
+}
+
+.dash-toggle-btn {
+  appearance: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 6px 16px;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--hf-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dash-toggle-btn:hover {
+  color: var(--hf-text-primary);
+}
+
+.dash-toggle-btn.active {
+  background: var(--hf-accent);
+  color: var(--hf-bg);
+  box-shadow: 0 4px 12px var(--hf-border-glow);
+}
+
+/* ── 3D Card Flip Layout ── */
+.dash-flip-container {
+  width: 100%;
+  position: relative;
+}
+
+.dash-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  display: grid;
+  grid-template-columns: 100%;
+  transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dash-card-face {
+  grid-area: 1 / 1 / 2 / 2;
+  backface-visibility: hidden;
+  width: 100%;
+}
+
+.dash-card-back {
+  transform: rotateY(180deg);
+}
+
+.dash-flip-container.is-flipped .dash-flip-inner {
+  transform: rotateY(180deg);
+}
+

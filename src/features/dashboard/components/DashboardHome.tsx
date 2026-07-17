@@ -1,4 +1,6 @@
 import '../styles/dashboard.css';
+import '../styles/analytics.css';
+import '../styles/timeline-chart.css';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
@@ -18,6 +20,8 @@ import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import { fetchStats } from '../../candidates/services/candidateService';
 import type { CandidateFilters, CandidateStats } from '../../candidates/types/candidate.types';
 import { STAGE_META, getStageLabel } from '../../candidates/lib/pipeline';
+import { FlipContainer } from './FlipContainer';
+import { AnalyticsView } from './AnalyticsView';
 
 type Page = 'dashboard' | 'candidates' | 'pipeline';
 
@@ -96,6 +100,8 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState<CandidateStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!heroRef.current) return;
@@ -104,23 +110,21 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
     gsap.fromTo(textItems, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, delay: 0.12, ease: 'power2.out' });
   }, []);
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadStats() {
-      try {
-        const result = await fetchStats();
-        if (active) setStats(result);
-      } finally {
-        if (active) setLoading(false);
-      }
+  async function loadStats() {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await fetchStats();
+      setStats(result);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch candidate statistics.');
+    } finally {
+      setLoading(false);
     }
+  }
 
+  useEffect(() => {
     void loadStats();
-
-    return () => {
-      active = false;
-    };
   }, []);
 
   const openPipeline = useMemo(() => {
@@ -177,126 +181,163 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
         </div>
       </section>
 
-      <section className="dash-stats-grid">
-        <StatCard
-          label="Total Candidates"
-          value={loading ? '...' : <AnimatedCount value={stats?.totalCandidates ?? 0} />}
-          helper={loading ? 'Loading candidates' : `${stats?.sourceBreakdown.form ?? 0} form and ${stats?.sourceBreakdown.email ?? 0} email applications`}
-          breakdown={[
-            { label: 'Today', value: loading ? '...' : <AnimatedCount value={stats?.activeToday ?? 0} />, onClick: () => openCandidates({ date_from: today, date_to: today }) },
-            { label: 'This Month', value: loading ? '...' : <AnimatedCount value={stats?.activeThisMonth ?? 0} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today }) },
-          ]}
-          icon={<Users size={17} />}
-          accentClass="is-blue"
-        />
-        <StatCard
-          label="Qualified"
-          value={loading ? '...' : <AnimatedCount value={stats?.qualifiedCandidates ?? 0} />}
-          helper={loading ? 'Loading qualified count' : `${stats?.averageScore ?? 0} average AI score`}
-          breakdown={[
-            { label: 'Today', value: loading ? '...' : <AnimatedCount value={qualifiedToday} />, onClick: () => openCandidates({ date_from: today, date_to: today, qualified: 'true' }) },
-            { label: 'This Month', value: loading ? '...' : <AnimatedCount value={qualifiedThisMonth} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today, qualified: 'true' }) },
-          ]}
-          icon={<Target size={17} />}
-          accentClass="is-green"
-        />
-        <StatCard
-          label="Open Pipeline"
-          value={loading ? '...' : <AnimatedCount value={openPipeline} />}
-          helper={loading ? 'Loading pipeline' : `${stats?.movedThisWeek ?? 0} candidates moved this week`}
-          breakdown={[
-            { label: 'Today', value: loading ? '...' : <AnimatedCount value={openToday} />, onClick: () => openCandidates({ date_from: today, date_to: today }) },
-            { label: 'This Month', value: loading ? '...' : <AnimatedCount value={openThisMonth} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today }) },
-          ]}
-          icon={<KanbanSquare size={17} />}
-          accentClass="is-amber"
-        />
-        <StatCard
-          label="Top Score"
-          value={loading ? '...' : <AnimatedCount value={stats?.topScore ?? 0} />}
-          helper={loading ? 'Loading best score' : `${stats?.recommendationBreakdown.strongHire ?? 0} strong hire recommendations`}
-          breakdown={[
-            { label: 'Today', value: loading ? '...' : <AnimatedCount value={topScoreToday} />, onClick: () => openCandidates({ date_from: today, date_to: today, sort: 'total_score' }) },
-            { label: 'This Month', value: loading ? '...' : <AnimatedCount value={topScoreThisMonth} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today, sort: 'total_score' }) },
-          ]}
-          icon={<TrendingUp size={17} />}
-          accentClass="is-pink"
-        />
-      </section>
+      {/* Grid vs Analytics view toggle row */}
+      <div className="dash-controls-row">
+        <h2 className="dash-section-title">
+          {isFlipped ? 'Analytics Report' : 'Hiring Overview'}
+        </h2>
+        <div className="dash-toggle-switch glass-card">
+          <button 
+            className={`dash-toggle-btn ${!isFlipped ? 'active' : ''}`}
+            onClick={() => setIsFlipped(false)}
+          >
+            Grid View
+          </button>
+          <button 
+            className={`dash-toggle-btn ${isFlipped ? 'active' : ''}`}
+            onClick={() => setIsFlipped(true)}
+          >
+            Analytics View
+          </button>
+        </div>
+      </div>
 
-      <section className="dash-lower-grid">
-        <article className="glass-card dash-panel">
-          <div className="dash-panel-head">
-            <h2>Pipeline Stages</h2>
-            <span>{stats?.totalCandidates ?? 0} total</span>
-          </div>
-          <div className="dash-stage-list">
-            {STAGE_META.map((stage) => (
-              <button
-                key={stage.id}
-                className="dash-stage-row"
-                onClick={() => openCandidates({ stage: stage.id })}
-              >
-                <div>
-                  <strong>{getStageLabel(stage.id)}</strong>
-                  <span>{stage.description}</span>
+      <FlipContainer
+        isFlipped={isFlipped}
+        front={
+          <div className="dash-front-layout">
+            <section className="dash-stats-grid">
+              <StatCard
+                label="Total Candidates"
+                value={loading ? '...' : <AnimatedCount value={stats?.totalCandidates ?? 0} />}
+                helper={loading ? 'Loading candidates' : `${stats?.sourceBreakdown.form ?? 0} form and ${stats?.sourceBreakdown.email ?? 0} email applications`}
+                breakdown={[
+                  { label: 'Today', value: loading ? '...' : <AnimatedCount value={stats?.activeToday ?? 0} />, onClick: () => openCandidates({ date_from: today, date_to: today }) },
+                  { label: 'This Month', value: loading ? '...' : <AnimatedCount value={stats?.activeThisMonth ?? 0} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today }) },
+                ]}
+                icon={<Users size={17} />}
+                accentClass="is-blue"
+              />
+              <StatCard
+                label="Qualified"
+                value={loading ? '...' : <AnimatedCount value={stats?.qualifiedCandidates ?? 0} />}
+                helper={loading ? 'Loading qualified count' : `${stats?.averageScore ?? 0} average AI score`}
+                breakdown={[
+                  { label: 'Today', value: loading ? '...' : <AnimatedCount value={qualifiedToday} />, onClick: () => openCandidates({ date_from: today, date_to: today, qualified: 'true' }) },
+                  { label: 'This Month', value: loading ? '...' : <AnimatedCount value={qualifiedThisMonth} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today, qualified: 'true' }) },
+                ]}
+                icon={<Target size={17} />}
+                accentClass="is-green"
+              />
+              <StatCard
+                label="Open Pipeline"
+                value={loading ? '...' : <AnimatedCount value={openPipeline} />}
+                helper={loading ? 'Loading pipeline' : `${stats?.movedThisWeek ?? 0} candidates moved this week`}
+                breakdown={[
+                  { label: 'Today', value: loading ? '...' : <AnimatedCount value={openToday} />, onClick: () => openCandidates({ date_from: today, date_to: today }) },
+                  { label: 'This Month', value: loading ? '...' : <AnimatedCount value={openThisMonth} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today }) },
+                ]}
+                icon={<KanbanSquare size={17} />}
+                accentClass="is-amber"
+              />
+              <StatCard
+                label="Top Score"
+                value={loading ? '...' : <AnimatedCount value={stats?.topScore ?? 0} />}
+                helper={loading ? 'Loading best score' : `${stats?.recommendationBreakdown.strongHire ?? 0} strong hire recommendations`}
+                breakdown={[
+                  { label: 'Today', value: loading ? '...' : <AnimatedCount value={topScoreToday} />, onClick: () => openCandidates({ date_from: today, date_to: today, sort: 'total_score' }) },
+                  { label: 'This Month', value: loading ? '...' : <AnimatedCount value={topScoreThisMonth} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today, sort: 'total_score' }) },
+                ]}
+                icon={<TrendingUp size={17} />}
+                accentClass="is-pink"
+              />
+            </section>
+
+            <section className="dash-lower-grid">
+              <article className="glass-card dash-panel">
+                <div className="dash-panel-head">
+                  <h2>Pipeline Stages</h2>
+                  <span>{stats?.totalCandidates ?? 0} total</span>
                 </div>
-                <b><AnimatedCount value={stats?.stageCounts[stage.id] ?? 0} /></b>
-              </button>
-            ))}
-          </div>
-        </article>
-
-        <article className="glass-card dash-panel">
-          <div className="dash-panel-head">
-            <h2>Top Positions</h2>
-            <span>{topPositions.length} tracked</span>
-          </div>
-          <div className="dash-role-list">
-            {topPositions.length ? topPositions.map((position) => (
-              <div key={position.position} className="dash-role-row">
-                <div className="dash-role-icon"><Briefcase size={14} /></div>
-                <div className="dash-role-copy">
-                  <strong>{position.position}</strong>
-                  <span><AnimatedCount value={position.count} /> applicants</span>
+                <div className="dash-stage-list">
+                  {STAGE_META.map((stage) => (
+                    <button
+                      key={stage.id}
+                      className="dash-stage-row"
+                      onClick={() => openCandidates({ stage: stage.id })}
+                    >
+                      <div>
+                        <strong>{getStageLabel(stage.id)}</strong>
+                        <span>{stage.description}</span>
+                      </div>
+                      <b><AnimatedCount value={stats?.stageCounts[stage.id] ?? 0} /></b>
+                    </button>
+                  ))}
                 </div>
-              </div>
-            )) : (
-              <p className="dash-empty-copy">No role data available yet.</p>
-            )}
-          </div>
-        </article>
+              </article>
 
-        <article className="glass-card dash-panel">
-          <div className="dash-panel-head">
-            <h2>Activity</h2>
-            <span>Today and month</span>
+              <article className="glass-card dash-panel">
+                <div className="dash-panel-head">
+                  <h2>Top Positions</h2>
+                  <span>{topPositions.length} tracked</span>
+                </div>
+                <div className="dash-role-list">
+                  {topPositions.length ? topPositions.map((position) => (
+                    <div key={position.position} className="dash-role-row">
+                      <div className="dash-role-icon"><Briefcase size={14} /></div>
+                      <div className="dash-role-copy">
+                        <strong>{position.position}</strong>
+                        <span><AnimatedCount value={position.count} /> applicants</span>
+                      </div>
+                    </div>
+                  )) : (
+                    <p className="dash-empty-copy">No role data available yet.</p>
+                  )}
+                </div>
+              </article>
+
+              <article className="glass-card dash-panel">
+                <div className="dash-panel-head">
+                  <h2>Activity</h2>
+                  <span>Today and month</span>
+                </div>
+                <div className="dash-activity-list">
+                  <div className="dash-activity-item">
+                    <span className="dash-activity-icon"><Inbox size={15} /></span>
+                    <div>
+                      <strong>{stats?.activeToday ?? 0} today</strong>
+                      <span>{stats?.activeThisMonth ?? 0} candidates this month</span>
+                    </div>
+                  </div>
+                  <div className="dash-activity-item">
+                    <span className="dash-activity-icon"><Clock3 size={15} /></span>
+                    <div>
+                      <strong>{stats?.movedToday ?? 0} moved today</strong>
+                      <span>{stats?.movedThisMonth ?? 0} stage updates this month</span>
+                    </div>
+                  </div>
+                  <div className="dash-activity-item">
+                    <span className="dash-activity-icon"><CheckCheck size={15} /></span>
+                    <div>
+                      <strong>{stats?.stageCounts.hired ?? 0} hired</strong>
+                      <span>Final confirmed outcomes in the current dataset</span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </section>
           </div>
-          <div className="dash-activity-list">
-            <div className="dash-activity-item">
-              <span className="dash-activity-icon"><Inbox size={15} /></span>
-              <div>
-                <strong>{stats?.activeToday ?? 0} today</strong>
-                <span>{stats?.activeThisMonth ?? 0} candidates this month</span>
-              </div>
-            </div>
-            <div className="dash-activity-item">
-              <span className="dash-activity-icon"><Clock3 size={15} /></span>
-              <div>
-                <strong>{stats?.movedToday ?? 0} moved today</strong>
-                <span>{stats?.movedThisMonth ?? 0} stage updates this month</span>
-              </div>
-            </div>
-            <div className="dash-activity-item">
-              <span className="dash-activity-icon"><CheckCheck size={15} /></span>
-              <div>
-                <strong>{stats?.stageCounts.hired ?? 0} hired</strong>
-                <span>Final confirmed outcomes in the current dataset</span>
-              </div>
-            </div>
-          </div>
-        </article>
-      </section>
+        }
+        back={
+          <AnalyticsView
+            stats={stats}
+            loading={loading}
+            error={error}
+            onRetry={loadStats}
+            onNavigate={onNavigate}
+          />
+        }
+      />
     </div>
   );
 }

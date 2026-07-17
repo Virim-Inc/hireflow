@@ -1,0 +1,191 @@
+/* ── Timeline Chart Layout ── */
+.dash-timeline-chart-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  min-height: 250px;
+}
+
+.dash-timeline-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.chart-axis-label {
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 500;
+  fill: var(--hf-text-muted);
+  user-select: none;
+}
+
+/* Cursor vertical guide line */
+.chart-cursor-guide {
+  pointer-events: none;
+  transition: x1 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), x2 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Glowing dots on curve path nodes */
+.chart-hover-dot {
+  pointer-events: none;
+  animation: pulse-dot 1.8s infinite alternate;
+  transition: cx 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), cy 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes pulse-dot {
+  0% {
+    r: 5px;
+    stroke-width: 1.5px;
+  }
+  100% {
+    r: 7.5px;
+    stroke-width: 2.5px;
+  }
+}
+
+/* ── Interactive Floating Tooltip ── */
+.dash-chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+  width: 185px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--hf-border);
+  background: color-mix(in oklab, var(--hf-card-bg) 85%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 25px color-mix(in oklab, var(--hf-shadow) 40%, transparent);
+  transition: left 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tooltip-date {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--hf-text-primary);
+  border-bottom: 1px solid color-mix(in oklab, var(--hf-border) 60%, transparent);
+  padding-bottom: 5px;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.tooltip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tooltip-label {
+  color: var(--hf-text-secondary);
+  flex-grow: 1;
+}
+
+.tooltip-value {
+  color: var(--hf-text-primary);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+/* Tooltip Row Accents */
+.tooltip-row.blue-glow {
+  text-shadow: 0 0 10px color-mix(in oklab, var(--hf-info) 30%, transparent);
+}
+
+.tooltip-row.green-glow {
+  text-shadow: 0 0 10px color-mix(in oklab, var(--hf-success) 30%, transparent);
+}
+
+/* ── Light Mode Tooltip ── */
+.hf-app--light .dash-chart-tooltip {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: color-mix(in oklab, var(--hf-border) 80%, white 20%);
+  box-shadow: 0 10px 25px color-mix(in oklab, var(--hf-shadow) 15%, transparent);
+}
+
+.hf-app--light .tooltip-date {
+  border-bottom-color: oklch(0.92 0 0);
+}
+
+/* ── Loader Chart Placeholder ── */
+.dash-chart-placeholder {
+  width: 100%;
+  height: 280px;
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--hf-surface-2) 40%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.chart-skeleton-bar {
+  width: 80%;
+  height: 120px;
+  border-bottom: 2px solid var(--hf-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-skeleton-bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 80px;
+  background: linear-gradient(to top right, transparent, color-mix(in oklab, var(--hf-border) 40%, transparent) 70%, transparent);
+  animation: chartShimmer 2s infinite linear;
+}
+
+@keyframes chartShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.chart-skeleton-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--hf-text-muted);
+}
+
+.dash-chart-empty {
+  background: transparent;
+  border: 1px dashed var(--hf-border);
+}
+
+.dash-chart-empty p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--hf-text-primary);
+}
+
+.dash-chart-empty span {
+  font-size: 0.78rem;
+  color: var(--hf-text-muted);
+}
+
+.hf-app--light .dash-chart-placeholder {
+  background: oklch(0.95 0 0);
+}
+
+.hf-app--light .dash-chart-empty {
+  background: transparent;
+  border-color: oklch(0.85 0 0);
+}
