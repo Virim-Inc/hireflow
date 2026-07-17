@@ -36,4 +36,10 @@ export const config = Object.freeze({
         : ({ rejectUnauthorized: false } as const),
   }),
   jwtSecret: required('JWT_SECRET'),
+  zoho: Object.freeze({
+    clientId: optional('ZOHO_CLIENT_ID', ''),
+    clientSecret: optional('ZOHO_CLIENT_SECRET', ''),
+    refreshToken: optional('ZOHO_REFRESH_TOKEN', ''),
+    dc: optional('ZOHO_DC', 'in'),
+  }),
 });

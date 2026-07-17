@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
+  AlertTriangle,
   ArrowLeft,
   Briefcase,
   CalendarDays,
   CheckCircle2,
   ChevronRight,
+  Download,
   ExternalLink,
   FileText,
   Inbox,
@@ -12,6 +14,7 @@ import {
   Phone,
   Sparkles,
   Trophy,
+  Users,
 } from 'lucide-react';
 import type { Candidate, CandidateStageHistoryItem, PipelineStage } from '../types/candidate.types';
 import {
@@ -45,6 +48,98 @@ export function CandidateDetailDrawer({
 }: CandidateDetailDrawerProps) {
   const [note, setNote] = useState(candidate.latest_stage_note ?? '');
   const [selectedStage, setSelectedStage] = useState<PipelineStage>(candidate.pipeline_stage);
+  const [activeTab, setActiveTab] = useState<'details' | 'resume'>('details');
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const [resumeLoading, setResumeLoading] = useState(false);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== 'resume' || !candidate.workdrive_file_id) {
+      return;
+    }
+
+    const controller = new AbortController();
+    let objectUrlToCleanup: string | null = null;
+
+    setResumeLoading(true);
+    setResumeError(null);
+
+    const token = localStorage.getItem('hf_token');
+    fetch(`/api/candidates/${candidate.id}/resume`, {
+      signal: controller.signal,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to retrieve file (HTTP ${res.status}: ${res.statusText})`);
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        objectUrlToCleanup = url;
+        setResumeUrl(url);
+      })
+      .catch((err: Error) => {
+        if (err.name === 'AbortError') return;
+        setResumeError(err.message || 'Could not retrieve resume from Zoho WorkDrive.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setResumeLoading(false);
+        }
+      });
+
+    return () => {
+      controller.abort();
+      if (objectUrlToCleanup) {
+        URL.revokeObjectURL(objectUrlToCleanup);
+      }
+      setResumeUrl(null);
+    };
+  }, [activeTab, candidate.id, candidate.workdrive_file_id]);
+
+  async function handleDownload() {
+    if (resumeUrl) {
+      const a = document.createElement('a');
+      a.href = resumeUrl;
+      a.download = candidate.workdrive_file_name || 'Resume.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    try {
+      setDownloading(true);
+      const token = localStorage.getItem('hf_token');
+      const res = await fetch(`/api/candidates/${candidate.id}/resume/download`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error(`Download failed with status ${res.status}`);
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = candidate.workdrive_file_name || 'Resume.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download error:', err);
+      alert('Failed to download resume.');
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -137,7 +232,28 @@ export function CandidateDetailDrawer({
           </div>
         </section>
 
-        <section className="hf-detail-stats-row">
+        {candidate.workdrive_file_id && (
+          <div className="hf-tabs-container">
+            <button
+              className={`hf-tab-btn ${activeTab === 'details' ? 'active' : ''}`}
+              onClick={() => setActiveTab('details')}
+            >
+              <Users size={15} />
+              Candidate Profile
+            </button>
+            <button
+              className={`hf-tab-btn ${activeTab === 'resume' ? 'active' : ''}`}
+              onClick={() => setActiveTab('resume')}
+            >
+              <FileText size={15} />
+              Resume Preview
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'details' ? (
+          <>
+            <section className="hf-detail-stats-row">
           <article className="glass-card hf-detail-stat-card">
             <span>Total score</span>
             <strong>{candidate.total_score}/100</strong>
@@ -356,6 +472,65 @@ export function CandidateDetailDrawer({
             </article>
           </div>
         </section>
+      </>
+    ) : (
+      <section className="hf-resume-container">
+        <div className="hf-resume-topbar">
+          <div className="hf-resume-topbar-info">
+            <FileText size={16} />
+            <span>{candidate.workdrive_file_name || 'Candidate Resume'}</span>
+          </div>
+          <button
+            onClick={() => void handleDownload()}
+            className="hf-primary-btn hf-primary-btn--compact"
+            disabled={downloading}
+            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Download size={14} />
+            {downloading ? 'Downloading...' : 'Download Original'}
+          </button>
+        </div>
+
+        {resumeLoading && (
+          <div className="hf-panel-subtle" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '100px 0', gap: '12px' }}>
+            <div className="hf-spinner" />
+            <span>Fetching resume from Zoho WorkDrive...</span>
+          </div>
+        )}
+
+        {resumeError && (
+          <div className="glass-card hf-empty-state" style={{ color: 'var(--hf-error)', border: '1px solid var(--hf-error)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={36} />
+            <p>{resumeError}</p>
+          </div>
+        )}
+
+        {!resumeLoading && !resumeError && resumeUrl && (() => {
+          const fileName = candidate.workdrive_file_name || 'Resume.pdf';
+          const isPdf = fileName.toLowerCase().endsWith('.pdf');
+          const isImage = /\.(png|jpe?g|webp|gif)$/i.test(fileName);
+          const isPreviewSupported = isPdf || isImage;
+          
+          if (isPreviewSupported) {
+            return (
+              <iframe
+                src={resumeUrl}
+                className="hf-resume-preview-frame"
+                title="Candidate Resume Preview"
+              />
+            );
+          } else {
+            return (
+              <div className="glass-card hf-empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '100px 0', gap: '12px' }}>
+                <FileText size={36} />
+                <p>Preview is not supported for this file format ({fileName.split('.').pop()?.toUpperCase() || 'unknown'}).</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--hf-text-secondary)' }}>Please download the original file using the button above to view it.</p>
+              </div>
+            );
+          }
+        })()}
+      </section>
+    )}
       </div>
     </div>
   );
