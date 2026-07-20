@@ -62,6 +62,13 @@ export async function updateCandidateStage(id: number, input: UpdateCandidateSta
   return readJson<Candidate>(res);
 }
 
+export async function bulkUpdateCandidateStage(
+  ids: number[],
+  input: UpdateCandidateStageInput
+): Promise<Candidate[]> {
+  return Promise.all(ids.map((id) => updateCandidateStage(id, input)));
+}
+
 export async function fetchStats(): Promise<CandidateStats> {
   const res = await fetch(`${BASE}/stats`);
   return readJson<CandidateStats>(res);

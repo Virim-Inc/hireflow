@@ -35,14 +35,102 @@ export function buildTimeline(
   }));
 }
 
+function getUtcDateStringsRange(startOffset: number, endOffset: number): Set<string> {
+  const dates = new Set<string>();
+  for (let i = startOffset; i >= endOffset; i--) {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - i);
+    dates.add(d.toISOString().split('T')[0]);
+  }
+  return dates;
+}
+
+function aggregateStatsForDates(
+  dates: Set<string>,
+  data: {
+    received: Array<{ date: string; count: number }>;
+    transitions: Array<{ date: string; from_stage: string | null; to_stage: string; count: number }>;
+  },
+  pendingReviewBacklog: number
+) {
+  let received = 0;
+  let shortlisted = 0;
+  let rejected = 0;
+  let interviewsScheduled = 0;
+  let interviewsCompleted = 0;
+
+  for (const row of data.received) {
+    if (dates.has(row.date)) {
+      received += row.count;
+    }
+  }
+
+  for (const row of data.transitions) {
+    if (dates.has(row.date)) {
+      const from = row.from_stage;
+      const to = row.to_stage;
+      const cnt = row.count;
+
+      if (to === 'shortlisted') {
+        shortlisted += cnt;
+      }
+      if (to === 'rejected') {
+        rejected += cnt;
+      }
+      if (to === 'ai_interview' || to === 'in_person_interview') {
+        interviewsScheduled += cnt;
+      }
+      if (
+        (from === 'ai_interview' || from === 'in_person_interview') &&
+        to !== 'ai_interview' &&
+        to !== 'in_person_interview'
+      ) {
+        interviewsCompleted += cnt;
+      }
+    }
+  }
+
+  return {
+    received,
+    shortlisted,
+    rejected,
+    pendingReview: pendingReviewBacklog,
+    interviewsScheduled,
+    interviewsCompleted,
+  };
+}
+
 export async function getStats(): Promise<Record<string, unknown>> {
-  const [summary, positions, rawDailyAcq] = await Promise.all([
+  const startDate = new Date();
+  startDate.setUTCDate(startDate.getUTCDate() - 29);
+  startDate.setUTCHours(0, 0, 0, 0);
+
+  const endDate = new Date();
+  endDate.setUTCDate(endDate.getUTCDate() + 1);
+  endDate.setUTCHours(0, 0, 0, 0);
+
+  const [summary, positions, rawDailyAcq, groupedActivity] = await Promise.all([
     statsRepo.fetchStatsSummary(),
     statsRepo.fetchTopPositions(),
     statsRepo.fetchDailyAcquisition(90),
+    statsRepo.fetchRecruitmentActivityGrouped(startDate, endDate),
   ]);
 
   const dailyAcquisition = buildTimeline(rawDailyAcq, 90);
+
+  const pendingReviewBacklog = asNumber(summary.stage_screening);
+
+  const todayDates = getUtcDateStringsRange(0, 0);
+  const yesterdayDates = getUtcDateStringsRange(1, 1);
+  const last7DaysDates = getUtcDateStringsRange(6, 0);
+  const last30DaysDates = getUtcDateStringsRange(29, 0);
+
+  const dailyRecruitmentStats = {
+    today: aggregateStatsForDates(todayDates, groupedActivity, pendingReviewBacklog),
+    yesterday: aggregateStatsForDates(yesterdayDates, groupedActivity, pendingReviewBacklog),
+    last7Days: aggregateStatsForDates(last7DaysDates, groupedActivity, pendingReviewBacklog),
+    last30Days: aggregateStatsForDates(last30DaysDates, groupedActivity, pendingReviewBacklog),
+  };
 
   return {
     totalCandidates: asNumber(summary.total),
@@ -67,6 +155,7 @@ export async function getStats(): Promise<Record<string, unknown>> {
     candidatesLast7Days: asNumber(summary.candidates_last_7_days),
     candidatesLast30Days: asNumber(summary.candidates_last_30_days),
     dailyAcquisition,
+    dailyRecruitmentStats,
     sourceBreakdown: {
       form: asNumber(summary.from_form),
       email: asNumber(summary.from_email),
@@ -78,7 +167,7 @@ export async function getStats(): Promise<Record<string, unknown>> {
       reject: asNumber(summary.reject),
     },
     stageCounts: {
-      screening: asNumber(summary.stage_screening),
+      screening: pendingReviewBacklog,
       shortlisted: asNumber(summary.stage_shortlisted),
       ai_interview: asNumber(summary.stage_ai_interview),
       in_person_interview: asNumber(summary.stage_in_person_interview),

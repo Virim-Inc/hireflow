@@ -167,14 +167,18 @@ export function buildWhereClause(query: CandidatesQuery): {
     idx++;
   }
 
+  const dateField = isPipelineStage(query.stage)
+    ? 'pipeline_stage_updated_at'
+    : 'COALESCE(submitted_at, processed_at)';
+
   if (query.date_from) {
-    where.push(`DATE(COALESCE(submitted_at, processed_at)) >= $${idx}`);
+    where.push(`DATE(${dateField}) >= $${idx}`);
     params.push(query.date_from);
     idx++;
   }
 
   if (query.date_to) {
-    where.push(`DATE(COALESCE(submitted_at, processed_at)) <= $${idx}`);
+    where.push(`DATE(${dateField}) <= $${idx}`);
     params.push(query.date_to);
   }
 

@@ -15,6 +15,12 @@ import {
   Target,
   TrendingUp,
   Users,
+  UserCheck,
+  UserX,
+  CalendarRange,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import { fetchStats } from '../../candidates/services/candidateService';
@@ -102,6 +108,7 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const [loading, setLoading] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dailyRange, setDailyRange] = useState<'today' | 'yesterday' | 'last7Days' | 'last30Days'>('today');
 
   useEffect(() => {
     if (!heroRef.current) return;
@@ -143,6 +150,7 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
   const topPositions = stats?.topPositions.slice(0, 5) ?? [];
   const today = formatFilterDate(new Date());
   const monthStart = formatFilterDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const dailyStats = stats?.dailyRecruitmentStats?.[dailyRange];
 
   function openCandidates(filters: Partial<CandidateFilters>) {
     onNavigate('candidates', {
@@ -251,6 +259,212 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
                 icon={<TrendingUp size={17} />}
                 accentClass="is-pink"
               />
+            </section>
+
+            {/* Daily Recruitment Statistics Section */}
+            <section className="daily-stats-section my-3">
+              <div className="daily-stats-header mt-3">
+                <h3 className="daily-stats-title ">
+                  <Sparkles size={16} style={{ color: 'var(--hf-warning)' }} />
+                  Daily Recruitment Stats
+                </h3>
+                <div className="daily-stats-picker">
+                  {(['today', 'yesterday', 'last7Days', 'last30Days'] as const).map((r) => {
+                    const labelMap = {
+                      today: 'Today',
+                      yesterday: 'Yesterday',
+                      last7Days: 'Last 7 Days',
+                      last30Days: 'Last 30 Days',
+                    };
+                    return (
+                      <button
+                        key={r}
+                        className={`daily-stats-picker-btn ${dailyRange === r ? 'active' : ''}`}
+                        onClick={() => setDailyRange(r)}
+                        disabled={loading}
+                      >
+                        {labelMap[r]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="daily-stats-skeleton-grid">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="daily-stats-skeleton-card" />
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="daily-stats-error-card">
+                  <div className="daily-stats-error-info">
+                    <AlertTriangle size={20} className="daily-stats-error-icon" />
+                    <div className="daily-stats-error-text">
+                      <h4>Failed to load daily statistics</h4>
+                      <p>{error}</p>
+                    </div>
+                  </div>
+                  <button onClick={loadStats} className="daily-stats-error-retry">
+                    Retry
+                  </button>
+                </div>
+              ) : (
+                <div className="daily-stats-grid">
+                  {/* 1. Resumes Received */}
+                  <button
+                    className="daily-stats-card"
+                    onClick={() => {
+                      const filters: Partial<CandidateFilters> = {};
+                      if (dailyRange === 'today') {
+                        filters.date_from = today;
+                        filters.date_to = today;
+                      } else if (dailyRange === 'yesterday') {
+                        const yest = formatFilterDate(new Date(Date.now() - 86400000));
+                        filters.date_from = yest;
+                        filters.date_to = yest;
+                      } else if (dailyRange === 'last7Days') {
+                        const start = formatFilterDate(new Date(Date.now() - 6 * 86400000));
+                        filters.date_from = start;
+                        filters.date_to = today;
+                      } else if (dailyRange === 'last30Days') {
+                        const start = formatFilterDate(new Date(Date.now() - 29 * 86400000));
+                        filters.date_from = start;
+                        filters.date_to = today;
+                      }
+                      openCandidates(filters);
+                    }}
+                  >
+                    <div className="daily-stats-card-top">
+                      <span className="daily-stats-icon is-blue"><Inbox size={16} /></span>
+                      <span className="daily-stats-card-label">Received</span>
+                    </div>
+                    <strong className="daily-stats-card-value">
+                      <AnimatedCount value={dailyStats?.received ?? 0} />
+                    </strong>
+                    <p className="daily-stats-card-desc">Total resumes received</p>
+                  </button>
+
+                  {/* 2. Resumes Shortlisted */}
+                  <button
+                    className="daily-stats-card"
+                    onClick={() => {
+                      const filters: Partial<CandidateFilters> = { stage: 'shortlisted' };
+                      if (dailyRange === 'today') {
+                        filters.date_from = today;
+                        filters.date_to = today;
+                      } else if (dailyRange === 'yesterday') {
+                        const yest = formatFilterDate(new Date(Date.now() - 86400000));
+                        filters.date_from = yest;
+                        filters.date_to = yest;
+                      } else if (dailyRange === 'last7Days') {
+                        const start = formatFilterDate(new Date(Date.now() - 6 * 86400000));
+                        filters.date_from = start;
+                        filters.date_to = today;
+                      } else if (dailyRange === 'last30Days') {
+                        const start = formatFilterDate(new Date(Date.now() - 29 * 86400000));
+                        filters.date_from = start;
+                        filters.date_to = today;
+                      }
+                      openCandidates(filters);
+                    }}
+                  >
+                    <div className="daily-stats-card-top">
+                      <span className="daily-stats-icon is-green"><UserCheck size={16} /></span>
+                      <span className="daily-stats-card-label">Shortlisted</span>
+                    </div>
+                    <strong className="daily-stats-card-value">
+                      <AnimatedCount value={dailyStats?.shortlisted ?? 0} />
+                    </strong>
+                    <p className="daily-stats-card-desc">Resumes shortlisted</p>
+                  </button>
+
+                  {/* 3. Rejected Resumes */}
+                  <button
+                    className="daily-stats-card"
+                    onClick={() => {
+                      const filters: Partial<CandidateFilters> = { stage: 'rejected' };
+                      if (dailyRange === 'today') {
+                        filters.date_from = today;
+                        filters.date_to = today;
+                      } else if (dailyRange === 'yesterday') {
+                        const yest = formatFilterDate(new Date(Date.now() - 86400000));
+                        filters.date_from = yest;
+                        filters.date_to = yest;
+                      } else if (dailyRange === 'last7Days') {
+                        const start = formatFilterDate(new Date(Date.now() - 6 * 86400000));
+                        filters.date_from = start;
+                        filters.date_to = today;
+                      } else if (dailyRange === 'last30Days') {
+                        const start = formatFilterDate(new Date(Date.now() - 29 * 86400000));
+                        filters.date_from = start;
+                        filters.date_to = today;
+                      }
+                      openCandidates(filters);
+                    }}
+                  >
+                    <div className="daily-stats-card-top">
+                      <span className="daily-stats-icon is-red"><UserX size={16} /></span>
+                      <span className="daily-stats-card-label">Rejected</span>
+                    </div>
+                    <strong className="daily-stats-card-value">
+                      <AnimatedCount value={dailyStats?.rejected ?? 0} />
+                    </strong>
+                    <p className="daily-stats-card-desc">Rejected resumes</p>
+                  </button>
+
+                  {/* 4. Pending Reviews */}
+                  <button
+                    className="daily-stats-card"
+                    onClick={() => {
+                      openCandidates({ stage: 'screening' });
+                    }}
+                  >
+                    <div className="daily-stats-card-top">
+                      <span className="daily-stats-icon is-amber"><AlertCircle size={16} /></span>
+                      <span className="daily-stats-card-label">Pending Reviews</span>
+                    </div>
+                    <strong className="daily-stats-card-value">
+                      <AnimatedCount value={dailyStats?.pendingReview ?? 0} />
+                    </strong>
+                    <p className="daily-stats-card-desc">Total screening backlog</p>
+                  </button>
+
+                  {/* 5. Interviews Scheduled */}
+                  <button
+                    className="daily-stats-card"
+                    onClick={() => {
+                      openCandidates({ stage: 'ai_interview' });
+                    }}
+                  >
+                    <div className="daily-stats-card-top">
+                      <span className="daily-stats-icon is-violet"><CalendarRange size={16} /></span>
+                      <span className="daily-stats-card-label">Scheduled</span>
+                    </div>
+                    <strong className="daily-stats-card-value">
+                      <AnimatedCount value={dailyStats?.interviewsScheduled ?? 0} />
+                    </strong>
+                    <p className="daily-stats-card-desc">Interviews scheduled</p>
+                  </button>
+
+                  {/* 6. Interviews Completed */}
+                  <button
+                    className="daily-stats-card"
+                    onClick={() => {
+                      openCandidates({ stage: 'in_person_interview' });
+                    }}
+                  >
+                    <div className="daily-stats-card-top">
+                      <span className="daily-stats-icon is-pink"><CheckCircle2 size={16} /></span>
+                      <span className="daily-stats-card-label">Completed</span>
+                    </div>
+                    <strong className="daily-stats-card-value">
+                      <AnimatedCount value={dailyStats?.interviewsCompleted ?? 0} />
+                    </strong>
+                    <p className="daily-stats-card-desc">Interviews completed</p>
+                  </button>
+                </div>
+              )}
             </section>
 
             <section className="dash-lower-grid">

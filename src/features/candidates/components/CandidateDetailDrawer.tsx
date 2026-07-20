@@ -416,7 +416,7 @@ export function CandidateDetailDrawer({
                 <div><span>Passout Year</span><strong>{candidate.passout_year || '-'}</strong></div>
                 <div><span>Internship</span><strong>{candidate.internship_completed === true ? 'Yes' : candidate.internship_completed === false ? 'No' : '-'}</strong></div>
               </div>
-              <div className="hf-skill-cloud">
+              <div className="hf-skill-cloud mt-4">
                 {skills.length ? skills.map((skill) => <span key={skill} className="hf-skill-chip">{skill}</span>) : <span className="hf-placeholder">No key skill tags</span>}
               </div>
             </article>

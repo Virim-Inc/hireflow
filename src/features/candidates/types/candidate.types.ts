@@ -92,6 +92,15 @@ export interface DailyAcquisitionPoint {
   shortlisted: number;
 }
 
+export interface DailyRecruitmentStats {
+  received: number;
+  shortlisted: number;
+  rejected: number;
+  pendingReview: number;
+  interviewsScheduled: number;
+  interviewsCompleted: number;
+}
+
 export interface CandidateStats {
   totalCandidates: number;
   qualifiedCandidates: number;
@@ -115,6 +124,12 @@ export interface CandidateStats {
   candidatesLast7Days: number;
   candidatesLast30Days: number;
   dailyAcquisition: DailyAcquisitionPoint[];
+  dailyRecruitmentStats?: {
+    today: DailyRecruitmentStats;
+    yesterday: DailyRecruitmentStats;
+    last7Days: DailyRecruitmentStats;
+    last30Days: DailyRecruitmentStats;
+  };
   sourceBreakdown: {
     form: number;
     email: number;

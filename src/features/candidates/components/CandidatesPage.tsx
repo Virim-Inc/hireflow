@@ -1,5 +1,5 @@
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, Filter, RefreshCw, Search, Users, X } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, Filter, Plus, RefreshCw, Search, Users, X } from 'lucide-react';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import {
@@ -178,6 +178,7 @@ function FilterDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [dropDirection, setDropDirection] = useState<'down' | 'up'>(direction);
   const rootRef = useRef<HTMLDivElement>(null);
   const selected = options.find((option) => option.value === value) ?? options[0];
 
@@ -186,6 +187,24 @@ function FilterDropdown({
       setSearchQuery('');
     }
   }, [open]);
+
+  const toggleDropdown = () => {
+    if (!open && rootRef.current) {
+      const container = rootRef.current.closest('.hf-filter-panel') || document.body;
+      const containerRect = container.getBoundingClientRect();
+      const rect = rootRef.current.getBoundingClientRect();
+
+      const distFromContainerBottom = containerRect.bottom - rect.bottom;
+      const distFromViewportBottom = window.innerHeight - rect.bottom;
+
+      if (direction === 'up' || distFromContainerBottom < 260 || distFromViewportBottom < 340) {
+        setDropDirection('up');
+      } else {
+        setDropDirection('down');
+      }
+    }
+    setOpen((current) => !current);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -213,12 +232,12 @@ function FilterDropdown({
   );
 
   return (
-    <div ref={rootRef} className={`hf-select-field hf-modern-select hf-modern-select--${direction} ${open ? 'is-open' : ''}`}>
+    <div ref={rootRef} className={`hf-select-field hf-modern-select hf-modern-select--${dropDirection} ${open ? 'is-open' : ''}`}>
       <span>{label}</span>
       <button
         type="button"
         className={`hf-modern-select-trigger ${open ? 'is-open' : ''}`}
-        onClick={() => setOpen((current) => !current)}
+        onClick={toggleDropdown}
       >
         <span className="hf-modern-select-value">
           {leadingIcon ? <span className="hf-modern-select-leading">{leadingIcon}</span> : null}
@@ -632,9 +651,9 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
               <FilterDropdown label="College" value={filters.college} options={collegeOptions} onChange={(value) => updateFilter('college', value)} />
               <FilterDropdown label="Degree" value={filters.degree} options={degreeOptions} onChange={(value) => updateFilter('degree', value)} />
               <FilterDropdown label="Source" value={filters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
-              <FilterDropdown label="Stage" value={filters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} />
-              <FilterDropdown label="Recommendation" value={filters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} />
-              <FilterDropdown label="Qualified" value={filters.qualified} options={qualifiedOptions} onChange={(value) => updateFilter('qualified', value)} />
+              <FilterDropdown label="Stage" value={filters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} direction="up" />
+              <FilterDropdown label="Recommendation" value={filters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} direction="up" />
+              <FilterDropdown label="Qualified" value={filters.qualified} options={qualifiedOptions} onChange={(value) => updateFilter('qualified', value)} direction="up" />
 
               <label className="hf-select-field">
                 <span>Minimum score</span>
@@ -743,11 +762,18 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
       ) : (
         <div ref={gridRef} className="hf-candidate-grid">
           {candidates.map((candidate) => {
-            const skills = [
-              ...splitValues(candidate.frontend_skills, 2),
-              ...splitValues(candidate.backend_skills, 2),
-              ...splitValues(candidate.database_skills, 1),
-            ].slice(0, 5);
+            const allSkills = [
+              ...splitValues(candidate.frontend_skills),
+              ...splitValues(candidate.backend_skills),
+              ...splitValues(candidate.database_skills),
+              ...splitValues(candidate.ai_ml_skills),
+              ...splitValues(candidate.cloud_devops),
+              ...splitValues(candidate.programming_langs),
+            ].filter((s, idx, arr) => Boolean(s) && arr.indexOf(s) === idx);
+
+            const visibleSkills = allSkills.slice(0, 3);
+            const extraSkillsCount = allSkills.length - 3;
+            const extraSkillsText = allSkills.slice(3).join(', ');
 
             return (
               <article key={candidate.id} className="glass-card hf-candidate-card">
@@ -787,7 +813,25 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   <p className="hf-card-summary">{candidate.summary || 'Open to inspect AI assessment and resume fit details.'}</p>
 
                   <div className="hf-tag-row">
-                    {skills.length ? skills.map((skill) => <span key={skill} className="hf-skill-chip">{skill}</span>) : <span className="hf-placeholder">No extracted skills</span>}
+                    {visibleSkills.length ? (
+                      <>
+                        {visibleSkills.map((skill) => (
+                          <span key={skill} className="hf-skill-chip">
+                            {skill}
+                          </span>
+                        ))}
+                        {extraSkillsCount > 0 && (
+                          <span
+                            className="hf-skill-chip hf-skill-chip--more"
+                            title={`More skills: ${extraSkillsText}`}
+                          >
+                            <Plus size={12} /> {extraSkillsCount}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="hf-placeholder">No extracted skills</span>
+                    )}
                   </div>
                 </button>
 

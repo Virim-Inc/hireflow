@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "api": "tsx server/index.ts",
+    "api": "tsx watch server/index.ts",
     "build:api": "tsc -p tsconfig.server.json",
     "start:api:build": "node build-server/index.js",
     "dev:all": "concurrently -n \"vite,api\" -c \"cyan,green\" \"npm run dev\" \"npm run api\"",

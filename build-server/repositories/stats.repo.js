@@ -61,4 +61,27 @@ export async function fetchTopPositions(limit = 8) {
      LIMIT $1`, [limit]);
     return res.rows;
 }
+export async function fetchRecruitmentActivityGrouped(startDate, endDate) {
+    const [receivedRes, transitionsRes] = await Promise.all([
+        pool.query(`SELECT
+         TO_CHAR(COALESCE(submitted_at, processed_at, created_at, NOW()), 'YYYY-MM-DD') AS date,
+         COUNT(*)::integer AS count
+       FROM candidates
+       WHERE COALESCE(submitted_at, processed_at, created_at, NOW()) >= $1
+         AND COALESCE(submitted_at, processed_at, created_at, NOW()) < $2
+       GROUP BY 1`, [startDate, endDate]),
+        pool.query(`SELECT
+         TO_CHAR(changed_at, 'YYYY-MM-DD') AS date,
+         from_stage,
+         to_stage,
+         COUNT(DISTINCT candidate_id)::integer AS count
+       FROM candidate_stage_history
+       WHERE changed_at >= $1 AND changed_at < $2
+       GROUP BY 1, 2, 3`, [startDate, endDate]),
+    ]);
+    return {
+        received: receivedRes.rows,
+        transitions: transitionsRes.rows,
+    };
+}
 //# sourceMappingURL=stats.repo.js.map

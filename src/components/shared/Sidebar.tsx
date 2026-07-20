@@ -1,6 +1,16 @@
 import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import { LayoutDashboard, Users, ChevronLeft, ChevronRight, ShieldCheck, Sun, Moon, KanbanSquare, LogOut } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  Sun,
+  Moon,
+  KanbanSquare,
+  LogOut,
+} from 'lucide-react';
 import type { Theme } from '../../App';
 
 type Page = 'dashboard' | 'candidates' | 'pipeline' | 'profile';
@@ -17,9 +27,9 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS: { id: Page; label: string; icon: React.ReactNode }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+  { id: 'dashboard',  label: 'Dashboard',         icon: <LayoutDashboard size={18} /> },
   { id: 'candidates', label: 'Candidate Explorer', icon: <Users size={18} /> },
-  { id: 'pipeline', label: 'Hiring Pipeline', icon: <KanbanSquare size={18} /> },
+  { id: 'pipeline',   label: 'Hiring Pipeline',    icon: <KanbanSquare size={18} /> },
 ];
 
 export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, onToggleTheme, onLogout, user }: SidebarProps) {
@@ -32,6 +42,9 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, o
       { x: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }
     );
   }, []);
+
+  const isDark = theme === 'dark';
+  const avatarLetters = (user?.name || 'A').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
     <aside
@@ -75,8 +88,9 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, o
         ))}
       </nav>
 
-      {/* ── Theme toggle at bottom ── */}
+      {/* ── Footer: profile + theme toggle + logout ── */}
       <div className="sidebar-footer">
+        {/* Profile row */}
         <button
           id="nav-profile"
           className={`sidebar-profile-btn ${currentPage === 'profile' ? 'sidebar-profile-btn--active' : ''}`}
@@ -85,7 +99,7 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, o
           aria-label="Profile"
         >
           <div className="sidebar-profile-avatar">
-            {(user?.name || 'A').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+            {avatarLetters}
           </div>
           {!collapsed && (
             <div className="sidebar-profile-meta">
@@ -95,26 +109,32 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, o
           )}
         </button>
 
+        {/* Dark mode toggle — proper toggle switch */}
         <button
           id="theme-toggle"
           className="sidebar-theme-btn"
           onClick={onToggleTheme}
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           aria-label="Toggle theme"
         >
-          {theme === 'dark'
-            ? <><Sun size={15} />{!collapsed && <span>Light Mode</span>}</>
-            : <><Moon size={15} />{!collapsed && <span>Dark Mode</span>}</>
-          }
+          {isDark ? <Sun size={14} /> : <Moon size={14} />}
+          {!collapsed && <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
+          {!collapsed && (
+            <span className={`sidebar-toggle-switch ${isDark ? '' : 'sidebar-toggle-switch--on'}`}>
+              <span className="sidebar-toggle-thumb" />
+            </span>
+          )}
         </button>
+
+        {/* Logout */}
         <button
           id="logout-btn"
-          className="sidebar-theme-btn"
+          className="sidebar-logout-btn"
           onClick={onLogout}
           title="Logout"
           aria-label="Logout"
         >
-          <LogOut size={15} />
+          <LogOut size={14} />
           {!collapsed && <span>Logout</span>}
         </button>
       </div>
