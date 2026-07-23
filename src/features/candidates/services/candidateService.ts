@@ -6,6 +6,7 @@ import type {
   CandidateStats,
   CandidatesResponse,
   UpdateCandidateStageInput,
+  JobDescription,
 } from '../types/candidate.types';
 
 const BASE = '/api';
@@ -62,6 +63,13 @@ export async function updateCandidateStage(id: number, input: UpdateCandidateSta
   return readJson<Candidate>(res);
 }
 
+export async function bulkUpdateCandidateStage(
+  ids: number[],
+  input: UpdateCandidateStageInput
+): Promise<Candidate[]> {
+  return Promise.all(ids.map((id) => updateCandidateStage(id, input)));
+}
+
 export async function fetchStats(): Promise<CandidateStats> {
   const res = await fetch(`${BASE}/stats`);
   return readJson<CandidateStats>(res);
@@ -70,4 +78,53 @@ export async function fetchStats(): Promise<CandidateStats> {
 export async function checkHealth(): Promise<{ status: string; db: string }> {
   const res = await fetch(`${BASE}/health`);
   return readJson<{ status: string; db: string }>(res);
+}
+
+export async function fetchJds(filters: { active?: boolean; search?: string } = {}): Promise<JobDescription[]> {
+  const params = new URLSearchParams();
+  if (filters.active !== undefined) {
+    params.append('active', String(filters.active));
+  }
+  if (filters.search) {
+    params.append('q', filters.search);
+  }
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  const res = await fetch(`${BASE}/job-descriptions${queryString}`);
+  return readJson<JobDescription[]>(res);
+}
+
+export async function createJd(input: Omit<JobDescription, 'id' | 'created_at' | 'updated_at' | 'is_active'>): Promise<JobDescription> {
+  const res = await fetch(`${BASE}/job-descriptions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  return readJson<JobDescription>(res);
+}
+
+export async function updateJd(id: number, input: Partial<JobDescription>): Promise<JobDescription> {
+  const res = await fetch(`${BASE}/job-descriptions/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  return readJson<JobDescription>(res);
+}
+
+export async function deleteJd(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/job-descriptions/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    throw new Error('Failed to delete job description');
+  }
+}
+
+export async function toggleJdActive(id: number, active: boolean): Promise<JobDescription> {
+  const res = await fetch(`${BASE}/job-descriptions/${id}/toggle-active`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_active: active }),
+  });
+  return readJson<JobDescription>(res);
 }

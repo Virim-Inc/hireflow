@@ -1,9 +1,24 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { RefreshCw, Search, TimerReset } from 'lucide-react';
+import {
+  ArrowRight,
+  Award,
+  Calendar,
+  ChevronDown,
+  RefreshCw,
+  Search,
+  Sparkles,
+  TimerReset,
+  UserCheck,
+  UserSearch,
+  UserX,
+  Users,
+  X,
+} from 'lucide-react';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import { CandidateDetailDrawer } from '../../candidates/components/CandidateDetailDrawer';
 import {
+  bulkUpdateCandidateStage,
   fetchCandidateHistory,
   fetchCandidateMeta,
   fetchCandidates,
@@ -20,6 +35,7 @@ import {
   formatDate,
   initials,
   scoreClass,
+  splitValues,
 } from '../../candidates/lib/pipeline';
 import '../../candidates/styles/candidates.css';
 import '../styles/pipeline.css';
@@ -40,6 +56,12 @@ export function PipelinePage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [draggedId, setDraggedId] = useState<number | null>(null);
   const [dropStage, setDropStage] = useState<PipelineStage | null>(null);
+
+  // ── Multi-select & Stage-Restricted Bulk Action States ──
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkTargetStage, setBulkTargetStage] = useState<PipelineStage>('shortlisted');
+  const [bulkNote, setBulkNote] = useState('');
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   const loadBoard = useCallback(async (includeMeta = false) => {
     setLoading(true);
@@ -105,6 +127,55 @@ export function PipelinePage() {
     }))
   ), [candidates]);
 
+  // ── Stage-Restricted Multi-Select Logic ──
+  const currentSelectedStage = useMemo(() => {
+    if (!selectedIds.length) return null;
+    const first = candidates.find((c) => selectedIds.includes(c.id));
+    return first ? first.pipeline_stage : null;
+  }, [candidates, selectedIds]);
+
+  const availableTargetStages = useMemo(() => {
+    if (!currentSelectedStage) return STAGE_META;
+    return STAGE_META.filter((s) => s.id !== currentSelectedStage);
+  }, [currentSelectedStage]);
+
+  useEffect(() => {
+    if (availableTargetStages.length > 0 && (!bulkTargetStage || bulkTargetStage === currentSelectedStage)) {
+      setBulkTargetStage(availableTargetStages[0].id);
+    }
+  }, [availableTargetStages, bulkTargetStage, currentSelectedStage]);
+
+  function toggleSelectCandidate(candidate: Candidate, event?: React.MouseEvent) {
+    if (event) event.stopPropagation();
+
+    setSelectedIds((current) => {
+      if (currentSelectedStage && currentSelectedStage !== candidate.pipeline_stage) {
+        return [candidate.id];
+      }
+      return current.includes(candidate.id)
+        ? current.filter((id) => id !== candidate.id)
+        : [...current, candidate.id];
+    });
+  }
+
+  function toggleSelectColumn(stageId: PipelineStage, columnCandidateIds: number[]) {
+    if (currentSelectedStage && currentSelectedStage !== stageId) {
+      setSelectedIds(columnCandidateIds);
+      return;
+    }
+    const allSelected = columnCandidateIds.length > 0 && columnCandidateIds.every((id) => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(columnCandidateIds);
+    }
+  }
+
+  function clearSelection() {
+    setSelectedIds([]);
+    setBulkNote('');
+  }
+
   async function handleStageMove(candidate: Candidate, stage: PipelineStage, note?: string) {
     if (candidate.pipeline_stage === stage) return;
 
@@ -136,6 +207,38 @@ export function PipelinePage() {
     }
   }
 
+  async function handleBulkStageMove() {
+    if (!selectedIds.length || !bulkTargetStage) return;
+
+    setIsBulkUpdating(true);
+    const targetStage = bulkTargetStage;
+    const noteText = bulkNote.trim() || undefined;
+
+    setCandidates((current) =>
+      current.map((item) =>
+        selectedIds.includes(item.id)
+          ? {
+              ...item,
+              pipeline_stage: targetStage,
+              pipeline_stage_updated_at: new Date().toISOString(),
+              latest_stage_note: noteText ?? item.latest_stage_note,
+            }
+          : item
+      )
+    );
+
+    try {
+      await bulkUpdateCandidateStage(selectedIds, { stage: targetStage, note: noteText });
+      await loadBoard(false);
+      clearSelection();
+    } catch (err) {
+      console.error('Bulk stage update error:', err);
+      await loadBoard(false);
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }
+
   function handleDrop(targetStage: PipelineStage) {
     if (draggedId === null) return;
     const candidate = candidates.find((item) => item.id === draggedId);
@@ -143,55 +246,88 @@ export function PipelinePage() {
     void handleStageMove(candidate, targetStage);
   }
 
+  function getStageIcon(stageId: PipelineStage) {
+    switch (stageId) {
+      case 'screening':
+        return <UserSearch size={15} className="pl-stage-icon pl-stage-icon--screening" />;
+      case 'shortlisted':
+        return <UserCheck size={15} className="pl-stage-icon pl-stage-icon--shortlisted" />;
+      case 'ai_interview':
+        return <Sparkles size={15} className="pl-stage-icon pl-stage-icon--ai_interview" />;
+      case 'in_person_interview':
+        return <Users size={15} className="pl-stage-icon pl-stage-icon--in_person_interview" />;
+      case 'hired':
+        return <Award size={15} className="pl-stage-icon pl-stage-icon--hired" />;
+      case 'rejected':
+        return <UserX size={15} className="pl-stage-icon pl-stage-icon--rejected" />;
+    }
+  }
+
   return (
     <div className="pl-page">
+      {/* ── Sticky Toolbar ── */}
       <section className="pl-toolbar glass-card">
         <label className="hf-search-field">
           <span>Search</span>
           <div className="hf-search-box">
             <Search size={15} />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search candidate" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search candidates by name, position, or skills..." />
           </div>
         </label>
 
         <label className="hf-select-field">
           <span>Position</span>
-          <select value={position} onChange={(event) => setPosition(event.target.value)}>
-            <option value="">All positions</option>
-            {meta?.positions.map((item) => <option key={item} value={item}>{item}</option>)}
-          </select>
+          <div className="pl-select-wrapper">
+            <select value={position} onChange={(event) => setPosition(event.target.value)}>
+              <option value="">All positions</option>
+              {meta?.positions.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+            <span className="pl-select-chevron"><ChevronDown size={13} /></span>
+          </div>
         </label>
 
         <label className="hf-select-field">
           <span>Source</span>
-          <select value={source} onChange={(event) => setSource(event.target.value)}>
-            <option value="">All sources</option>
-            <option value="form">Form</option>
-            <option value="email">Email</option>
-          </select>
+          <div className="pl-select-wrapper">
+            <select value={source} onChange={(event) => setSource(event.target.value)}>
+              <option value="">All sources</option>
+              <option value="form">Form</option>
+              <option value="email">Email</option>
+            </select>
+            <span className="pl-select-chevron"><ChevronDown size={13} /></span>
+          </div>
         </label>
 
         <label className="hf-select-field">
           <span>Date from</span>
-          <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+          <div className="pl-date-field-wrapper">
+            <span className="pl-date-field-icon"><Calendar size={13} /></span>
+            <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+          </div>
         </label>
 
         <label className="hf-select-field">
           <span>Date to</span>
-          <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+          <div className="pl-date-field-wrapper">
+            <span className="pl-date-field-icon"><Calendar size={13} /></span>
+            <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+          </div>
         </label>
 
-        <button className="hf-ghost-btn" onClick={() => { setSearch(''); setPosition(''); setSource(''); setDateFrom(''); setDateTo(''); }}>
-          <TimerReset size={14} />
-          Reset
-        </button>
+        <div className="pl-toolbar-actions">
+          <button className="hf-ghost-btn" onClick={() => { setSearch(''); setPosition(''); setSource(''); setDateFrom(''); setDateTo(''); clearSelection(); }}>
+            <TimerReset size={14} />
+            Reset
+          </button>
 
-        <button className="hf-primary-btn" onClick={() => void loadBoard(true)}>
-          <RefreshCw size={15} />
-          Refresh
-        </button>
+          <button className="hf-primary-btn" onClick={() => void loadBoard(true)}>
+            <RefreshCw size={15} />
+            Refresh
+          </button>
+        </div>
       </section>
 
+      {/* ── Kanban Board ── */}
       <div ref={boardRef} className="pl-board">
         {grouped.map((column) => (
           <section
@@ -208,46 +344,172 @@ export function PipelinePage() {
             }}
           >
             <header className="pl-column-head">
-              <h2 className="pl-animate-text">{column.label}</h2>
-              <span><AnimatedCount value={column.candidates.length} /></span>
+              <div className="pl-column-head-info">
+                {getStageIcon(column.id)}
+                <h2 className="pl-animate-text">{column.label}</h2>
+                <span className="pl-column-count"><AnimatedCount value={column.candidates.length} /></span>
+              </div>
+              {column.candidates.length > 0 && (
+                <button
+                  type="button"
+                  className="pl-column-select-btn"
+                  onClick={() => toggleSelectColumn(column.id, column.candidates.map((c) => c.id))}
+                >
+                  {column.candidates.every((c) => selectedIds.includes(c.id)) ? 'Deselect' : 'Select'}
+                  <ChevronDown size={11} />
+                </button>
+              )}
             </header>
 
             <div className="pl-column-body">
               {loading ? (
-                <div className="pl-empty">Loading...</div>
+                <div className="pl-empty">Loading candidates...</div>
               ) : column.candidates.length === 0 ? (
                 <div className="pl-empty">Drop candidate here</div>
               ) : (
-                column.candidates.map((candidate) => (
-                  <article
-                    key={candidate.id}
-                    className={`pl-card glass-card ${draggedId === candidate.id ? 'is-dragging' : ''}`}
-                    draggable={updatingId !== candidate.id}
-                    onDragStart={() => setDraggedId(candidate.id)}
-                    onDragEnd={() => {
-                      setDraggedId(null);
-                      setDropStage(null);
-                    }}
-                  >
-                    <button className="pl-card-main pl-card-main--compact" onClick={() => setSelected(candidate)}>
-                      <div className="pl-card-identity">
-                        <div className="hf-avatar">{initials(candidate.candidate_name)}</div>
-                        <div className="pl-card-copy">
-                          <strong>{candidate.candidate_name}</strong>
-                          <span>{formatDate(candidate.submitted_at)}</span>
+                column.candidates.map((candidate) => {
+                  const allSkills = [
+                    ...splitValues(candidate.frontend_skills),
+                    ...splitValues(candidate.backend_skills),
+                    ...splitValues(candidate.database_skills),
+                    ...splitValues(candidate.ai_ml_skills),
+                    ...splitValues(candidate.cloud_devops),
+                    ...splitValues(candidate.programming_langs),
+                  ].filter((s, idx, arr) => Boolean(s) && arr.indexOf(s) === idx);
+
+                  const visibleSkills = allSkills.slice(0, 3);
+                  const extraCount = allSkills.length - 3;
+
+                  return (
+                    <article
+                      key={candidate.id}
+                      className={`pl-card glass-card ${draggedId === candidate.id ? 'is-dragging' : ''} ${selectedIds.includes(candidate.id) ? 'is-selected' : ''}`}
+                      draggable={updatingId !== candidate.id}
+                      onDragStart={() => setDraggedId(candidate.id)}
+                      onDragEnd={() => {
+                        setDraggedId(null);
+                        setDropStage(null);
+                      }}
+                    >
+                      <button className="pl-card-main" onClick={() => setSelected(candidate)}>
+                        <div className="pl-card-top-row">
+                          <div className="pl-card-identity">
+                            <span
+                              className="pl-card-checkbox-wrap"
+                              onClick={(e) => toggleSelectCandidate(candidate, e)}
+                            >
+                              <input
+                                type="checkbox"
+                                className="pl-card-checkbox"
+                                checked={selectedIds.includes(candidate.id)}
+                                onChange={() => {}}
+                                onClick={(e) => toggleSelectCandidate(candidate, e)}
+                              />
+                            </span>
+                            <div className="hf-avatar">{initials(candidate.candidate_name)}</div>
+                            <div className="pl-card-copy">
+                              <strong>{candidate.candidate_name}</strong>
+                              <span>{candidate.position_label || 'Candidate'}</span>
+                            </div>
+                          </div>
+
+                          <span className={`hf-score-pill ${scoreClass(candidate.best_score ?? 0)}`}>
+                            <span className="hf-score-dot" />
+                            {candidate.best_score ?? 0}
+                          </span>
                         </div>
-                      </div>
-                      <div className="pl-card-right">
-                        <span className={`hf-score-pill ${scoreClass(candidate.total_score)}`}>{candidate.total_score}</span>
-                      </div>
-                    </button>
-                  </article>
-                ))
+
+                        <div className="pl-card-meta-row">
+                          <span className="pl-card-date">
+                            <Calendar size={12} />
+                            {formatDate(candidate.submitted_at)}
+                          </span>
+                        </div>
+
+                        {visibleSkills.length > 0 && (
+                          <div className="pl-card-skills">
+                            {visibleSkills.map((skill) => (
+                              <span key={skill} className="pl-card-skill-tag">{skill}</span>
+                            ))}
+                            {extraCount > 0 && (
+                              <span className="pl-card-skill-more">+{extraCount}</span>
+                            )}
+                          </div>
+                        )}
+                      </button>
+                    </article>
+                  );
+                })
               )}
             </div>
           </section>
         ))}
       </div>
+
+      {/* ── Floating Bulk Action Bar ── */}
+      {selectedIds.length > 0 && !selected && (
+        <div className="pl-bulk-action-bar">
+          <div className="pl-bulk-info">
+            <span className="pl-bulk-badge">{selectedIds.length}</span>
+            <span className="pl-bulk-label">
+              {currentSelectedStage
+                ? `${STAGE_META.find((s) => s.id === currentSelectedStage)?.label} Selected`
+                : 'Selected'}
+            </span>
+          </div>
+
+          <div className="pl-bulk-controls">
+            <select
+              className="pl-bulk-select"
+              value={bulkTargetStage}
+              onChange={(e) => setBulkTargetStage(e.target.value as PipelineStage)}
+              disabled={isBulkUpdating}
+            >
+              {availableTargetStages.map((stage) => (
+                <option key={stage.id} value={stage.id}>
+                  Move to {stage.label}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="text"
+              className="pl-bulk-note-input"
+              placeholder="Batch note (optional)"
+              value={bulkNote}
+              onChange={(e) => setBulkNote(e.target.value)}
+              disabled={isBulkUpdating}
+            />
+
+            <button
+              type="button"
+              className="hf-primary-btn pl-bulk-btn"
+              onClick={() => void handleBulkStageMove()}
+              disabled={isBulkUpdating}
+            >
+              {isBulkUpdating ? (
+                <>
+                  <RefreshCw size={13} className="animate-spin" /> Moving...
+                </>
+              ) : (
+                <>
+                  <ArrowRight size={13} /> Apply
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="pl-bulk-clear-btn"
+              onClick={clearSelection}
+              disabled={isBulkUpdating}
+              title="Clear selection"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {selected && (
         <CandidateDetailDrawer

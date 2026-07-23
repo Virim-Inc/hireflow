@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
+  AlertTriangle,
   ArrowLeft,
   Briefcase,
   CalendarDays,
   CheckCircle2,
   ChevronRight,
+  Download,
   ExternalLink,
   FileText,
   Inbox,
@@ -12,8 +14,9 @@ import {
   Phone,
   Sparkles,
   Trophy,
+  Users,
 } from 'lucide-react';
-import type { Candidate, CandidateStageHistoryItem, PipelineStage } from '../types/candidate.types';
+import type { Candidate, CandidateStageHistoryItem, PipelineStage, JobDescription } from '../types/candidate.types';
 import {
   STAGE_META,
   formatDate,
@@ -33,6 +36,7 @@ interface CandidateDetailDrawerProps {
   updating: boolean;
   onClose: () => void;
   onMoveStage: (stage: PipelineStage, note?: string) => Promise<void> | void;
+  jds?: JobDescription[];
 }
 
 export function CandidateDetailDrawer({
@@ -42,9 +46,103 @@ export function CandidateDetailDrawer({
   updating,
   onClose,
   onMoveStage,
+  jds,
 }: CandidateDetailDrawerProps) {
   const [note, setNote] = useState(candidate.latest_stage_note ?? '');
   const [selectedStage, setSelectedStage] = useState<PipelineStage>(candidate.pipeline_stage);
+  const [activeTab, setActiveTab] = useState<'details' | 'resume'>('details');
+  const [selectedJdId, setSelectedJdId] = useState<string>('global');
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const [resumeLoading, setResumeLoading] = useState(false);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== 'resume' || !candidate.workdrive_file_id) {
+      return;
+    }
+
+    const controller = new AbortController();
+    let objectUrlToCleanup: string | null = null;
+
+    setResumeLoading(true);
+    setResumeError(null);
+
+    const token = localStorage.getItem('hf_token');
+    fetch(`/api/candidates/${candidate.id}/resume`, {
+      signal: controller.signal,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to retrieve file (HTTP ${res.status}: ${res.statusText})`);
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        objectUrlToCleanup = url;
+        setResumeUrl(url);
+      })
+      .catch((err: Error) => {
+        if (err.name === 'AbortError') return;
+        setResumeError(err.message || 'Could not retrieve resume from Zoho WorkDrive.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setResumeLoading(false);
+        }
+      });
+
+    return () => {
+      controller.abort();
+      if (objectUrlToCleanup) {
+        URL.revokeObjectURL(objectUrlToCleanup);
+      }
+      setResumeUrl(null);
+    };
+  }, [activeTab, candidate.id, candidate.workdrive_file_id]);
+
+  async function handleDownload() {
+    if (resumeUrl) {
+      const a = document.createElement('a');
+      a.href = resumeUrl;
+      a.download = candidate.workdrive_file_name || 'Resume.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    try {
+      setDownloading(true);
+      const token = localStorage.getItem('hf_token');
+      const res = await fetch(`/api/candidates/${candidate.id}/resume/download`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error(`Download failed with status ${res.status}`);
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = candidate.workdrive_file_name || 'Resume.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download error:', err);
+      alert('Failed to download resume.');
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -67,19 +165,47 @@ export function CandidateDetailDrawer({
     await onMoveStage(selectedStage, note.trim() || undefined);
   }
 
-  const strengths = splitValues(candidate.strengths);
-  const weaknesses = splitValues(candidate.weaknesses);
-  const evaluationNotes = [
-    { label: 'Frontend', value: candidate.frontend_feedback },
-    { label: 'Backend', value: candidate.backend_feedback },
-    { label: 'Database', value: candidate.database_feedback },
-    { label: 'AI / ML', value: candidate.ai_ml_feedback },
-  ].filter((item) => item.value && item.value !== 'N/A');
-  const skills = [
-    ...splitValues(candidate.frontend_skills, 3),
-    ...splitValues(candidate.backend_skills, 3),
-    ...splitValues(candidate.database_skills, 2),
-  ].slice(0, 8);
+  const isGlobal = selectedJdId === 'global';
+  const activeMatch = !isGlobal ? candidate.jd_matches?.[selectedJdId] : null;
+
+  const displayScore = activeMatch ? Math.round(Number(activeMatch.overall_score)) : (candidate.best_score ?? 0);
+  const displayRecommendation = activeMatch ? activeMatch.recommendation : (candidate.best_recommendation ?? 'Pending review');
+  const displayGrade = activeMatch ? activeMatch.grade : (candidate.best_grade ?? '-');
+  const displaySummary = activeMatch ? activeMatch.summary : (candidate.best_recommendation ? `Awaiting detailed evaluation. Best match role recommendation: ${candidate.best_recommendation}` : 'No AI matching details evaluated yet.');
+
+  const strengths = activeMatch
+    ? (Array.isArray(activeMatch.strengths) ? activeMatch.strengths : splitValues(activeMatch.strengths))
+    : Object.values(candidate.jd_matches || {}).flatMap(m => Array.isArray(m.strengths) ? m.strengths : splitValues(m.strengths)).filter((v, i, arr) => arr.indexOf(v) === i);
+  const weaknesses = activeMatch
+    ? (Array.isArray(activeMatch.weaknesses) ? activeMatch.weaknesses : splitValues(activeMatch.weaknesses))
+    : Object.values(candidate.jd_matches || {}).flatMap(m => Array.isArray(m.weaknesses) ? m.weaknesses : splitValues(m.weaknesses)).filter((v, i, arr) => arr.indexOf(v) === i);
+
+  const parseJsonArray = (val: any) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    try { return JSON.parse(val); } catch(e) { return []; }
+  };
+
+  const matchedSkillsList = activeMatch ? parseJsonArray(activeMatch.matched_skills) : [];
+  const missingSkillsList = activeMatch ? parseJsonArray(activeMatch.missing_skills) : [];
+
+  const evaluationNotes = activeMatch
+    ? [
+        { label: 'Evaluation Summary', value: activeMatch.summary },
+        { label: 'Matched Skills', value: matchedSkillsList.length ? matchedSkillsList.join(', ') : 'None' },
+        { label: 'Missing Skills', value: missingSkillsList.length ? missingSkillsList.join(', ') : 'None' }
+      ].filter(item => item.value)
+    : [
+        { label: 'Global Overview', value: 'Select specific Job Description tabs at the top to inspect matched/missing skills, fit reasoning, and customized role alignment detail cards.' }
+      ];
+  const allSkills = [
+    ...splitValues(candidate.frontend_skills),
+    ...splitValues(candidate.backend_skills),
+    ...splitValues(candidate.database_skills),
+    ...splitValues(candidate.ai_ml_skills),
+    ...splitValues(candidate.cloud_devops),
+    ...splitValues(candidate.programming_langs),
+  ].filter((v, i, arr) => Boolean(v) && arr.indexOf(v) === i);
   const skillSections = [
     { label: 'Frontend', values: splitValues(candidate.frontend_skills), meta: candidate.frontend_level },
     { label: 'Backend', values: splitValues(candidate.backend_skills), meta: candidate.backend_level },
@@ -88,6 +214,16 @@ export function CandidateDetailDrawer({
     { label: 'Cloud / DevOps', values: splitValues(candidate.cloud_devops) },
     { label: 'Languages', values: splitValues(candidate.programming_langs) },
   ];
+
+  const matches = Object.values(candidate.jd_matches || {});
+  const avgScores = {
+    technical: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.technical_score), 0) / matches.length) : 0,
+    experience: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.experience_score), 0) / matches.length) : 0,
+    education: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.education_score), 0) / matches.length) : 0,
+    communication: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.communication_score), 0) / matches.length) : 0,
+    project: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.project_score), 0) / matches.length) : 0,
+    overall: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.overall_score), 0) / matches.length) : 0,
+  };
 
   return (
     <div className="hf-drawer-shell">
@@ -116,8 +252,8 @@ export function CandidateDetailDrawer({
               <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`}>
                 {getStageLabel(candidate.pipeline_stage)}
               </span>
-              <span className={`hf-rec-badge ${recommendationClass(candidate.recommendation)}`}>
-                {candidate.recommendation || 'Pending review'}
+              <span className={`hf-rec-badge ${recommendationClass(displayRecommendation)}`}>
+                {displayRecommendation || 'Pending review'}
               </span>
             </div>
             <div className="hf-contact-line">
@@ -131,20 +267,66 @@ export function CandidateDetailDrawer({
               )}
             </div>
           </div>
-          <div className={`hf-score-pill hf-score-pill--xl ${scoreClass(candidate.total_score)}`}>
-            <strong>{candidate.total_score}</strong>
+          <div className={`hf-score-pill hf-score-pill--xl ${scoreClass(displayScore)}`}>
+            <strong>{displayScore}</strong>
             <span>/100</span>
           </div>
         </section>
 
-        <section className="hf-detail-stats-row">
+        {candidate.workdrive_file_id && (
+          <div className="hf-tabs-container">
+            <button
+              className={`hf-tab-btn ${activeTab === 'details' ? 'active' : ''}`}
+              onClick={() => setActiveTab('details')}
+            >
+              <Users size={15} />
+              Candidate Profile
+            </button>
+            <button
+              className={`hf-tab-btn ${activeTab === 'resume' ? 'active' : ''}`}
+              onClick={() => setActiveTab('resume')}
+            >
+              <FileText size={15} />
+              Resume Preview
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'details' ? (
+          <>
+            {candidate.jd_matches && Object.keys(candidate.jd_matches).length > 0 && (
+              <div className="hf-drawer-jd-score-selector">
+                <button
+                  type="button"
+                  className={`hf-drawer-jd-score-tab ${selectedJdId === 'global' ? 'hf-drawer-jd-score-tab--active' : ''}`}
+                  onClick={() => setSelectedJdId('global')}
+                >
+                  Global Profile
+                </button>
+                {Object.keys(candidate.jd_matches).map(jdIdStr => {
+                  const jd = jds?.find(j => String(j.id) === jdIdStr);
+                  return (
+                    <button
+                      key={jdIdStr}
+                      type="button"
+                      className={`hf-drawer-jd-score-tab ${selectedJdId === jdIdStr ? 'hf-drawer-jd-score-tab--active' : ''}`}
+                      onClick={() => setSelectedJdId(jdIdStr)}
+                    >
+                      {jd?.title || `JD #${jdIdStr}`}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <section className="hf-detail-stats-row">
           <article className="glass-card hf-detail-stat-card">
             <span>Total score</span>
-            <strong>{candidate.total_score}/100</strong>
+            <strong>{displayScore}/100</strong>
           </article>
           <article className="glass-card hf-detail-stat-card">
             <span>Recommendation</span>
-            <strong>{candidate.recommendation || 'Pending'}</strong>
+            <strong>{displayRecommendation || 'Pending'}</strong>
           </article>
           <article className="glass-card hf-detail-stat-card">
             <span>Strengths found</span>
@@ -216,18 +398,36 @@ export function CandidateDetailDrawer({
                 <Trophy size={15} />
                 <span>AI Assessment</span>
               </div>
-              <p className="hf-summary-copy">{candidate.summary || 'No AI summary available yet.'}</p>
+              <p className="hf-summary-copy">{displaySummary || 'No AI summary available yet.'}</p>
               <div className="hf-assessment-grid">
                 <div className="hf-assessment-card hf-assessment-card--positive">
                   <h4>Strengths</h4>
-                  <div className="hf-tag-row">
-                    {strengths.length ? strengths.map((item) => <span key={item} className="hf-tag hf-tag--positive">{item}</span>) : <span className="hf-placeholder">No clear strengths extracted</span>}
+                  <div className="hf-assessment-list">
+                    {strengths.length ? (
+                      strengths.map((item, idx) => (
+                        <div key={`strength-${idx}`} className="hf-assessment-item hf-assessment-item--positive">
+                          <span className="hf-assessment-bullet">•</span>
+                          <span className="hf-assessment-text">{item}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="hf-placeholder">No clear strengths extracted</span>
+                    )}
                   </div>
                 </div>
                 <div className="hf-assessment-card hf-assessment-card--negative">
                   <h4>Weaknesses</h4>
-                  <div className="hf-tag-row">
-                    {weaknesses.length ? weaknesses.map((item) => <span key={item} className="hf-tag hf-tag--negative">{item}</span>) : <span className="hf-placeholder">No clear weaknesses extracted</span>}
+                  <div className="hf-assessment-list">
+                    {weaknesses.length ? (
+                      weaknesses.map((item, idx) => (
+                        <div key={`weakness-${idx}`} className="hf-assessment-item hf-assessment-item--negative">
+                          <span className="hf-assessment-bullet">•</span>
+                          <span className="hf-assessment-text">{item}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="hf-placeholder">No clear weaknesses extracted</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -264,9 +464,9 @@ export function CandidateDetailDrawer({
                       <strong>{section.label}</strong>
                       {section.meta ? <span>{section.meta}</span> : null}
                     </div>
-                    <div className="hf-tag-row">
+                    <div className="hf-skill-section-tags-scrollable">
                       {section.values.length
-                        ? section.values.slice(0, 6).map((value) => <span key={value} className="hf-skill-chip">{value}</span>)
+                        ? section.values.map((value) => <span key={value} className="hf-skill-chip">{value}</span>)
                         : <span className="hf-placeholder">No data</span>}
                     </div>
                   </div>
@@ -284,15 +484,24 @@ export function CandidateDetailDrawer({
               <div className="hf-info-grid">
                 <div><span>Role</span><strong>{candidate.position_label}</strong></div>
                 <div><span>Experience</span><strong>{candidate.years_of_exp} years</strong></div>
-                <div><span>Grade</span><strong>{candidate.grade || '-'}</strong></div>
-                <div><span>Qualified</span><strong>{candidate.is_qualified ? 'Yes' : 'No'}</strong></div>
-                <div><span>Degree</span><strong>{candidate.highest_degree || '-'}</strong></div>
+                 <div><span>City</span><strong>{candidate.city || '-'}</strong></div>
+                 <div><span>Grade</span><strong>{displayGrade || '-'}</strong></div>
+                 <div><span>Qualified</span><strong>{displayScore >= 50 ? 'Yes' : 'No'}</strong></div>
                 <div><span>Current title</span><strong>{candidate.current_job_title || '-'}</strong></div>
                 <div><span>Submitted</span><strong>{formatDate(candidate.submitted_at)}</strong></div>
                 <div><span>Stage updated</span><strong>{formatDate(candidate.pipeline_stage_updated_at)}</strong></div>
               </div>
-              <div className="hf-skill-cloud">
-                {skills.length ? skills.map((skill) => <span key={skill} className="hf-skill-chip">{skill}</span>) : <span className="hf-placeholder">No key skill tags</span>}
+              <div style={{ marginTop: '16px', borderTop: '1px solid var(--hf-border)', paddingTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: '600', color: 'var(--hf-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <span>Education & Internship</span>
+              </div>
+              <div className="hf-info-grid" style={{ marginTop: '8px' }}>
+                <div><span>Degree</span><strong>{candidate.degree || '-'}</strong></div>
+                <div><span>College</span><strong>{candidate.college || '-'}</strong></div>
+                <div><span>Passout Year</span><strong>{candidate.passout_year || '-'}</strong></div>
+                <div><span>Internship</span><strong>{candidate.internship_completed === true ? 'Yes' : candidate.internship_completed === false ? 'No' : '-'}</strong></div>
+              </div>
+              <div className="hf-skill-cloud-scrollable mt-4">
+                {allSkills.length ? allSkills.map((skill) => <span key={skill} className="hf-skill-chip">{skill}</span>) : <span className="hf-placeholder">No key skill tags</span>}
               </div>
             </article>
 
@@ -302,15 +511,25 @@ export function CandidateDetailDrawer({
                 <span>Score Breakdown</span>
               </div>
               <div className="hf-score-grid">
-                {[
-                  ['Frontend', candidate.frontend_score],
-                  ['Backend', candidate.backend_score],
-                  ['Database', candidate.database_score],
-                  ['AI / ML', candidate.ai_ml_score],
-                  ['Experience', candidate.exp_score],
-                  ['Soft Skills', candidate.soft_score],
-                ].map(([label, value]) => (
-                  <div key={label} className="hf-score-metric">
+                 {(activeMatch
+                  ? [
+                      ['Technical', Math.round(Number(activeMatch.technical_score))],
+                      ['Experience', Math.round(Number(activeMatch.experience_score))],
+                      ['Education', Math.round(Number(activeMatch.education_score))],
+                      ['Communication', Math.round(Number(activeMatch.communication_score))],
+                      ['Project', Math.round(Number(activeMatch.project_score))],
+                      ['Overall Match', Math.round(Number(activeMatch.overall_score))],
+                    ]
+                  : [
+                      ['Technical (Avg)', avgScores.technical],
+                      ['Experience (Avg)', avgScores.experience],
+                      ['Education (Avg)', avgScores.education],
+                      ['Communication (Avg)', avgScores.communication],
+                      ['Project (Avg)', avgScores.project],
+                      ['Overall Match (Avg)', avgScores.overall],
+                    ]
+                ).map(([label, value]) => (
+                  <div key={label as string} className="hf-score-metric">
                     <span>{label}</span>
                     <strong>{value}</strong>
                   </div>
@@ -347,6 +566,65 @@ export function CandidateDetailDrawer({
             </article>
           </div>
         </section>
+      </>
+    ) : (
+      <section className="hf-resume-container">
+        <div className="hf-resume-topbar">
+          <div className="hf-resume-topbar-info">
+            <FileText size={16} />
+            <span>{candidate.workdrive_file_name || 'Candidate Resume'}</span>
+          </div>
+          <button
+            onClick={() => void handleDownload()}
+            className="hf-primary-btn hf-primary-btn--compact"
+            disabled={downloading}
+            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Download size={14} />
+            {downloading ? 'Downloading...' : 'Download Original'}
+          </button>
+        </div>
+
+        {resumeLoading && (
+          <div className="hf-panel-subtle" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '100px 0', gap: '12px' }}>
+            <div className="hf-spinner" />
+            <span>Fetching resume from Zoho WorkDrive...</span>
+          </div>
+        )}
+
+        {resumeError && (
+          <div className="glass-card hf-empty-state" style={{ color: 'var(--hf-error)', border: '1px solid var(--hf-error)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={36} />
+            <p>{resumeError}</p>
+          </div>
+        )}
+
+        {!resumeLoading && !resumeError && resumeUrl && (() => {
+          const fileName = candidate.workdrive_file_name || 'Resume.pdf';
+          const isPdf = fileName.toLowerCase().endsWith('.pdf');
+          const isImage = /\.(png|jpe?g|webp|gif)$/i.test(fileName);
+          const isPreviewSupported = isPdf || isImage;
+          
+          if (isPreviewSupported) {
+            return (
+              <iframe
+                src={resumeUrl}
+                className="hf-resume-preview-frame"
+                title="Candidate Resume Preview"
+              />
+            );
+          } else {
+            return (
+              <div className="glass-card hf-empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '100px 0', gap: '12px' }}>
+                <FileText size={36} />
+                <p>Preview is not supported for this file format ({fileName.split('.').pop()?.toUpperCase() || 'unknown'}).</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--hf-text-secondary)' }}>Please download the original file using the button above to view it.</p>
+              </div>
+            );
+          }
+        })()}
+      </section>
+    )}
       </div>
     </div>
   );

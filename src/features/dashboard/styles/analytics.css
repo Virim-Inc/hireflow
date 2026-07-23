@@ -1,0 +1,702 @@
+/* ── Analytics View Layout ── */
+.dash-analytics-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* ── Metrics Summary Cards ── */
+.dash-metrics-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dash-metric-card {
+  padding: 22px;
+  border-radius: 22px;
+  border: 1px solid var(--hf-border);
+  background: color-mix(in oklab, var(--hf-card-bg) 88%, transparent);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px color-mix(in oklab, var(--hf-shadow) 30%, transparent);
+}
+
+/* Left Accent Borders */
+.dash-metric-card.border-left-blue::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--hf-info);
+}
+
+.dash-metric-card.border-left-green::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--hf-success);
+}
+
+.dash-metric-card.border-left-amber::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--hf-warning);
+}
+
+.dash-metric-card.border-left-pink::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--hf-accent-dim);
+}
+
+.dash-metric-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.dash-metric-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+/* Icon backgrounds */
+.dash-metric-icon.bg-blue {
+  background: color-mix(in oklab, var(--hf-info) 14%, transparent);
+  color: var(--hf-info);
+}
+
+.dash-metric-icon.bg-green {
+  background: color-mix(in oklab, var(--hf-success) 14%, transparent);
+  color: var(--hf-success);
+}
+
+.dash-metric-icon.bg-amber {
+  background: color-mix(in oklab, var(--hf-warning) 14%, transparent);
+  color: var(--hf-warning);
+}
+
+.dash-metric-icon.bg-pink {
+  background: color-mix(in oklab, var(--hf-accent-dim) 14%, transparent);
+  color: var(--hf-accent-text);
+}
+
+.dash-metric-title {
+  font-size: 0.78rem;
+  color: var(--hf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.dash-metric-value {
+  font-size: 2rem;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--hf-text-primary);
+  margin-top: 2px;
+  margin-bottom: auto;
+}
+
+/* Breakdown Grid buttons */
+.dash-metric-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.dash-metric-breakdown-btn {
+  appearance: none;
+  background: color-mix(in oklab, var(--hf-surface-2) 75%, transparent);
+  border: 1px solid var(--hf-border);
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+.dash-metric-breakdown-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--hf-border-glow);
+  background: var(--hf-surface-3);
+}
+
+.dash-metric-breakdown-btn span {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--hf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dash-metric-breakdown-btn strong {
+  display: block;
+  font-size: 0.92rem;
+  margin-top: 3px;
+  color: var(--hf-text-primary);
+}
+
+/* Card footer metrics */
+.dash-metric-footer-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.dash-metric-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--hf-success) 10%, transparent);
+}
+
+.dash-metric-badge.color-green {
+  color: var(--hf-success);
+}
+
+.dash-metric-action-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  color: var(--hf-accent-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+
+.dash-metric-action-btn:hover {
+  color: var(--hf-accent);
+  transform: translateX(1px);
+}
+
+/* Dual Metric grid */
+.dash-metric-dual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.dash-metric-dual-cell {
+  appearance: none;
+  background: color-mix(in oklab, var(--hf-surface-2) 75%, transparent);
+  border: 1px solid var(--hf-border);
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 54px;
+}
+
+.dash-metric-dual-cell:hover {
+  transform: translateY(-1px);
+  border-color: var(--hf-border-glow);
+  background: var(--hf-surface-3);
+}
+
+.dash-metric-dual-cell .cell-label {
+  font-size: 0.68rem;
+  color: var(--hf-text-muted);
+  text-transform: uppercase;
+}
+
+.dash-metric-dual-cell .cell-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-top: 3px;
+  color: var(--hf-text-primary);
+  line-height: 1;
+}
+
+/* ── Charts & Distribution Panel Grid ── */
+.dash-analytics-charts-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.chart-panel-card {
+  padding: 22px;
+  border-radius: 26px;
+  border: 1px solid var(--hf-border);
+  background: color-mix(in oklab, var(--hf-card-bg) 88%, transparent);
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.chart-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.chart-panel-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--hf-text-primary);
+}
+
+.chart-panel-header p {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--hf-text-muted);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--hf-text-secondary);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.bg-blue {
+  background-color: var(--hf-info);
+}
+
+.bg-green {
+  background-color: var(--hf-success);
+}
+
+.bg-amber {
+  background-color: var(--hf-warning);
+}
+
+.bg-danger {
+  background-color: var(--hf-danger);
+}
+
+.bg-blue-intense {
+  background-color: var(--hf-info);
+}
+
+.bg-pink-intense {
+  background-color: var(--hf-accent-dim);
+}
+
+.chart-panel-content {
+  flex-grow: 1;
+  width: 100%;
+  position: relative;
+}
+
+/* Right distribution sidebar */
+.dash-analytics-right-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.distribution-panel {
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid var(--hf-border);
+  background: color-mix(in oklab, var(--hf-card-bg) 88%, transparent);
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--hf-text-primary);
+}
+
+.quality-bars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.quality-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+
+.bar-labels strong {
+  font-weight: 600;
+  color: var(--hf-text-secondary);
+}
+
+.bar-labels span {
+  font-weight: 700;
+  color: var(--hf-text-primary);
+}
+
+.bar-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--hf-surface-2) 90%, transparent);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Source ratio visual bar */
+.source-distribution-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.source-ratio-bar {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--hf-surface-2);
+}
+
+.source-fill {
+  height: 100%;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.source-legend-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.source-legend-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.source-marker {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.source-legend-cell div {
+  display: flex;
+  flex-direction: column;
+}
+
+.source-legend-cell strong {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--hf-text-secondary);
+}
+
+.source-legend-cell span {
+  font-size: 0.7rem;
+  color: var(--hf-text-muted);
+}
+
+/* ── Loading, Empty and Error States ── */
+.dash-error-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  border-radius: 26px;
+  border: 1px solid var(--hf-border);
+  background: color-mix(in oklab, var(--hf-card-bg) 88%, transparent);
+  text-align: center;
+  min-height: 350px;
+}
+
+.error-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--hf-danger) 15%, transparent);
+  color: var(--hf-danger);
+  margin-bottom: 16px;
+}
+
+.dash-error-panel h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  color: var(--hf-text-primary);
+}
+
+.dash-error-panel p {
+  margin: 0 0 20px;
+  font-size: 0.84rem;
+  color: var(--hf-text-muted);
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.dash-retry-btn {
+  appearance: none;
+  background: var(--hf-accent);
+  color: var(--hf-bg);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 24px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.16s ease;
+  box-shadow: 0 4px 14px var(--hf-border-glow);
+}
+
+.dash-retry-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Spin animation for refresh icon */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-on-hover:hover {
+  animation: spin 1.2s linear infinite;
+}
+
+/* Skeletons */
+.skeleton-animation {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-animation::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 20%,
+      rgba(255, 255, 255, 0.1) 60%,
+      rgba(255, 255, 255, 0) 100%);
+  animation: shimmer 1.8s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.distribution-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.skeleton-bar-row {
+  height: 24px;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--hf-surface-2) 60%, transparent);
+  width: 100%;
+}
+
+.source-skeleton {
+  height: 120px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--hf-surface-2) 60%, transparent);
+  width: 100%;
+}
+
+.empty-subtext {
+  font-size: 0.8rem;
+  color: var(--hf-text-muted);
+  margin: 0;
+  text-align: center;
+  padding: 16px 0;
+}
+
+/* ── Light Mode Color Adjustments ── */
+.hf-app--light .dash-metric-card,
+.hf-app--light .chart-panel-card,
+.hf-app--light .distribution-panel,
+.hf-app--light .dash-error-panel {
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--hf-accent-glow) 68%, transparent), transparent 34%),
+    linear-gradient(160deg, color-mix(in oklab, white 86%, var(--hf-accent-glow) 14%), color-mix(in oklab, white 96%, var(--hf-accent-glow) 4%));
+  border-color: color-mix(in oklab, var(--hf-border) 84%, white 16%);
+  box-shadow:
+    0 20px 42px color-mix(in oklab, var(--hf-shadow) 56%, transparent),
+    inset 0 1px 0 oklch(1 0 0 / 0.82);
+}
+
+.hf-app--light .dash-metric-breakdown-btn,
+.hf-app--light .dash-metric-dual-cell {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, white 74%, var(--hf-accent-glow) 26%), color-mix(in oklab, white 90%, var(--hf-accent-glow) 10%));
+  border-color: color-mix(in oklab, var(--hf-border) 80%, white 20%);
+}
+
+.hf-app--light .bar-track,
+.hf-app--light .source-ratio-bar {
+  background: oklch(0.92 0 0);
+}
+
+.hf-app--light .skeleton-bar-row,
+.hf-app--light .source-skeleton {
+  background: oklch(0.94 0 0);
+}
+
+/* ── Responsive breakpoints ── */
+@media (max-width: 1160px) {
+  .dash-metrics-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dash-analytics-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dash-metrics-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-metric-dual-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Timeline Controls Box & Range Picker ── */
+.chart-controls-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chart-range-picker {
+  display: flex;
+  align-items: center;
+}
+
+.chart-range-select-trigger {
+  width: 140px;
+  background: color-mix(in oklab, var(--hf-surface-2) 90%, transparent) !important;
+  border: 1px solid var(--hf-border) !important;
+  border-radius: 8px !important;
+  color: var(--hf-text-secondary) !important;
+  font-weight: 600;
+  font-size: 0.78rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.chart-range-select-trigger:hover {
+  border-color: var(--hf-border-glow) !important;
+  color: var(--hf-text-primary) !important;
+}
+
+.chart-range-select-content {
+  background: var(--hf-card-bg) !important;
+  border: 1px solid var(--hf-border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px var(--hf-shadow) !important;
+  color: var(--hf-text-primary) !important;
+  z-index: 100 !important;
+}
+
+.hf-app--light .chart-range-select-trigger {
+  background: white !important;
+  border-color: color-mix(in oklab, var(--hf-border) 80%, white 20%) !important;
+}
+
+.hf-app--light .chart-range-select-content {
+  background: white !important;
+  border-color: color-mix(in oklab, var(--hf-border) 80%, white 20%) !important;
+}
+
+@media (max-width: 600px) {
+  .chart-controls-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+  }
+}

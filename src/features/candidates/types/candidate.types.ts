@@ -35,26 +35,9 @@ export interface Candidate {
   cloud_devops: string;
   programming_langs: string;
   notable_projects: string;
-  jd_title: string;
-  jd_company: string;
-  total_score: number;
-  frontend_score: number;
-  backend_score: number;
-  database_score: number;
-  ai_ml_score: number;
-  exp_score: number;
-  soft_score: number;
-  grade: string;
-  recommendation: string;
-  is_qualified: boolean;
-  summary: string;
-  strengths: string;
-  weaknesses: string;
-  frontend_feedback: string;
-  backend_feedback: string;
-  database_feedback: string;
-  ai_ml_feedback: string;
-  hiring_note: string;
+  best_score: number | null;
+  best_recommendation: string | null;
+  best_grade: string | null;
   workdrive_file_id: string;
   workdrive_file_name: string;
   source_folder_id: string;
@@ -62,6 +45,53 @@ export interface Candidate {
   pipeline_stage: PipelineStage;
   pipeline_stage_updated_at: string;
   latest_stage_note: string | null;
+  city?: string | null;
+  internship_completed?: boolean | null;
+  passout_year?: number | null;
+  college?: string | null;
+  degree?: string | null;
+
+  jd_matches?: Record<string, {
+    overall_score: number;
+    technical_score: number;
+    experience_score: number;
+    education_score: number;
+    communication_score: number;
+    project_score: number;
+    recommendation: string;
+    grade: string;
+    matched_skills: any;
+    missing_skills: any;
+    strengths: string[];
+    weaknesses: string[];
+    summary: string;
+    status: 'Pending' | 'Processing' | 'Completed' | 'Failed';
+    scored_at: string | null;
+  }> | null;
+}
+
+export interface JobDescription {
+  id: number;
+  title: string;
+  department: string | null;
+  employment_type: string | null;
+  work_mode: string | null;
+  location: string | null;
+  openings: number;
+  experience_min: number;
+  experience_max: number;
+  education: string | null;
+  specialization: string | null;
+  required_skills: any;
+  preferred_skills: any;
+  responsibilities: string | null;
+  requirements: string | null;
+  nice_to_have: string | null;
+  ai_prompt: string | null;
+  is_active: boolean;
+  matched_count?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CandidatesResponse {
@@ -79,6 +109,21 @@ export interface CandidateStageHistoryItem {
   to_stage: PipelineStage;
   note: string | null;
   changed_at: string;
+}
+
+export interface DailyAcquisitionPoint {
+  date: string;
+  received: number;
+  shortlisted: number;
+}
+
+export interface DailyRecruitmentStats {
+  received: number;
+  shortlisted: number;
+  rejected: number;
+  pendingReview: number;
+  interviewsScheduled: number;
+  interviewsCompleted: number;
 }
 
 export interface CandidateStats {
@@ -99,6 +144,17 @@ export interface CandidateStats {
   movedThisMonth: number;
   activeThisWeek: number;
   movedThisWeek: number;
+  candidatesToday: number;
+  candidatesYesterday: number;
+  candidatesLast7Days: number;
+  candidatesLast30Days: number;
+  dailyAcquisition: DailyAcquisitionPoint[];
+  dailyRecruitmentStats?: {
+    today: DailyRecruitmentStats;
+    yesterday: DailyRecruitmentStats;
+    last7Days: DailyRecruitmentStats;
+    last30Days: DailyRecruitmentStats;
+  };
   sourceBreakdown: {
     form: number;
     email: number;
@@ -121,6 +177,10 @@ export interface CandidateMeta {
   stages: PipelineStage[];
   sources: string[];
   skills: string[];
+  cities: string[];
+  colleges: string[];
+  degrees: string[];
+  passoutYears: number[];
 }
 
 export interface CandidateFilters {
@@ -132,6 +192,11 @@ export interface CandidateFilters {
   stage: PipelineStage | '';
   source: string;
   position: string;
+  city: string;
+  internship_completed: string;
+  passout_year: string;
+  college: string;
+  degree: string;
   date_from: string;
   date_to: string;
   min_score: string;
@@ -139,6 +204,7 @@ export interface CandidateFilters {
   order: 'asc' | 'desc';
   page: number;
   limit: number;
+  jd_id: string;
 }
 
 export interface UpdateCandidateStageInput {

@@ -1,5 +1,5 @@
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, Filter, RefreshCw, Search, Users, X } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, Filter, Plus, RefreshCw, Search, Users, X } from 'lucide-react';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import {
@@ -23,6 +23,7 @@ import {
   fetchCandidates,
   fetchStats,
   updateCandidateStage,
+  fetchJds,
 } from '../services/candidateService';
 import type {
   Candidate,
@@ -31,6 +32,7 @@ import type {
   CandidateStageHistoryItem,
   CandidateStats,
   PipelineStage,
+  JobDescription,
 } from '../types/candidate.types';
 import {
   STAGE_META,
@@ -106,6 +108,11 @@ const DEFAULT_FILTERS: CandidateFilters = {
   stage: '',
   source: '',
   position: '',
+  city: '',
+  internship_completed: '',
+  passout_year: '',
+  college: '',
+  degree: '',
   date_from: '',
   date_to: '',
   min_score: '',
@@ -113,6 +120,7 @@ const DEFAULT_FILTERS: CandidateFilters = {
   order: 'desc',
   page: 1,
   limit: 12,
+  jd_id: '',
 };
 
 const SKELETON_CARD_COUNT = 6;
@@ -172,8 +180,34 @@ function FilterDropdown({
   direction?: 'down' | 'up';
 }) {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dropDirection, setDropDirection] = useState<'down' | 'up'>(direction);
   const rootRef = useRef<HTMLDivElement>(null);
   const selected = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery('');
+    }
+  }, [open]);
+
+  const toggleDropdown = () => {
+    if (!open && rootRef.current) {
+      const container = rootRef.current.closest('.hf-filter-panel') || document.body;
+      const containerRect = container.getBoundingClientRect();
+      const rect = rootRef.current.getBoundingClientRect();
+
+      const distFromContainerBottom = containerRect.bottom - rect.bottom;
+      const distFromViewportBottom = window.innerHeight - rect.bottom;
+
+      if (direction === 'up' || distFromContainerBottom < 260 || distFromViewportBottom < 340) {
+        setDropDirection('up');
+      } else {
+        setDropDirection('down');
+      }
+    }
+    setOpen((current) => !current);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -196,13 +230,17 @@ function FilterDropdown({
     };
   }, []);
 
+  const filteredOptions = options.filter((option) =>
+    option.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div ref={rootRef} className={`hf-select-field hf-modern-select hf-modern-select--${direction} ${open ? 'is-open' : ''}`}>
+    <div ref={rootRef} className={`hf-select-field hf-modern-select hf-modern-select--${dropDirection} ${open ? 'is-open' : ''}`}>
       <span>{label}</span>
       <button
         type="button"
         className={`hf-modern-select-trigger ${open ? 'is-open' : ''}`}
-        onClick={() => setOpen((current) => !current)}
+        onClick={toggleDropdown}
       >
         <span className="hf-modern-select-value">
           {leadingIcon ? <span className="hf-modern-select-leading">{leadingIcon}</span> : null}
@@ -212,20 +250,39 @@ function FilterDropdown({
       </button>
       {open && (
         <div className="hf-modern-select-menu">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`hf-modern-select-option ${option.value === value ? 'is-selected' : ''}`}
-              onClick={() => {
-                onChange(option.value);
-                setOpen(false);
-              }}
-            >
-              <span>{option.label}</span>
-              {option.value === value ? <Check size={14} /> : null}
-            </button>
-          ))}
+          {options.length > 5 && (
+            <div className="hf-modern-select-search" onClick={(e) => e.stopPropagation()}>
+              <Search size={13} className="hf-modern-select-search-icon" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="hf-modern-select-search-input"
+                autoFocus
+              />
+            </div>
+          )}
+          <div className="hf-modern-select-options-list">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`hf-modern-select-option ${option.value === value ? 'is-selected' : ''}`}
+                  onClick={() => {
+                    onChange(option.value);
+                    setOpen(false);
+                  }}
+                >
+                  <span>{option.label}</span>
+                  {option.value === value ? <Check size={14} /> : null}
+                </button>
+              ))
+            ) : (
+              <div className="hf-modern-select-empty">No results found</div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -236,10 +293,18 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const skillAnchor = useComboboxAnchor();
+  const jdAnchor = useComboboxAnchor();
   const [filters, setFilters] = useState<CandidateFilters>(() => buildInitialFilters(initialFilters));
   const [searchInput, setSearchInput] = useState(() => initialFilters?.search ?? '');
   const [skillInput, setSkillInput] = useState('');
   const [skillFilters, setSkillFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.skill ?? ''));
+  const [jds, setJds] = useState<JobDescription[]>([]);
+  const [selectedJdIds, setSelectedJdIds] = useState<number[]>(() => {
+    const raw = initialFilters?.jd_id ?? '';
+    return raw.split(',').map(id => parseInt(id.trim(), 10)).filter(Number.isInteger);
+  });
+  const [jdInput, setJdInput] = useState('');
+
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [stats, setStats] = useState<CandidateStats | null>(null);
   const [meta, setMeta] = useState<CandidateMeta | null>(null);
@@ -262,6 +327,21 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   function removeSkillFilter(skillToRemove: string) {
     syncSkillFilter(skillFilters.filter((skill) => skill !== skillToRemove));
   }
+
+  function syncJdFilter(nextJdIds: number[]) {
+    setSelectedJdIds(nextJdIds);
+    updateFilter('jd_id', nextJdIds.join(','));
+  }
+
+  function removeJdFilter(jdIdToRemove: number) {
+    syncJdFilter(selectedJdIds.filter((id) => id !== jdIdToRemove));
+  }
+
+  useEffect(() => {
+    fetchJds()
+      .then(setJds)
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -371,6 +451,32 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     ...(meta?.positions.map((position) => ({ label: position, value: position })) ?? []),
   ];
 
+  const cityOptions: FilterOption[] = [
+    { label: 'All cities', value: '' },
+    ...(meta?.cities.map((city) => ({ label: city, value: city })) ?? []),
+  ];
+
+  const internshipOptions: FilterOption[] = [
+    { label: 'All', value: '' },
+    { label: 'Yes', value: 'true' },
+    { label: 'No', value: 'false' },
+  ];
+
+  const passoutYearOptions: FilterOption[] = [
+    { label: 'All passout years', value: '' },
+    ...(meta?.passoutYears.map((year) => ({ label: String(year), value: String(year) })) ?? []),
+  ];
+
+  const collegeOptions: FilterOption[] = [
+    { label: 'All colleges', value: '' },
+    ...(meta?.colleges.map((college) => ({ label: college, value: college })) ?? []),
+  ];
+
+  const degreeOptions: FilterOption[] = [
+    { label: 'All degrees', value: '' },
+    ...(meta?.degrees.map((degree) => ({ label: degree, value: degree })) ?? []),
+  ];
+
   const sourceOptions: FilterOption[] = [
     { label: 'All sources', value: '' },
     { label: 'Form', value: 'form' },
@@ -465,7 +571,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
               {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
-            <button className="hf-ghost-btn" onClick={() => { setSearchInput(''); setSkillInput(''); setSkillFilters([]); setFilters(DEFAULT_FILTERS); }}>
+            <button className="hf-ghost-btn" onClick={() => { setSearchInput(''); setSkillInput(''); setSkillFilters([]); setSelectedJdIds([]); setFilters(DEFAULT_FILTERS); }}>
               <Filter size={14} />
               Clear Filters
             </button>
@@ -486,6 +592,92 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   />
                 </div>
               </label>
+
+              <div className="hf-select-field hf-skill-select" style={{ minWidth: '220px' }}>
+                <span>Job Description</span>
+                <Combobox
+                  multiple
+                  autoHighlight
+                  items={jds.map(j => String(j.id))}
+                  value={selectedJdIds.map(String)}
+                  inputValue={jdInput}
+                  onInputValueChange={setJdInput}
+                  onValueChange={(val) => {
+                    const ids = (Array.isArray(val) ? val : []).map(id => parseInt(id, 10)).filter(Number.isInteger);
+                    syncJdFilter(ids);
+                  }}
+                  className="hf-skill-combobox-root"
+                >
+                  <ComboboxChips ref={jdAnchor} className="hf-skill-combobox">
+                    <ComboboxValue>
+                      {(values) => (
+                        <ComboboxTrigger className="hf-skill-combobox-input">
+                          <div className="hf-skill-combobox-values">
+                            {values.length > 0 ? (
+                              <div className="hf-selected-skills-summary">
+                                {values.map((value) => {
+                                  const jd = jds.find(j => String(j.id) === value);
+                                  return (
+                                    <button
+                                      type="button"
+                                      key={value}
+                                      className="hf-selected-skill-item"
+                                      onMouseDown={(event) => event.preventDefault()}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        removeJdFilter(parseInt(value, 10));
+                                      }}
+                                      aria-label={`Remove ${jd?.title || value}`}
+                                    >
+                                      <span className="hf-selected-skill-text">{jd?.title || value}</span>
+                                      <span className="hf-selected-skill-remove">
+                                        <X size={12} />
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <span className="hf-skill-combobox-placeholder">Select JDs</span>
+                            )}
+                          </div>
+                          <ComboboxToggle className="hf-skill-combobox-toggle hf-skill-combobox-toggle--field" aria-label="Toggle JD dropdown">
+                            <ChevronDown size={14} />
+                          </ComboboxToggle>
+                        </ComboboxTrigger>
+                      )}
+                    </ComboboxValue>
+                  </ComboboxChips>
+                  <ComboboxContent anchor={jdAnchor} className="hf-skill-combobox-menu">
+                    <div className="hf-skill-dropdown-search">
+                      <Search size={15} />
+                      <ComboboxChipsInput
+                        className="hf-skill-dropdown-search-input"
+                        placeholder="Search JDs"
+                        autoFocus
+                        onKeyDown={(event) => {
+                          if (event.key === 'Backspace' && !jdInput && selectedJdIds.length) {
+                            event.preventDefault();
+                            removeJdFilter(selectedJdIds[selectedJdIds.length - 1]);
+                          }
+                        }}
+                      />
+                    </div>
+                    <ComboboxEmpty className="hf-skill-combobox-empty">No matching JDs</ComboboxEmpty>
+                    <ComboboxList className="hf-skill-combobox-list">
+                      {(item) => {
+                        const jd = jds.find(j => String(j.id) === item);
+                        return (
+                          <ComboboxItem key={item} value={item} className="hf-skill-combobox-option">
+                            <span>{jd?.title || item} {jd?.department ? `(${jd.department})` : ''}</span>
+                            <Check size={14} />
+                          </ComboboxItem>
+                        );
+                      }}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </div>
 
               <div className="hf-select-field hf-skill-select">
                 <span>Skill</span>
@@ -565,10 +757,15 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
               </div>
 
               <FilterDropdown label="Position" value={filters.position} options={positionOptions} onChange={(value) => updateFilter('position', value)} />
+              <FilterDropdown label="City" value={filters.city} options={cityOptions} onChange={(value) => updateFilter('city', value)} />
+              <FilterDropdown label="Internship" value={filters.internship_completed} options={internshipOptions} onChange={(value) => updateFilter('internship_completed', value)} />
+              <FilterDropdown label="Passout Year" value={filters.passout_year} options={passoutYearOptions} onChange={(value) => updateFilter('passout_year', value)} />
+              <FilterDropdown label="College" value={filters.college} options={collegeOptions} onChange={(value) => updateFilter('college', value)} />
+              <FilterDropdown label="Degree" value={filters.degree} options={degreeOptions} onChange={(value) => updateFilter('degree', value)} />
               <FilterDropdown label="Source" value={filters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
-              <FilterDropdown label="Stage" value={filters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} />
-              <FilterDropdown label="Recommendation" value={filters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} />
-              <FilterDropdown label="Qualified" value={filters.qualified} options={qualifiedOptions} onChange={(value) => updateFilter('qualified', value)} />
+              <FilterDropdown label="Stage" value={filters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} direction="up" />
+              <FilterDropdown label="Recommendation" value={filters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} direction="up" />
+              <FilterDropdown label="Qualified" value={filters.qualified} options={qualifiedOptions} onChange={(value) => updateFilter('qualified', value)} direction="up" />
 
               <label className="hf-select-field">
                 <span>Minimum score</span>
@@ -677,11 +874,18 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
       ) : (
         <div ref={gridRef} className="hf-candidate-grid">
           {candidates.map((candidate) => {
-            const skills = [
-              ...splitValues(candidate.frontend_skills, 2),
-              ...splitValues(candidate.backend_skills, 2),
-              ...splitValues(candidate.database_skills, 1),
-            ].slice(0, 5);
+            const allSkills = [
+              ...splitValues(candidate.frontend_skills),
+              ...splitValues(candidate.backend_skills),
+              ...splitValues(candidate.database_skills),
+              ...splitValues(candidate.ai_ml_skills),
+              ...splitValues(candidate.cloud_devops),
+              ...splitValues(candidate.programming_langs),
+            ].filter((s, idx, arr) => Boolean(s) && arr.indexOf(s) === idx);
+
+            const visibleSkills = allSkills.slice(0, 3);
+            const extraSkillsCount = allSkills.length - 3;
+            const extraSkillsText = allSkills.slice(3).join(', ');
 
             return (
               <article key={candidate.id} className="glass-card hf-candidate-card">
@@ -694,8 +898,8 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                         <p>{candidate.position_label}</p>
                       </div>
                     </div>
-                    <div className={`hf-score-pill ${scoreClass(candidate.total_score)}`}>
-                      {candidate.total_score}
+                    <div className={`hf-score-pill ${scoreClass(candidate.best_score ?? 0)}`}>
+                      {candidate.best_score ?? 0}
                     </div>
                   </div>
 
@@ -703,25 +907,90 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                     <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`}>
                       {getStageLabel(candidate.pipeline_stage)}
                     </span>
-                    <span className={`hf-rec-badge ${recommendationClass(candidate.recommendation)}`}>
-                      {candidate.recommendation || 'Pending review'}
+                    <span className={`hf-rec-badge ${recommendationClass(candidate.best_recommendation ?? '')}`}>
+                      {candidate.best_recommendation || 'Pending review'}
                     </span>
                     <span className={`hf-source-badge ${sourceClass(candidate.source)}`}>
                       {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 'Form'}
                     </span>
                   </div>
 
+                  {selectedJdIds.length > 0 && (
+                    <div className="hf-card-jd-badges">
+                      {selectedJdIds.map((jdId) => {
+                        const jd = jds.find((j) => j.id === jdId);
+                        if (!jd) return null;
+                        const match = candidate.jd_matches?.[jdId];
+                        if (match) {
+                          if (match.status === 'Completed') {
+                            return (
+                              <span
+                                key={jdId}
+                                className="hf-jd-match-badge hf-jd-match-badge--score"
+                                title={`${jd.title} matching score`}
+                              >
+                                {jd.title}: {Math.round(match.overall_score)}%
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span
+                                key={jdId}
+                                className="hf-jd-match-badge hf-jd-match-badge--pending"
+                                title={`${jd.title} - ${match.status}`}
+                              >
+                                {jd.title}: {match.status}
+                              </span>
+                            );
+                          }
+                        } else {
+                          return (
+                            <span
+                              key={jdId}
+                              className="hf-jd-match-badge hf-jd-match-badge--pending"
+                              title={`${jd.title} - Evaluation pending`}
+                            >
+                              {jd.title}: Pending
+                            </span>
+                          );
+                        }
+                      })}
+                    </div>
+                  )}
+
                   <div className="hf-card-stats">
                     <div><span>Submitted</span><strong>{formatDate(candidate.submitted_at)}</strong></div>
                     <div><span>Experience</span><strong>{candidate.years_of_exp} yrs</strong></div>
-                    <div><span>Grade</span><strong>{candidate.grade}</strong></div>
-                    <div><span>Qualified</span><strong>{candidate.is_qualified ? 'Yes' : 'No'}</strong></div>
+                    <div><span>Grade</span><strong>{candidate.best_grade || '-'}</strong></div>
+                    <div><span>Qualified</span><strong>{(candidate.best_score ?? 0) >= 50 ? 'Yes' : 'No'}</strong></div>
                   </div>
 
-                  <p className="hf-card-summary">{candidate.summary || 'Open to inspect AI assessment and resume fit details.'}</p>
+                  <p className="hf-card-summary">
+                    {Object.keys(candidate.jd_matches || {}).length > 0 
+                      ? `Evaluated against ${Object.keys(candidate.jd_matches || {}).length} active job role${Object.keys(candidate.jd_matches || {}).length > 1 ? 's' : ''}.`
+                      : 'Open to inspect AI assessment and resume fit details.'}
+                  </p>
 
                   <div className="hf-tag-row">
-                    {skills.length ? skills.map((skill) => <span key={skill} className="hf-skill-chip">{skill}</span>) : <span className="hf-placeholder">No extracted skills</span>}
+                    {visibleSkills.length ? (
+                      <>
+                        {visibleSkills.map((skill) => (
+                          <span key={skill} className="hf-skill-chip">
+                            {skill}
+                          </span>
+                        ))}
+                        {extraSkillsCount > 0 && (
+                          <span
+                            className="hf-skill-chip hf-skill-chip--more"
+                            title={`More skills: ${extraSkillsText}`}
+                          >
+                            <Plus size={12} /> {extraSkillsCount}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="hf-placeholder">No extracted skills</span>
+                    )}
                   </div>
                 </button>
 
@@ -758,6 +1027,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
           history={history}
           historyLoading={historyLoading}
           updating={updatingId === selected.id}
+          jds={jds}
           onClose={() => setSelected(null)}
           onMoveStage={(stage, note) => handleStageMove(selected, stage, note)}
         />
