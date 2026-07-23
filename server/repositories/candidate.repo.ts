@@ -292,7 +292,29 @@ export async function findCandidates(
       sortExpression = 'COALESCE(cjs.max_jd_score, candidates.total_score)';
     }
   } else {
-    jdSelect = `, NULL::json AS jd_matches, NULL::numeric AS max_jd_score`;
+    jdSelect = `, cjs.jd_matches, cjs.max_jd_score`;
+    jdJoin = `LEFT JOIN LATERAL (
+      SELECT 
+        json_object_agg(cjm.jd_id, json_build_object(
+          'overall_score', cjm.overall_score,
+          'technical_score', cjm.technical_score,
+          'experience_score', cjm.experience_score,
+          'education_score', cjm.education_score,
+          'communication_score', cjm.communication_score,
+          'project_score', cjm.project_score,
+          'recommendation', cjm.recommendation,
+          'grade', cjm.grade,
+          'matched_skills', cjm.matched_skills,
+          'missing_skills', cjm.missing_skills,
+          'strengths', cjm.strengths,
+          'weaknesses', cjm.weaknesses,
+          'summary', cjm.summary,
+          'status', cjm.status
+        )) AS jd_matches,
+        MAX(cjm.overall_score) AS max_jd_score
+      FROM candidate_job_matches cjm
+      WHERE cjm.candidate_id = candidates.id
+    ) cjs ON TRUE`;
   }
 
   const [countRes, dataRes] = await Promise.all([

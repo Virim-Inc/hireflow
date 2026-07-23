@@ -198,11 +198,14 @@ export function CandidateDetailDrawer({
     : [
         { label: 'Global Overview', value: 'Select specific Job Description tabs at the top to inspect matched/missing skills, fit reasoning, and customized role alignment detail cards.' }
       ];
-  const skills = [
-    ...splitValues(candidate.frontend_skills, 3),
-    ...splitValues(candidate.backend_skills, 3),
-    ...splitValues(candidate.database_skills, 2),
-  ].slice(0, 8);
+  const allSkills = [
+    ...splitValues(candidate.frontend_skills),
+    ...splitValues(candidate.backend_skills),
+    ...splitValues(candidate.database_skills),
+    ...splitValues(candidate.ai_ml_skills),
+    ...splitValues(candidate.cloud_devops),
+    ...splitValues(candidate.programming_langs),
+  ].filter((v, i, arr) => Boolean(v) && arr.indexOf(v) === i);
   const skillSections = [
     { label: 'Frontend', values: splitValues(candidate.frontend_skills), meta: candidate.frontend_level },
     { label: 'Backend', values: splitValues(candidate.backend_skills), meta: candidate.backend_level },
@@ -399,14 +402,32 @@ export function CandidateDetailDrawer({
               <div className="hf-assessment-grid">
                 <div className="hf-assessment-card hf-assessment-card--positive">
                   <h4>Strengths</h4>
-                  <div className="hf-tag-row">
-                    {strengths.length ? strengths.map((item) => <span key={item} className="hf-tag hf-tag--positive">{item}</span>) : <span className="hf-placeholder">No clear strengths extracted</span>}
+                  <div className="hf-assessment-list">
+                    {strengths.length ? (
+                      strengths.map((item, idx) => (
+                        <div key={`strength-${idx}`} className="hf-assessment-item hf-assessment-item--positive">
+                          <span className="hf-assessment-bullet">•</span>
+                          <span className="hf-assessment-text">{item}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="hf-placeholder">No clear strengths extracted</span>
+                    )}
                   </div>
                 </div>
                 <div className="hf-assessment-card hf-assessment-card--negative">
                   <h4>Weaknesses</h4>
-                  <div className="hf-tag-row">
-                    {weaknesses.length ? weaknesses.map((item) => <span key={item} className="hf-tag hf-tag--negative">{item}</span>) : <span className="hf-placeholder">No clear weaknesses extracted</span>}
+                  <div className="hf-assessment-list">
+                    {weaknesses.length ? (
+                      weaknesses.map((item, idx) => (
+                        <div key={`weakness-${idx}`} className="hf-assessment-item hf-assessment-item--negative">
+                          <span className="hf-assessment-bullet">•</span>
+                          <span className="hf-assessment-text">{item}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="hf-placeholder">No clear weaknesses extracted</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -443,9 +464,9 @@ export function CandidateDetailDrawer({
                       <strong>{section.label}</strong>
                       {section.meta ? <span>{section.meta}</span> : null}
                     </div>
-                    <div className="hf-tag-row">
+                    <div className="hf-skill-section-tags-scrollable">
                       {section.values.length
-                        ? section.values.slice(0, 6).map((value) => <span key={value} className="hf-skill-chip">{value}</span>)
+                        ? section.values.map((value) => <span key={value} className="hf-skill-chip">{value}</span>)
                         : <span className="hf-placeholder">No data</span>}
                     </div>
                   </div>
@@ -479,8 +500,8 @@ export function CandidateDetailDrawer({
                 <div><span>Passout Year</span><strong>{candidate.passout_year || '-'}</strong></div>
                 <div><span>Internship</span><strong>{candidate.internship_completed === true ? 'Yes' : candidate.internship_completed === false ? 'No' : '-'}</strong></div>
               </div>
-              <div className="hf-skill-cloud mt-4">
-                {skills.length ? skills.map((skill) => <span key={skill} className="hf-skill-chip">{skill}</span>) : <span className="hf-placeholder">No key skill tags</span>}
+              <div className="hf-skill-cloud-scrollable mt-4">
+                {allSkills.length ? allSkills.map((skill) => <span key={skill} className="hf-skill-chip">{skill}</span>) : <span className="hf-placeholder">No key skill tags</span>}
               </div>
             </article>
 

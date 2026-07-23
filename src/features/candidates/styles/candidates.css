@@ -146,6 +146,7 @@
   background: var(--hf-surface-2);
   color: var(--hf-text-secondary);
 }
+
 .hf-ghost-btn:hover {
   transform: translateY(-1px);
   background: var(--hf-surface-3);
@@ -619,7 +620,7 @@
 
 .hf-modern-select-trigger.is-open,
 .hf-select-field select,
-.hf-select-field > input,
+.hf-select-field>input,
 .hf-card-footer select {
   min-height: 42px;
   padding: 0 13px;
@@ -1100,6 +1101,7 @@
   color: var(--hf-text-secondary);
   line-height: 1.65;
   font-size: 0.86rem;
+  margin-bottom: 8px;
 }
 
 .hf-tag-row {
@@ -2069,13 +2071,25 @@
 }
 
 @keyframes hf-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes hf-scale-up {
-  from { transform: scale(0.96); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* ── Multi-JD tag styling on cards ── */
@@ -2177,4 +2191,90 @@
 .hf-switch:has(input:checked) {
   background-color: color-mix(in oklab, var(--hf-success) 10%, transparent);
   border-color: var(--hf-success);
-}
+}
+
+/* ── Scrollable Strengths & Weaknesses ── */
+.hf-assessment-list {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 8px;
+  margin-top: 10px;
+}
+
+.hf-assessment-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--hf-text-secondary);
+}
+
+.hf-assessment-bullet {
+  font-size: 1.25rem;
+  line-height: 0.9;
+  flex-shrink: 0;
+}
+
+.hf-assessment-item--positive .hf-assessment-bullet {
+  color: var(--hf-success, #10b981);
+}
+
+.hf-assessment-item--negative .hf-assessment-bullet {
+  color: var(--hf-danger, #ef4444);
+}
+
+/* ── Scrollable Skills Cloud ── */
+.hf-skill-cloud-scrollable {
+  max-height: 110px;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 12px;
+  background-color: color-mix(in oklab, var(--hf-surface-2) 60%, transparent);
+  border: 1px dashed var(--hf-border);
+}
+
+/* ── Premium Scrollbar Customizations ── */
+.hf-assessment-list::-webkit-scrollbar,
+.hf-skill-cloud-scrollable::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.hf-assessment-list::-webkit-scrollbar-thumb,
+.hf-skill-cloud-scrollable::-webkit-scrollbar-thumb {
+  background-color: var(--hf-border);
+  border-radius: 99px;
+}
+
+.hf-assessment-list::-webkit-scrollbar-thumb:hover,
+.hf-skill-cloud-scrollable::-webkit-scrollbar-thumb:hover,
+.hf-skill-section-tags-scrollable::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklab, var(--hf-border) 80%, white);
+}
+
+/* ── Scrollable Skills Overview Tags ── */
+.hf-skill-section-tags-scrollable {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding: 4px 0 6px;
+}
+
+.hf-skill-section-tags-scrollable::-webkit-scrollbar {
+  height: 4px;
+}
+
+.hf-skill-section-tags-scrollable::-webkit-scrollbar-thumb {
+  background-color: var(--hf-border);
+  border-radius: 99px;
+}
