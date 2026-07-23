@@ -78,6 +78,69 @@ export interface CandidateRow {
   passout_year: number | null;
   college: string | null;
   degree: string | null;
+  
+  // Dynamic matched job description scores
+  jd_matches?: Record<string, {
+    overall_score: number;
+    technical_score: number;
+    experience_score: number;
+    education_score: number;
+    communication_score: number;
+    project_score: number;
+    recommendation: string;
+    grade: string;
+    matched_skills: any;
+    missing_skills: any;
+    strengths: string[];
+    weaknesses: string[];
+    summary: string;
+    status: 'Pending' | 'Processing' | 'Completed' | 'Failed';
+    scored_at: string | null;
+  }> | null;
+}
+
+export interface JobDescriptionRow {
+  id: number;
+  title: string;
+  department: string | null;
+  employment_type: string | null;
+  work_mode: string | null;
+  location: string | null;
+  openings: number;
+  experience_min: number;
+  experience_max: number;
+  education: string | null;
+  specialization: string | null;
+  required_skills: any; // JSONB
+  preferred_skills: any; // JSONB
+  responsibilities: string | null;
+  requirements: string | null;
+  nice_to_have: string | null;
+  ai_prompt: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CandidateJobMatchRow {
+  candidate_id: number;
+  jd_id: number;
+  overall_score: number;
+  technical_score: number;
+  experience_score: number;
+  education_score: number;
+  communication_score: number;
+  project_score: number;
+  recommendation: string;
+  grade: string;
+  matched_skills: any;
+  missing_skills: any;
+  strengths: string[];
+  weaknesses: string[];
+  summary: string;
+  status: 'Pending' | 'Processing' | 'Completed' | 'Failed';
+  scored_at: string | null;
+  created_at: string;
 }
 
 export interface CandidateHistoryRow {
@@ -162,6 +225,7 @@ export interface CandidatesQuery {
   order?: string;
   page?: string;
   limit?: string;
+  jd_id?: string; // support single or multiple JDs (e.g. "1,2")
 }
 
 export interface UpdateStageBody {

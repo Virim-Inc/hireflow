@@ -14,8 +14,7 @@ ALTER TABLE candidates ADD COLUMN IF NOT EXISTS certification_count INTEGER DEFA
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS resume_quality_score NUMERIC(5,1) DEFAULT 0;
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS confidence_score NUMERIC(5,1) DEFAULT 0;
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS internship_company TEXT;
-ALTER TABLE candidates ADD COLUMN IF NOT EXISTS internship_role TEXT;
-ALTER TABLE candidates ADD COLUMN IF NOT EXISTS internship_duration TEXT;
+ALTER TABLE candidates ADD COLUMN IF NOT EXISTS internship_role TEXT; 
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS cgpa NUMERIC(4,2);
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS specialization TEXT;
 
@@ -39,7 +38,7 @@ ALTER TABLE candidates ADD COLUMN IF NOT EXISTS recommendation_rationale TEXT;
 -- 5. Content Fingerprinting & Performance Tracking
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS resume_hash TEXT;
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS processing_ms INTEGER;
-ALTER TABLE candidates ADD COLUMN IF NOT EXISTS workflow_version TEXT DEFAULT 'enterprise-v1.0';
+
 
 -- 6. Performance & Deduplication Indexes
 CREATE INDEX IF NOT EXISTS idx_candidates_email ON candidates(LOWER(email));

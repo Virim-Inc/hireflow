@@ -1,0 +1,1505 @@
+{
+  "name": "working 2",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "15GmPaijD4m13WNcmWfWgAVDs2A3XCVEds4kYKhM1I0M",
+          "mode": "list",
+          "cachedResultName": "studentdata ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15GmPaijD4m13WNcmWfWgAVDs2A3XCVEds4kYKhM1I0M/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "ErrorLog"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "type": "string"
+            },
+            {
+              "id": "workflowName",
+              "displayName": "workflowName",
+              "type": "string"
+            },
+            {
+              "id": "workflowId",
+              "displayName": "workflowId",
+              "type": "string"
+            },
+            {
+              "id": "executionId",
+              "displayName": "executionId",
+              "type": "string"
+            },
+            {
+              "id": "failedNode",
+              "displayName": "failedNode",
+              "type": "string"
+            },
+            {
+              "id": "errorMessage",
+              "displayName": "errorMessage",
+              "type": "string"
+            },
+            {
+              "id": "errorType",
+              "displayName": "errorType",
+              "type": "string"
+            },
+            {
+              "id": "stack",
+              "displayName": "stack",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c50120da-88dd-4007-bfca-44a7ed238a64",
+      "name": "Google Sheets — Error Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -768,
+        1360
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "nufGXWaPjYqIub52",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const d = $input.item.json || {};\nconst err = d.error || {};\nconst wf = d.workflow || {};\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    workflowName: wf.name || 'Unknown Workflow',\n    workflowId: wf.id || '',\n    executionId: d.execution?.id || d.id || '',\n    failedNode: err.node?.name || d.lastNodeExecuted || '',\n    errorMessage: err.message || d.message || 'Unknown error',\n    errorType: err.name || d.name || '',\n    stack: (err.stack || '').toString().substring(0, 5000)\n  }\n};"
+      },
+      "id": "fb4abd71-1181-45ec-afe3-6957ed716c2d",
+      "name": "Format Error For Sheet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        1360
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "28bc70a8-d7e6-40e1-8648-38b0d0dae8b2",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        1360
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "={{ Object.keys($binary || {})[0] || 'Upload Resume' }}",
+        "options": {}
+      },
+      "id": "2a25c4c3-9682-4011-aa3f-e76616fe6edb",
+      "name": "Extract PDF — Form",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        464
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {}
+      },
+      "id": "b2974ff6-d52a-4be0-b9af-e92b6c029717",
+      "name": "Extract PDF — Email",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const d = $input.item.json || {};\nlet form = {};\nlet workDrive = {};\ntry {\n  workDrive = $('Prepare WorkDrive Files').item.json || {};\n} catch (e) {\n  workDrive = {};\n}\n\nconst resumeText = (d.text || '').substring(0, 12000);\n\nlet candidateName = d['Full Name'] || form['Full Name'] || '';\nlet email = d['Email Address'] || form['Email Address'] || '';\nlet phone = d['Phone Number'] || form['Phone Number'] || '';\nlet position = d['Position Applied For'] || form['Position Applied For'] || '';\nlet linkedin = d['LinkedIn Profile'] || form['LinkedIn Profile'] || '';\nconst yearsOfExp = d['Years of Experience'] || form['Years of Experience'] || 0;\n\nif (!email) {\n  const emailPatterns = [\n    /\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b/,\n    /email[:\\s]*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,})/i,\n    /([A-Za-z0-9._%+-]+@gmail\\.com)/i,\n    /([A-Za-z0-9._%+-]+@yahoo\\.com)/i,\n    /([A-Za-z0-9._%+-]+@outlook\\.com)/i,\n  ];\n  for (const pattern of emailPatterns) {\n    const match = resumeText.match(pattern);\n    if (match) {\n      email = match[match.length - 1];\n      if (email && email.includes('@')) break;\n    }\n  }\n  if (!email) email = '';\n}\n\nif (!candidateName) {\n  const nameLine = (resumeText.split('\\n')[0] || '').trim();\n  if (nameLine && nameLine.length > 2 && nameLine.length < 60 && !nameLine.includes('@') && !nameLine.match(/\\d+/)) {\n    candidateName = nameLine;\n  }\n  if (!candidateName) {\n    const regardsPatterns = [/(?:regards|sincerely|best regards|kind regards|warm regards|yours)[,\\s]+([A-Za-z\\s]+)/i];\n    for (const pattern of regardsPatterns) {\n      const match = resumeText.match(pattern);\n      if (match) {\n        const name = match[match.length - 1].trim();\n        if (name.length > 2 && name.length < 60 && !name.includes('@') && !name.match(/^[0-9]+$/)) {\n          candidateName = name;\n          break;\n        }\n      }\n    }\n  }\n  if (!candidateName) candidateName = 'Unknown';\n}\n\nif (!phone) {\n  const phonePatterns = [\n    /(?:phone|mobile|ph|tel|contact)[:\\s]+([\\d\\s\\-\\(\\)\\+\\.]+(?:\\d{7,15}))/i,\n    /(\\+\\d{1,3}[\\s.-]?\\d{1,4}[\\s.-]?\\d{1,9})/,\n    /(\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4})/,\n    /(\\d{1,3}[\\s.-]?\\d{3,4}[\\s.-]?\\d{4,5})/,\n  ];\n  for (const pattern of phonePatterns) {\n    const match = resumeText.match(pattern);\n    if (match) {\n      phone = match[match.length - 1].trim().replace(/^[^\\d\\+]/g, '');\n      if (phone.match(/\\d{7,}/)) break;\n    }\n  }\n}\n\nif (!linkedin) {\n  const linkedinPatterns = [/linkedin\\.com\\/in\\/([\\w\\-]+)/i, /li\\.in\\/([\\w\\-]+)/i];\n  for (const pattern of linkedinPatterns) {\n    const match = resumeText.match(pattern);\n    if (match) {\n      linkedin = match[0].includes('linkedin.com') ? 'https://' + match[0] : 'https://linkedin.com/in/' + match[1];\n      break;\n    }\n  }\n}\n\nif (!position) position = 'Not Specified';\n\nreturn {\n  json: {\n    source: workDrive.source || d.source || 'form',\n    candidateName,\n    email,\n    phone: phone || '',\n    position,\n    yearsOfExp,\n    linkedin: linkedin || '',\n    resumeText,\n    workdriveFileId: workDrive.fileId || d.workdriveFileId || d.resourceId || '',\n    workdriveFileName: workDrive.fileName || d.workdriveFileName || d.fileName || '',\n    sourceFolderId: workDrive.sourceFolderId || d.sourceFolderId || '',\n    processedFolderId: workDrive.processedFolderId || d.processedFolderId || '',\n    submittedAt: new Date().toISOString(),\n  },\n};"
+      },
+      "id": "d5ac3a25-dcf7-4e8e-b80c-815e3185b667",
+      "name": "Normalize — Form",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        464
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const d = $input.item.json;\nconst fromRaw   = d.from || '';\nconst senderEmail= (fromRaw.match(/<(.+?)>/) || [])[1] || fromRaw;\nconst resumeText = (d.text || '').substring(0, 12000);\n\nlet extractedEmail = '';\nconst emailPatterns = [\n  /\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b/,\n  /email[:\\s]*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,})/i,\n  /([A-Za-z0-9._%+-]+@gmail\\.com)/i,\n  /([A-Za-z0-9._%+-]+@yahoo\\.com)/i,\n  /([A-Za-z0-9._%+-]+@outlook\\.com)/i\n];\nfor (const pattern of emailPatterns) {\n  const match = resumeText.match(pattern);\n  if (match) {\n    extractedEmail = match[match.length - 1];\n    if (extractedEmail && extractedEmail.includes('@')) break;\n  }\n}\nconst finalEmail = extractedEmail || senderEmail;\n\nlet candidateName = fromRaw.replace(/<.*>/, '').trim() || 'Unknown';\nconst nameLine = (resumeText.split('\\n')[0] || '').trim();\nif (nameLine && nameLine.length > 2 && nameLine.length < 60 && !nameLine.includes('@') && !nameLine.match(/\\d+/)) {\n  candidateName = nameLine;\n}\n\nlet phone = '';\nconst phonePatterns = [\n  /(?:phone|mobile|ph|tel|contact)[:\\s]+([\\d\\s\\-\\(\\)\\+\\.]+(?:\\d{7,15}))/i,\n  /(\\+\\d{1,3}[\\s.-]?\\d{1,4}[\\s.-]?\\d{1,9})/,\n  /(\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4})/,\n  /(\\d{1,3}[\\s.-]?\\d{3,4}[\\s.-]?\\d{4,5})/\n];\nfor (const pattern of phonePatterns) {\n  const match = resumeText.match(pattern);\n  if (match) {\n    phone = match[match.length - 1].trim().replace(/^[^\\d\\+]/g, '');\n    if (phone.match(/\\d{7,}/)) break;\n  }\n}\n\nlet linkedin = '';\nconst linkedinPatterns = [\n  /linkedin\\.com\\/in\\/([\\w\\-]+)/i,\n  /li\\.in\\/([\\w\\-]+)/i\n];\nfor (const pattern of linkedinPatterns) {\n  const match = resumeText.match(pattern);\n  if (match) {\n    linkedin = match[0].includes('linkedin.com') ? 'https://' + match[0] : 'https://linkedin.com/in/' + match[1];\n    break;\n  }\n}\n\nlet position = 'Open Application';\nconst subject = (d.subject || '').trim();\nif (subject && subject.length > 3) {\n  let cleanSubject = subject.replace(/^(re|fwd|fw)[:\\s]?/gi, '').trim();\n  const fieldPattern = /(?:position|role|designation|apply|applying)[:\\s]+([^-\\n]+)/i;\n  const fieldMatch = cleanSubject.match(fieldPattern);\n  if (fieldMatch && fieldMatch[1]) {\n    position = fieldMatch[1].trim();\n    if (position.length < 2 || position.length > 100) position = 'Open Application';\n  }\n  if (position === 'Open Application') {\n    const keywords = ['frontend developer','backend developer','fullstack developer','full stack developer','devops engineer','qa engineer','software engineer','data scientist','cloud architect','senior developer','junior developer','developer','engineer','analyst','manager','architect','designer'];\n    for (const keyword of keywords) {\n      if (cleanSubject.toLowerCase().includes(keyword)) {\n        position = keyword.charAt(0).toUpperCase() + keyword.slice(1);\n        break;\n      }\n    }\n  }\n  if (position === 'Open Application') {\n    position = cleanSubject.replace(/application|resume|cv|curriculum|vitae/gi, '').trim();\n    if (position.length < 2 || position.length > 100) position = 'Open Application';\n  }\n}\n\nreturn {\n  json: {\n    source:        'email',\n    candidateName: candidateName,\n    email:         finalEmail,\n    phone:         phone,\n    position:      position,\n    yearsOfExp:    0,\n    linkedin:      linkedin,\n    resumeText:    resumeText,\n    submittedAt:   new Date().toISOString()\n  }\n};"
+      },
+      "id": "8812cbbc-9df9-472f-8ea8-ed00adc970d0",
+      "name": "Normalize — Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        672
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "id": "9a86d39c-d0f3-4018-85f3-355d899da168",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -640,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT EXISTS(SELECT 1 FROM candidates WHERE LOWER(email) = LOWER('{{ $json.email }}')) as email_exists;",
+        "options": {}
+      },
+      "id": "272a79b3-7386-4201-b30c-45996cb37677",
+      "name": "Email Duplicate Check — PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -464,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "OFGnvKVUjTZr2d4j",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.email_exists }}",
+              "operation": "equal",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "44bf84c8-fcf7-43bb-a788-8515bc7dcf73",
+      "name": "Email Duplicate Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [
+            {
+              "name": "success",
+              "value": false
+            },
+            {
+              "name": "duplicate",
+              "value": true
+            }
+          ],
+          "string": [
+            {
+              "name": "message",
+              "value": "This email has already been registered. Multiple applications using the same email are not allowed."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "583987ee-5189-467e-9435-e93f6fcc3942",
+      "name": "Return Duplicate Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        -96,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: $('Merge Triggers').item.json\n};"
+      },
+      "id": "a3b8c9d0-1234-5678-abcd-ef0123456789",
+      "name": "Restore Candidate Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "c009d2f0-b09c-4323-b68a-0ea7f3ae11cb",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const d = $input.item.json || {};\nconst resumeText = (d.resumeText || '').trim();\n\nconst validationErrors = [];\nif (!resumeText || resumeText.length < 100)\n  validationErrors.push('Resume text too short or empty');\nif (resumeText.length < 200 && resumeText.split(' ').length < 30)\n  validationErrors.push('Possible corrupted PDF');\n\nlet resumeHash = '';\ntry {\n  const crypto = require('crypto');\n  resumeHash = crypto\n    .createHash('sha256')\n    .update(resumeText.substring(0, 5000).toLowerCase().replace(/\\s+/g, ' '))\n    .digest('hex')\n    .substring(0, 16);\n} catch(e) {\n  resumeHash = 'hash_' + Date.now();\n}\n\nreturn {\n  json: {\n    ...d,\n    resumeHash,\n    resumeLength: resumeText.length,\n    validationErrors: validationErrors.join('; ') || null,\n    isValidResume: validationErrors.length === 0,\n    processingStartMs: Date.now(),\n  }\n};"
+      },
+      "id": "e871d956-bbd9-4fcd-a29e-b24d97f8ed42",
+      "name": "Resume Validation & Hash",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.resumeText }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "currentJobTitle",
+              "description": "Current or most recent job title or role mentioned in the resume. Return exact title."
+            },
+            {
+              "name": "highestDegree",
+              "description": "Highest degree or education level mentioned in resume, including institution name"
+            },
+            {
+              "name": "totalExperienceYears",
+              "type": "number",
+              "description": "Total years of professional experience. For freshers, return 0."
+            },
+            {
+              "name": "frontendSkills",
+              "description": "Comma-separated list of frontend frameworks, libraries, and tools: React, Angular, Vue, Next.js, HTML, CSS, Tailwind, Bootstrap, JavaScript, TypeScript, etc."
+            },
+            {
+              "name": "frontendLevel",
+              "description": "Frontend proficiency level: 'expert', 'advanced', 'intermediate', 'beginner', or 'none'"
+            },
+            {
+              "name": "backendSkills",
+              "description": "Comma-separated list of backend languages, frameworks, and tools: Node.js, Express, Django, Flask, Spring, PHP, Laravel, NestJS, REST API, GraphQL, etc."
+            },
+            {
+              "name": "backendLevel",
+              "description": "Backend proficiency level: 'expert', 'advanced', 'intermediate', 'beginner', or 'none'"
+            },
+            {
+              "name": "databaseSkills",
+              "description": "Comma-separated list of databases: MySQL, PostgreSQL, MongoDB, Redis, SQLite, Firebase, Oracle, SQL Server, etc."
+            },
+            {
+              "name": "databaseLevel",
+              "description": "Database proficiency level: 'expert', 'advanced', 'intermediate', 'beginner', or 'none'"
+            },
+            {
+              "name": "aiMlSkills",
+              "description": "Comma-separated list of AI, ML, or automation skills: TensorFlow, PyTorch, OpenAI, LangChain, ChatGPT, ML, NLP, Computer Vision, etc. Return 'None' if missing."
+            },
+            {
+              "name": "aiMlLevel",
+              "description": "AI/ML proficiency level: 'expert', 'advanced', 'intermediate', 'beginner', or 'none'"
+            },
+            {
+              "name": "cloudDevOps",
+              "description": "Comma-separated list of cloud and DevOps skills: AWS, Azure, GCP, Docker, Kubernetes, CI/CD, Jenkins, Terraform, GitHub Actions, Vercel, etc. Return 'None' if missing."
+            },
+            {
+              "name": "programmingLanguages",
+              "description": "Comma-separated list of programming languages: JavaScript, TypeScript, Python, Java, C++, C#, Go, Rust, PHP, Ruby, etc."
+            },
+            {
+              "name": "certifications",
+              "description": "Comma-separated list of certifications mentioned. Return 'None' if missing."
+            },
+            {
+              "name": "notableProjects",
+              "description": "Pipe-separated list of notable projects (max 3), each as a brief one-line summary. Use | as separator."
+            },
+            {
+              "name": "city",
+              "description": "Extract candidate city/location (e.g. 'Mumbai', 'San Francisco', 'Indore'). Return 'N/A' if unknown."
+            },
+            {
+              "name": "internship",
+              "description": "Has the candidate completed any internships? ('Yes' or 'No')"
+            },
+            {
+              "name": "passoutYear",
+              "description": "4-digit year of graduation/passout (e.g., '2024'). Return 'N/A' if unknown."
+            },
+            {
+              "name": "degree",
+              "description": "Highest degree completed (e.g., 'B.Tech', 'MCA', 'BCA', 'M.Tech', 'B.Sc'). Return 'N/A' if unknown."
+            },
+            {
+              "name": "college",
+              "description": "Full name of college/university. Return 'N/A' if unknown."
+            },
+            {
+              "name": "githubProfile",
+              "description": "GitHub profile URL (e.g. 'https://github.com/username'). Return 'N/A' if missing."
+            },
+            {
+              "name": "portfolioWebsite",
+              "description": "Personal portfolio or website URL. Return 'N/A' if missing."
+            },
+            {
+              "name": "cgpa",
+              "description": "CGPA, GPA, or Percentage score mentioned. Return 'N/A' if missing."
+            },
+            {
+              "name": "specialization",
+              "description": "Degree specialization or branch (e.g., 'Computer Science', 'Information Technology', 'ECE'). Return 'N/A' if missing."
+            },
+            {
+              "name": "internshipCompany",
+              "description": "Company name where internship was completed. Return 'N/A' if none."
+            },
+            {
+              "name": "internshipRole",
+              "description": "Role held during internship (e.g., 'Web Developer Intern'). Return 'N/A' if none."
+            },
+            {
+              "name": "projectDetails",
+              "description": "JSON array string of top projects: [{\"name\":\"...\",\"tech\":\"...\",\"complexity\":\"Beginner|Intermediate|Advanced|Enterprise\"}]. Return '[]' if none."
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "You are a precise, evidence-based technical recruiter and resume parser. Extract ALL candidate details accurately. Return null or 'N/A' for missing fields — NEVER hallucinate. For skill levels, judge based on context, depth of project work, and experience duration."
+        }
+      },
+      "id": "66ae163f-834a-469b-8d82-e572bb71a875",
+      "name": "Extract — All Skills & Details",
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1,
+      "position": [
+        128,
+        560
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const normMap = {\n  'javascript': 'JavaScript', 'java script': 'JavaScript', 'js': 'JavaScript',\n  'typescript': 'TypeScript', 'ts': 'TypeScript',\n  'react': 'React', 'reactjs': 'React', 'react.js': 'React',\n  'angularjs': 'Angular', 'angular.js': 'Angular',\n  'vuejs': 'Vue.js', 'vue': 'Vue.js',\n  'node': 'Node.js', 'nodejs': 'Node.js', 'node js': 'Node.js',\n  'expressjs': 'Express.js', 'express': 'Express.js',\n  'nextjs': 'Next.js', 'next': 'Next.js',\n  'postgres': 'PostgreSQL', 'postgresql': 'PostgreSQL',\n  'mongo': 'MongoDB', 'mongodb': 'MongoDB',\n  'python3': 'Python', 'py': 'Python',\n  'mysql': 'MySQL', 'my sql': 'MySQL',\n  'amazon web services': 'AWS',\n  'tailwind': 'Tailwind CSS', 'tailwindcss': 'Tailwind CSS',\n  'bootstrap4': 'Bootstrap', 'bootstrap5': 'Bootstrap',\n  'cpp': 'C++', 'c plus plus': 'C++',\n  'csharp': 'C#', 'c sharp': 'C#',\n  'golang': 'Go',\n  'tensorflow': 'TensorFlow',\n  'pytorch': 'PyTorch',\n  'github actions': 'GitHub Actions',\n  'ci/cd': 'CI/CD', 'cicd': 'CI/CD',\n};\n\nfunction normalizeSkillList(skillStr) {\n  if (!skillStr || typeof skillStr !== 'string') return skillStr || '';\n  return skillStr.split(',')\n    .map(s => {\n      const trimmed = s.trim();\n      const key = trimmed.toLowerCase().replace(/[.\\s-]/g, '');\n      for (const [pattern, canonical] of Object.entries(normMap)) {\n        if (key === pattern.replace(/[.\\s-]/g, '')) return canonical;\n      }\n      return trimmed;\n    })\n    .filter(Boolean)\n    .filter((v, i, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i)\n    .join(', ');\n}\n\nconst d = $input.item.json;\nreturn {\n  json: {\n    ...d,\n    frontendSkills: normalizeSkillList(d.frontendSkills),\n    backendSkills: normalizeSkillList(d.backendSkills),\n    databaseSkills: normalizeSkillList(d.databaseSkills),\n    aiMlSkills: normalizeSkillList(d.aiMlSkills),\n    cloudDevOps: normalizeSkillList(d.cloudDevOps),\n    programmingLanguages: normalizeSkillList(d.programmingLanguages),\n  }\n};"
+      },
+      "id": "716c7645-5336-4e47-bf17-3775fc117df5",
+      "name": "Normalize Skills",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const d = $input.item.json;\n\nlet projects = [];\ntry {\n  projects = typeof d.projectDetails === 'string' ? JSON.parse(d.projectDetails) : (d.projectDetails || []);\n} catch(e) { projects = []; }\n\nconst complexityWeights = { 'Enterprise': 10, 'Advanced': 7, 'Intermediate': 4, 'Beginner': 2 };\nconst projectCount = projects.length || Math.min(5, (d.notableProjects || '').split('|').length || 0);\n\nconst totalWeight = projects.reduce((sum, p) => sum + (complexityWeights[p.complexity] || 4), 0);\nconst projectComplexityScore = projectCount > 0\n  ? Math.min(10, Math.round((totalWeight / projectCount) * 10) / 10)\n  : 0;\n\nreturn {\n  json: {\n    ...d,\n    project_count: projectCount,\n    project_complexity_score: projectComplexityScore,\n    projects_parsed: projects\n  }\n};"
+      },
+      "id": "aa9f68cb-30b0-43e7-99ce-ad971665ff48",
+      "name": "Project Complexity Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const d = $input.item.json;\nconst resumeText = d.resumeText || '';\n\nlet atsScore = 20;\nif (/education|academic/i.test(resumeText)) atsScore += 5;\nif (/experience|internship|projects/i.test(resumeText)) atsScore += 5;\nif (/skills|technologies/i.test(resumeText)) atsScore += 5;\n\nlet contactScore = 5;\nif (d.email) contactScore += 5;\nif (d.phone) contactScore += 5;\n\nconst wordCount = resumeText.split(/\\s+/).length;\nlet lengthScore = wordCount >= 300 && wordCount <= 1200 ? 15 : 8;\n\nconst formattingScore = (resumeText.match(/•|\\*|-/g) || []).length >= 5 ? 15 : 10;\nconst grammarScore = 10;\n\nconst resumeQualityScore = Math.min(100, atsScore + contactScore + lengthScore + formattingScore + grammarScore);\n\nreturn { json: { ...d, resume_quality_score: resumeQualityScore } };"
+      },
+      "id": "895a040b-cdb3-4dd2-a41e-0b25779501d2",
+      "name": "Resume Quality Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const d = $input.item.json;\nconst c = d.candidate;\nconst jList = d.jds;\n\nconst jdSections = jList.map((j, idx) => `--- JOB DESCRIPTION #${idx + 1} ---\n- jd_id: ${j.jd_id}\n- Title: ${j.title}\n- Department: ${j.department || 'N/A'}\n- Required Skills: ${Array.isArray(j.required_skills) ? j.required_skills.join(', ') : JSON.stringify(j.required_skills || 'None')}\n- Preferred Skills: ${Array.isArray(j.preferred_skills) ? j.preferred_skills.join(', ') : JSON.stringify(j.preferred_skills || 'None')}\n- Experience Required: ${j.experience_min || 0} - ${j.experience_max || 0} years\n- Education Required: ${j.education || 'N/A'}\n- AI Evaluation Guidelines: ${j.ai_prompt || 'None'}`).join('\\n\\n');\n\nconst prompt = `# HireFlow Enterprise AI Candidate Evaluation Prompt\n\nYou are a **Senior Technical Recruiter and Hiring Manager at Virim Infotech** with extensive experience screening software engineers, QA engineers, DevOps engineers, UI/UX designers, AI engineers, data engineers, and other technical professionals.\n\nYour responsibility is to evaluate a candidate **ONLY against the supplied Job Description (JD).**\n\nDo NOT compare the candidate against general industry hiring standards.\n\nDo NOT assume skills that are not explicitly mentioned in the resume.\n\nUse only the evidence available in:\n* Candidate Resume\n* Candidate Skills\n* Candidate Experience\n* Candidate Projects\n* Candidate Education\n* Job Description\n* Recruiter AI Evaluation Instructions\n\n---\n\n# Evaluation Rules\n\nFollow these principles strictly.\n\n## Rule 1\nTreat the Job Description as the source of truth.\nEvery score must be based on how well the candidate matches that specific Job Description.\n\n---\n\n## Rule 2\nOnly use evidence found in the resume.\nNever assume\n* hidden experience\n* hidden skills\n* hidden certifications\n* hidden projects\nIf something is not mentioned, treat it as unavailable.\n\n---\n\n## Rule 3\nDifferentiate between\nMandatory Skills\nPreferred Skills\nNice-to-have Skills\nMissing mandatory skills should reduce the score significantly.\nMissing preferred skills should reduce the score slightly.\nMissing nice-to-have skills should have minimal impact.\n\n---\n\n## Rule 4\nProjects matter.\nIf the candidate demonstrates required technologies through projects, award credit even if they have limited professional experience.\nProjects should influence the Technical Score and Project Score.\n\n---\n\n## Rule 5\nInternships count as experience only when they are relevant to the Job Description.\n\n---\n\n## Rule 6\nEducation should be evaluated based on relevance, not prestige.\nA relevant B.Tech, MCA, BCA, M.Tech, or equivalent should receive appropriate credit.\n\n---\n\n## Rule 7\nUse the Recruiter's AI Evaluation Instructions exactly as provided.\nIf the recruiter specifies\n* prioritize React\n* ignore AWS\n* projects matter more than certifications\nthen follow those instructions.\n\n---\n\n# Inputs\n\n## Active Job Descriptions\n${jdSections}\n\n---\n\n## Candidate\nName\n${c.name || 'Unknown'}\n\nExperience\n${c.experience_years || 0}\n\nEducation\n${c.degree || 'N/A'}\n\nSpecialization\n${c.specialization || 'N/A'}\n\nCollege\n${c.college || 'N/A'}\n\nFrontend Skills\n${c.frontend_skills || 'None'}\n\nBackend Skills\n${c.backend_skills || 'None'}\n\nDatabase Skills\n${c.database_skills || 'None'}\n\nAI Skills\n${c.ai_skills || 'None'}\n\nCloud Skills\n${c.cloud_skills || 'None'}\n\nProgramming Languages\n${c.programming_languages || 'None'}\n\nProjects\n${c.projects || 'None'}\n\nResume\n${c.resume_text || ''}\n\n---\n\n# Scoring Methodology\nEvaluate the candidate using these categories.\n\n## Technical Score (0-100)\nEvaluate\n* Required Skills\n* Preferred Skills\n* Technical depth\n* Technology relevance\n* Framework knowledge\n* Tools\n* Practical implementation\nWeight\n40%\n\n---\n\n## Experience Score (0-100)\nEvaluate\n* Years of experience\n* Relevant experience\n* Internship relevance\n* Role progression\n* Domain relevance\nWeight\n20%\n\n---\n\n## Education Score (0-100)\nEvaluate\n* Degree relevance\n* Specialization\n* Academic alignment\n* Certifications (only if relevant)\nWeight\n10%\n\n---\n\n## Communication Score (0-100)\nEvaluate\n* Resume clarity\n* Organization\n* Professional presentation\n* Communication quality\nWeight\n10%\n\n---\n\n## Project Score (0-100)\nEvaluate\n* Project complexity\n* Technologies used\n* Relevance to the JD\n* Practical implementation\n* Real-world impact\nWeight\n20%\n\n---\n\n# Overall Score\nCalculate\nOverall Score =\n(Technical × 0.40) +\n(Experience × 0.20) +\n(Education × 0.10) +\n(Communication × 0.10) +\n(Project × 0.20)\nRound to the nearest whole number.\n\n---\n\n# Recommendation Rules\n95-100\nStrong Hire\nOutstanding alignment.\n\n90-94\nHire\nExcellent fit.\n\n80-89\nConsider\nGood candidate with some gaps.\n\n70-79\nBorderline\nInterview only if candidate pool is limited.\n\nBelow 70\nReject\nDoes not sufficiently match the Job Description.\n\n---\n\n# Grade Rules\n97-100 → A+\n93-96 → A\n89-92 → B+\n85-88 → B\n75-84 → C\n65-74 → D\nBelow 65 → F\n\n---\n\n# Required Output\nReturn ONLY a valid JSON Array.\nDo NOT include markdown.\nDo NOT include explanations outside the JSON.\nReturn exactly this structure containing one object for each of the JDs listed above:\n[\n  {\n    \"jd_id\": <jd_id from corresponding Job Description>,\n    \"overallScore\": 0,\n    \"technicalScore\": 0,\n    \"experienceScore\": 0,\n    \"educationScore\": 0,\n    \"communicationScore\": 0,\n    \"projectScore\": 0,\n    \"grade\": \"\",\n    \"recommendation\": \"\",\n    \"matchedSkills\": [],\n    \"missingSkills\": [],\n    \"strengths\": [],\n    \"weaknesses\": [],\n    \"summary\": \"\",\n    \"reasoning\": {\n      \"technical\": \"\",\n      \"experience\": \"\",\n      \"education\": \"\",\n      \"communication\": \"\",\n      \"projects\": \"\"\n    }\n  }\n]`;\n\nreturn { json: { ...d, aiPrompt: prompt } };"
+      },
+      "id": "1c7a75ae-8ea4-43b8-92c2-fbefa300821a",
+      "name": "Build Scoring Prompt (/100)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.aiPrompt }}",
+        "batching": {}
+      },
+      "id": "d273b9c7-47b3-4e62-86b2-789bae87ee5b",
+      "name": "Remote AI — OpenRouter",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1580,
+        560
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "91824dd2-be8d-4ddb-82af-cf561fa0bfae",
+      "name": "Merge AI Results1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1680,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "candidates",
+          "mode": "list",
+          "cachedResultName": "candidates"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "submitted_at",
+              "displayName": "submitted_at",
+              "type": "dateTime"
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "type": "dateTime"
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "type": "string"
+            },
+            {
+              "id": "candidate_name",
+              "displayName": "candidate_name",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "type": "string"
+            },
+            {
+              "id": "position",
+              "displayName": "position",
+              "type": "string"
+            },
+            {
+              "id": "years_of_exp",
+              "displayName": "years_of_exp",
+              "type": "number"
+            },
+            {
+              "id": "linkedin",
+              "displayName": "linkedin",
+              "type": "string"
+            },
+            {
+              "id": "current_job_title",
+              "displayName": "current_job_title",
+              "type": "string"
+            },
+            {
+              "id": "highest_degree",
+              "displayName": "highest_degree",
+              "type": "string"
+            },
+            {
+              "id": "degree",
+              "displayName": "degree",
+              "type": "string"
+            },
+            {
+              "id": "college",
+              "displayName": "college",
+              "type": "string"
+            },
+            {
+              "id": "city",
+              "displayName": "city",
+              "type": "string"
+            },
+            {
+              "id": "passout_year",
+              "displayName": "passout_year",
+              "type": "number"
+            },
+            {
+              "id": "internship_completed",
+              "displayName": "internship_completed",
+              "type": "boolean"
+            },
+            {
+              "id": "certifications",
+              "displayName": "certifications",
+              "type": "string"
+            },
+            {
+              "id": "frontend_skills",
+              "displayName": "frontend_skills",
+              "type": "string"
+            },
+            {
+              "id": "backend_skills",
+              "displayName": "backend_skills",
+              "type": "string"
+            },
+            {
+              "id": "database_skills",
+              "displayName": "database_skills",
+              "type": "string"
+            },
+            {
+              "id": "ai_ml_skills",
+              "displayName": "ai_ml_skills",
+              "type": "string"
+            },
+            {
+              "id": "cloud_devops",
+              "displayName": "cloud_devops",
+              "type": "string"
+            },
+            {
+              "id": "programming_langs",
+              "displayName": "programming_langs",
+              "type": "string"
+            },
+            {
+              "id": "notable_projects",
+              "displayName": "notable_projects",
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c1389f8c-d960-4576-96ec-aa41f5f0ed9c",
+      "name": "Save Candidate — PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        880,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "OFGnvKVUjTZr2d4j",
+          "name": "Postgres account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "=We've received your application for {{ $json.position || 'our open role' }}",
+        "emailType": "text",
+        "message": "=Hi {{ $json.candidateName || 'Candidate' }}\n\nThank you for applying for the {{ $json.position || 'open role' }}\nrole at Virim Infotech.\n\nThis email is to confirm we've successfully received your application. Our hiring team will review it, and if your skills and experience are a good match, we'll be in touch.\n\nBest regards,\nThe Virim Team",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "95a9e6c5-ff1a-4bee-ba3d-ee813c9c8ddf",
+      "name": "Send Confirmation Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        160,
+        -16
+      ],
+      "webhookId": "33cc794d-448d-49eb-abf6-935e67861245",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PCtnA3WmRvlTkJyT",
+          "name": "Gmail account"
+        }
+      },
+      "disabled": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2000,
+        464
+      ],
+      "id": "6351c03f-ab64-4159-8004-76a3b6dfcf56",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "region": "in",
+        "operation": "downloadFile",
+        "resourceId": "={{ $json.fileId }}"
+      },
+      "type": "n8n-nodes-workdrive.workDrive",
+      "typeVersion": 1,
+      "position": [
+        -1264,
+        464
+      ],
+      "id": "a3597240-3d2a-42dc-b061-daede67ba3e4",
+      "name": "Download a file",
+      "credentials": {
+        "workDriveOAuth2Api": {
+          "id": "erSQKlK1fUgXKQK0",
+          "name": "Zoho WorkDrive account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "region": "in",
+        "operation": "moveResource",
+        "resourceId": "={{ $json.workdrive_file_id || $json.workdriveFileId }}",
+        "destinationFolderId": "={{ $('WorkDrive Config').item.json.processedFolderId }}"
+      },
+      "type": "n8n-nodes-workdrive.workDrive",
+      "typeVersion": 1,
+      "position": [
+        2140,
+        560
+      ],
+      "id": "d544ae87-d509-445b-b42f-176ffdd35547",
+      "name": "Move a file",
+      "credentials": {
+        "workDriveOAuth2Api": {
+          "id": "erSQKlK1fUgXKQK0",
+          "name": "Zoho WorkDrive account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "sourceFolderId",
+              "stringValue": "s91hq18c6e731501d42aa8a86ced586fb5641"
+            },
+            {
+              "name": "processedFolderId",
+              "stringValue": "s91hqfbc61c3668e34a6fb04ebd9da48e6f21"
+            },
+            {
+              "name": "source",
+              "stringValue": "workdrive"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6cefce4d-f041-47f0-8a4f-404f46aa10de",
+      "name": "WorkDrive Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        -1808,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $input.first()?.json || {};\nconst sourceFolderId = String(config.sourceFolderId || '').trim();\nconst processedFolderId = String(config.processedFolderId || '').trim();\n\nreturn $input.all().map(({ json }) => {\n  const attrs = json.attributes || {};\n  const fileId = json.id || json.resourceId || attrs.id || '';\n  const fileName = attrs.name || json.name || json.fileName || '';\n  const mimeType = attrs.mime_type || attrs.mimeType || json.mimeType || '';\n  const extension = attrs.extn || (fileName.includes('.') ? fileName.split('.').pop() : '') || '';\n  return {\n    json: {\n      source: 'workdrive',\n      sourceFolderId,\n      processedFolderId,\n      fileId,\n      fileName,\n      mimeType,\n      extension,\n    },\n  };\n}).filter(({ json }) => {\n  if (!json.fileId || !json.fileName) return false;\n  const lowerName = json.fileName.toLowerCase();\n  const lowerMime = String(json.mimeType || '').toLowerCase();\n  const lowerExt = String(json.extension || '').toLowerCase();\n  return lowerName.endsWith('.pdf') || lowerMime.includes('pdf') || lowerExt === 'pdf';\n});"
+      },
+      "id": "28dc0a6a-153a-43e3-a5d9-76263b78fabe",
+      "name": "Prepare WorkDrive Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1424,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(({ json }) => ({\n  json: {\n    ...json,\n    source: String(json.source || '').trim().toLowerCase(),\n    workdrive_file_id: String(json.workdrive_file_id || json.workdriveFileId || '').trim(),\n    processed_folder_id: String(json.processed_folder_id || json.processedFolderId || '').trim(),\n  },\n})).filter(({ json }) => Boolean(json.workdrive_file_id && json.processed_folder_id));"
+      },
+      "id": "3384c82f-147d-4c28-ae9c-16bbb0fe41ec",
+      "name": "Keep WorkDrive Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "projectId": {
+          "__rl": true,
+          "value": "virim-internal-project",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
+      "typeVersion": 1,
+      "position": [
+        176,
+        816
+      ],
+      "id": "954ce8f3-227b-447e-9c2c-dc06ae441b1a",
+      "name": "Google Vertex Chat Model",
+      "credentials": {
+        "googleApi": {
+          "id": "KOHj5ZcJWDMRoTCL",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "projectId": {
+          "__rl": true,
+          "value": "virim-internal-project",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        768
+      ],
+      "id": "ad4d6582-e12e-4e49-977c-a9b4da9aceef",
+      "name": "Google Vertex Chat Model1",
+      "credentials": {
+        "googleApi": {
+          "id": "KOHj5ZcJWDMRoTCL",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "downloadAttachments": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [
+        -1344,
+        688
+      ],
+      "id": "6555601b-eb8b-4a14-b9d5-20442baee9a2",
+      "name": "Email Trigger (IMAP)",
+      "credentials": {
+        "imap": {
+          "id": "tLQV1UzQNUrvIiYU",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "region": "in",
+        "resource": "folder",
+        "folderId": "={{ $json.sourceFolderId }}",
+        "listOptions": {}
+      },
+      "type": "n8n-nodes-workdrive.workDrive",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        464
+      ],
+      "id": "46b18d65-0e40-457f-9dfe-04356a98273d",
+      "name": "List folder contents",
+      "credentials": {
+        "workDriveOAuth2Api": {
+          "id": "erSQKlK1fUgXKQK0",
+          "name": "Zoho WorkDrive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const d = $input.item.json || {};\n\nconst clean = (v) => String(v ?? '').trim();\nconst pickStr = (...vals) => {\n  const found = vals.map(clean).find(v => v && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none' && v !== 'undefined');\n  return found || '';\n};\n\nreturn {\n  json: {\n    submitted_at: pickStr(d.submittedAt, d.submitted_at) || new Date().toISOString(),\n    processed_at: new Date().toISOString(),\n    source: pickStr(d.source) || 'unknown',\n\n    candidate_name: pickStr(d.candidateName, d.candidate_name) || 'Unknown',\n    email: pickStr(d.email) || '',\n    phone: pickStr(d.phone) || '',\n    position: pickStr(d.position) || '',\n    years_of_exp: Number(d.totalExperienceYears || d.yearsOfExp || d.years_of_exp || 0),\n    linkedin: pickStr(d.linkedin) || '',\n    current_job_title: pickStr(d.currentJobTitle, d.current_job_title) || '',\n    highest_degree: pickStr(d.highestDegree, d.degree, d.highest_degree) || '',\n    degree: pickStr(d.degree, d.highestDegree) || '',\n    college: pickStr(d.college) || '',\n    city: pickStr(d.city) || '',\n    passout_year: parseInt(d.passoutYear || d.passout_year) || null,\n    internship_completed: (pickStr(d.internship).toLowerCase().includes('yes') || Boolean(d.internshipCompany) || d.internship_completed === true),\n    certifications: pickStr(d.certifications) || '',\n\n    frontend_skills: pickStr(d.frontendSkills, d.frontend_skills) || '',\n    frontend_level: pickStr(d.frontendLevel, d.frontend_level) || '',\n    backend_skills: pickStr(d.backendSkills, d.backend_skills) || '',\n    backend_level: pickStr(d.backendLevel, d.backend_level) || '',\n    database_skills: pickStr(d.databaseSkills, d.database_skills) || '',\n    database_level: pickStr(d.databaseLevel, d.database_level) || '',\n    ai_ml_skills: pickStr(d.aiMlSkills, d.ai_ml_skills) || '',\n    ai_ml_level: pickStr(d.aiMlLevel, d.ai_ml_level) || '',\n    cloud_devops: pickStr(d.cloudDevOps, d.cloud_devops) || '',\n    programming_langs: pickStr(d.programmingLanguages, d.programming_langs) || '',\n    notable_projects: pickStr(d.notableProjects, d.notable_projects) || '',\n\n    workdrive_file_id: pickStr(d.workdrive_file_id, d.workdriveFileId) || null,\n    workdrive_file_name: pickStr(d.workdrive_file_name, d.workdriveFileName, d.fileName) || null,\n    source_folder_id: pickStr(d.source_folder_id, d.sourceFolderId) || null,\n    processed_folder_id: pickStr(d.processed_folder_id, d.processedFolderId) || null\n  }\n};"
+      },
+      "id": "n871d956-bbd9-4fcd-a29e-b24d97f8ed47",
+      "name": "Normalize Candidate — PostgreSQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  id, \n  title, \n  department, \n  employment_type, \n  work_mode, \n  location, \n  experience_min, \n  experience_max, \n  education, \n  required_skills, \n  preferred_skills, \n  responsibilities, \n  requirements, \n  nice_to_have, \n  ai_prompt \nFROM job_descriptions \nWHERE is_active = TRUE \nORDER BY id;"
+      },
+      "id": "f871d956-bbd9-4fcd-a29e-b24d97f8ed42",
+      "name": "Fetch Active JDs",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1020,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "OFGnvKVUjTZr2d4j",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const jds = $input.all().map(item => item.json);\nconst c = $('Save Candidate — PostgreSQL').first().json;\n\nreturn {\n  json: {\n    candidate: {\n      id: c.id,\n      name: c.candidate_name,\n      email: c.email,\n      phone: c.phone || '',\n      position: c.position || '',\n      experience_years: c.years_of_exp || 0,\n      degree: c.degree || '',\n      specialization: c.specialization || '',\n      college: c.college || '',\n      frontend_skills: c.frontend_skills || '',\n      backend_skills: c.backend_skills || '',\n      database_skills: c.database_skills || '',\n      ai_skills: c.ai_ml_skills || '',\n      cloud_skills: c.cloud_devops || '',\n      programming_languages: c.programming_langs || '',\n      projects: c.notable_projects || '',\n      resume_text: c.resumeText || c.resume_text || ''\n    },\n    jds: jds.map(jd => ({\n      jd_id: jd.id,\n      title: jd.title,\n      department: jd.department,\n      employment_type: jd.employment_type,\n      work_mode: jd.work_mode,\n      location: jd.location,\n      experience_min: jd.experience_min,\n      experience_max: jd.experience_max,\n      education: jd.education,\n      required_skills: jd.required_skills,\n      preferred_skills: jd.preferred_skills,\n      responsibilities: jd.responsibilities,\n      requirements: jd.requirements,\n      nice_to_have: jd.nice_to_have,\n      ai_prompt: jd.ai_prompt\n    }))\n  }\n};"
+      },
+      "id": "c871d956-bbd9-4fcd-a29e-b24d97f8ed43",
+      "name": "Prepare AI Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const d = $input.first().json || {};\n\n// Retrieve the context from Prepare AI Context\nlet context = {};\ntry {\n  context = $('Prepare AI Context').first().json || {};\n} catch (e) {\n  context = {};\n}\n\n// Retrieve candidate details with fallback to Save Candidate node\nlet c = context.candidate || {};\nif (!c.id) {\n  try {\n    c = $('Save Candidate — PostgreSQL').first().json || {};\n  } catch (e) {\n    c = {};\n  }\n}\n\n// Retrieve JD details with fallback to Fetch Active JDs or Pre-filled JD\nlet j = context.jd || {};\nif (!j.jd_id) {\n  try {\n    const fetchJds = $('Fetch Active JDs').first().json || {};\n    j = { jd_id: fetchJds.id || fetchJds.jd_id };\n  } catch (e) {\n    try {\n      const prefilledJd = $('Pre-filled JD').first().json || {};\n      j = { jd_id: prefilledJd.id || prefilledJd.jd_id || 1 };\n    } catch (err) {\n      j = { jd_id: 1 };\n    }\n  }\n}\n\n// Locate the raw response text from the LLM node\nconst rawResponse = d.text || d.output || d.response?.text || (d.choices || [])[0]?.message?.content;\n\nlet parsedList = [];\nif (rawResponse) {\n  try {\n    const cleaned = String(rawResponse)\n      .replace(/\\`\\`\\`json\\s*/gi, '')\n      .replace(/\\`\\`\\`\\s*/g, '')\n      .replace(/^[^{\\[]*/, '')\n      .replace(/[^}\\]]*$/, '');\n    parsedList = JSON.parse(cleaned);\n  } catch (e) {\n    parsedList = [];\n  }\n}\n\nif (!Array.isArray(parsedList)) {\n  parsedList = [parsedList];\n}\n\n// Helper function to pick key variations case-insensitively\nconst getVal = (obj, keys, defaultValue) => {\n  for (const key of keys) {\n    if (obj[key] !== undefined) return obj[key];\n    const foundKey = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());\n    if (foundKey) return obj[foundKey];\n  }\n  return defaultValue;\n};\n\n// Helper to normalize array formats\nconst getArrayVal = (obj, keys) => {\n  const val = getVal(obj, keys, []);\n  if (Array.isArray(val)) return val;\n  if (typeof val === 'string') {\n    return val.split(',').map(s => s.trim()).filter(Boolean);\n  }\n  return [];\n};\n\n// Return parsed matching array as separate n8n items\nreturn parsedList.map(evalObj => {\n  const jd_id = Number(getVal(evalObj, ['jd_id', 'jdId'], j.jd_id || 1));\n  const overall_score = Number(getVal(evalObj, ['overallScore', 'overall_score'], 0));\n  const technical_score = Number(getVal(evalObj, ['technicalScore', 'technical_score'], 0));\n  const experience_score = Number(getVal(evalObj, ['experienceScore', 'experience_score'], 0));\n  const education_score = Number(getVal(evalObj, ['educationScore', 'education_score'], 0));\n  const communication_score = Number(getVal(evalObj, ['communicationScore', 'communication_score'], 0));\n  const project_score = Number(getVal(evalObj, ['projectScore', 'project_score'], 0));\n\n  const recommendation = String(getVal(evalObj, ['recommendation'], 'Consider'));\n  const grade = String(getVal(evalObj, ['grade'], 'B'));\n\n  const matched_skills = getArrayVal(evalObj, ['matchedSkills', 'matched_skills']);\n  const missing_skills = getArrayVal(evalObj, ['missingSkills', 'missing_skills']);\n  const strengths = getArrayVal(evalObj, ['strengths']);\n  const weaknesses = getArrayVal(evalObj, ['weaknesses']);\n  const summary = String(getVal(evalObj, ['summary'], ''));\n\n  return {\n    json: {\n      candidate_id: Number(c.id || c.candidate_id || 1),\n      jd_id,\n      overall_score,\n      technical_score,\n      experience_score,\n      education_score,\n      communication_score,\n      project_score,\n      recommendation,\n      grade,\n      matched_skills: JSON.stringify(matched_skills),\n      missing_skills: JSON.stringify(missing_skills),\n      strengths,\n      weaknesses,\n      summary,\n      status: 'Completed',\n      scored_at: new Date().toISOString()\n    }\n  };\n});"
+      },
+      "id": "n871d956-bbd9-4fcd-a29e-b24d97f8ed45",
+      "name": "Normalize AI Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1720,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "candidate_job_matches",
+          "mode": "list",
+          "cachedResultName": "candidate_job_matches"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "candidate_id",
+            "jd_id"
+          ],
+          "schema": [
+            {
+              "id": "candidate_id",
+              "displayName": "candidate_id",
+              "type": "number"
+            },
+            {
+              "id": "jd_id",
+              "displayName": "jd_id",
+              "type": "number"
+            },
+            {
+              "id": "overall_score",
+              "displayName": "overall_score",
+              "type": "number"
+            },
+            {
+              "id": "technical_score",
+              "displayName": "technical_score",
+              "type": "number"
+            },
+            {
+              "id": "experience_score",
+              "displayName": "experience_score",
+              "type": "number"
+            },
+            {
+              "id": "education_score",
+              "displayName": "education_score",
+              "type": "number"
+            },
+            {
+              "id": "communication_score",
+              "displayName": "communication_score",
+              "type": "number"
+            },
+            {
+              "id": "project_score",
+              "displayName": "project_score",
+              "type": "number"
+            },
+            {
+              "id": "recommendation",
+              "displayName": "recommendation",
+              "type": "string"
+            },
+            {
+              "id": "grade",
+              "displayName": "grade",
+              "type": "string"
+            },
+            {
+              "id": "matched_skills",
+              "displayName": "matched_skills",
+              "type": "string"
+            },
+            {
+              "id": "missing_skills",
+              "displayName": "missing_skills",
+              "type": "string"
+            },
+            {
+              "id": "strengths",
+              "displayName": "strengths",
+              "type": "string"
+            },
+            {
+              "id": "weaknesses",
+              "displayName": "weaknesses",
+              "type": "string"
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "type": "string"
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "type": "string"
+            },
+            {
+              "id": "scored_at",
+              "displayName": "scored_at",
+              "type": "dateTime"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "s871d956-bbd9-4fcd-a29e-b24d97f8ed44",
+      "name": "Save Match — PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1860,
+        560
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "OFGnvKVUjTZr2d4j",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Format Error For Sheet": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets — Error Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Error For Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF — Form": {
+      "main": [
+        [
+          {
+            "node": "Normalize — Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF — Email": {
+      "main": [
+        [
+          {
+            "node": "Normalize — Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize — Form": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize — Email": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Triggers": {
+      "main": [
+        [
+          {
+            "node": "Email Duplicate Check — PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Duplicate Check — PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Email Duplicate Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Duplicate Gate": {
+      "main": [
+        [
+          {
+            "node": "Return Duplicate Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Restore Candidate Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Candidate Data": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Resume Validation & Hash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return Duplicate Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume Validation & Hash": {
+      "main": [
+        [
+          {
+            "node": "Extract — All Skills & Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract — All Skills & Details": {
+      "main": [
+        [
+          {
+            "node": "Normalize Skills",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Skills": {
+      "main": [
+        [
+          {
+            "node": "Project Complexity Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Project Complexity Analysis": {
+      "main": [
+        [
+          {
+            "node": "Normalize Candidate — PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume Quality Analysis": {
+      "main": [
+        [
+          {
+            "node": "Build Scoring Prompt (/100)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Scoring Prompt (/100)": {
+      "main": [
+        [
+          {
+            "node": "Remote AI — OpenRouter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remote AI — OpenRouter": {
+      "main": [
+        [
+          {
+            "node": "Normalize AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge AI Results1": {
+      "main": [
+        [
+          {
+            "node": "Parse & Average Scores (/100)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Candidate — PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Active JDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep WorkDrive Items": {
+      "main": [
+        [
+          {
+            "node": "Move a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "WorkDrive Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download a file": {
+      "main": [
+        [
+          {
+            "node": "Extract PDF — Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WorkDrive Config": {
+      "main": [
+        [
+          {
+            "node": "List folder contents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare WorkDrive Files": {
+      "main": [
+        [
+          {
+            "node": "Download a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Vertex Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract — All Skills & Details",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Vertex Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Remote AI — OpenRouter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Extract PDF — Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List folder contents": {
+      "main": [
+        [
+          {
+            "node": "Prepare WorkDrive Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Candidate — PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Save Candidate — PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Active JDs": {
+      "main": [
+        [
+          {
+            "node": "Prepare AI Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare AI Context": {
+      "main": [
+        [
+          {
+            "node": "Resume Quality Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize AI Output": {
+      "main": [
+        [
+          {
+            "node": "Save Match — PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Match — PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Keep WorkDrive Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "69ba6931-6382-4c74-a641-616abc8a820d",
+  "meta": {
+    "instanceId": "5c6f3ce33c327a0f909317e26bcd0c95f605fe4df56484e563de120f9dd53e8d"
+  },
+  "id": "K2vbIvBzVvCWRdu2",
+  "tags": []
+}

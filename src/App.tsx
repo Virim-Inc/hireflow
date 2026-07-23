@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { LoginPage, ProfilePage } from './features/auth';
-import { CandidatesPage } from './features/candidates';
+import { CandidatesPage, JobDescriptionsPage } from './features/candidates';
 import { DashboardHome } from './features/dashboard';
 import { PipelinePage } from './features/pipeline';
 import { Sidebar } from './components/shared/Sidebar';
 import type { CandidateFilters } from './features/candidates/types/candidate.types';
 import './app.css';
 
-export type Page = 'login' | 'dashboard' | 'candidates' | 'pipeline' | 'profile';
+export type Page = 'login' | 'dashboard' | 'candidates' | 'jds' | 'pipeline' | 'profile';
 export type Theme = 'dark' | 'light';
 
 function App() {
@@ -34,7 +34,7 @@ function App() {
           const saved = localStorage.getItem('hf_currentPage');
           if (saved === 'email-ranking') {
             setPage('pipeline');
-          } else if (saved === 'dashboard' || saved === 'candidates' || saved === 'pipeline' || saved === 'profile') {
+          } else if (saved === 'dashboard' || saved === 'candidates' || saved === 'jds' || saved === 'pipeline' || saved === 'profile') {
             setPage(saved as Page);
           } else {
             setPage('dashboard');
@@ -138,6 +138,7 @@ function App() {
             initialFilters={candidateFilters}
           />
         )}
+        {page === 'jds' && <JobDescriptionsPage />}
         {page === 'pipeline' && <PipelinePage />}
         {page === 'profile' && <ProfilePage user={user} onNavigate={navigate} onLogout={handleLogout} />}
       </main>

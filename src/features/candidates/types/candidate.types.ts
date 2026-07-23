@@ -67,6 +67,48 @@ export interface Candidate {
   passout_year?: number | null;
   college?: string | null;
   degree?: string | null;
+
+  jd_matches?: Record<string, {
+    overall_score: number;
+    technical_score: number;
+    experience_score: number;
+    education_score: number;
+    communication_score: number;
+    project_score: number;
+    recommendation: string;
+    grade: string;
+    matched_skills: any;
+    missing_skills: any;
+    strengths: string[];
+    weaknesses: string[];
+    summary: string;
+    status: 'Pending' | 'Processing' | 'Completed' | 'Failed';
+    scored_at: string | null;
+  }> | null;
+}
+
+export interface JobDescription {
+  id: number;
+  title: string;
+  department: string | null;
+  employment_type: string | null;
+  work_mode: string | null;
+  location: string | null;
+  openings: number;
+  experience_min: number;
+  experience_max: number;
+  education: string | null;
+  specialization: string | null;
+  required_skills: any;
+  preferred_skills: any;
+  responsibilities: string | null;
+  requirements: string | null;
+  nice_to_have: string | null;
+  ai_prompt: string | null;
+  is_active: boolean;
+  matched_count?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CandidatesResponse {
@@ -179,6 +221,7 @@ export interface CandidateFilters {
   order: 'asc' | 'desc';
   page: number;
   limit: number;
+  jd_id: string;
 }
 
 export interface UpdateCandidateStageInput {

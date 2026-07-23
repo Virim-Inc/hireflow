@@ -55,9 +55,9 @@ export const SORT_COLUMNS: Record<string, string> = {
 
 export function buildWhereClause(query: CandidatesQuery): {
   whereClause: string;
-  params: Array<string | number>;
+  params: Array<any>;
 } {
-  const params: Array<string | number> = [];
+  const params: Array<any> = [];
   const where: string[] = [];
   let idx = 1;
 
@@ -180,6 +180,19 @@ export function buildWhereClause(query: CandidatesQuery): {
   if (query.date_to) {
     where.push(`DATE(${dateField}) <= $${idx}`);
     params.push(query.date_to);
+    idx++;
+  }
+
+  if (query.jd_id) {
+    const jdIdList = query.jd_id
+      .split(',')
+      .map((id) => parseInt(id.trim(), 10))
+      .filter(Number.isInteger);
+    if (jdIdList.length > 0) {
+      where.push(`id IN (SELECT candidate_id FROM candidate_job_matches WHERE jd_id = ANY($${idx}))`);
+      params.push(jdIdList);
+      idx++;
+    }
   }
 
   return {
@@ -236,18 +249,70 @@ export async function findCandidates(
   const { whereClause, params } = buildWhereClause(query);
   const offset = (pageNum - 1) * limitNum;
 
+  const jdIdList = query.jd_id
+    ? query.jd_id.split(',').map((id) => parseInt(id.trim(), 10)).filter(Number.isInteger)
+    : [];
+
+  let jdSelect = '';
+  let jdJoin = '';
+  let sortExpression = sortCol;
+  const dataParams = [...params];
+
+  if (jdIdList.length > 0) {
+    const paramIndex = params.findIndex(
+      (p) => Array.isArray(p) && p.every((val) => jdIdList.includes(val))
+    );
+    const placeholderIdx = paramIndex !== -1 ? paramIndex + 1 : dataParams.length + 1;
+
+    if (paramIndex === -1) {
+      dataParams.push(jdIdList);
+    }
+
+    jdSelect = `, cjs.jd_matches, cjs.max_jd_score`;
+    jdJoin = `LEFT JOIN LATERAL (
+      SELECT 
+        json_object_agg(cjm.jd_id, json_build_object(
+          'overall_score', cjm.overall_score,
+          'technical_score', cjm.technical_score,
+          'experience_score', cjm.experience_score,
+          'education_score', cjm.education_score,
+          'communication_score', cjm.communication_score,
+          'project_score', cjm.project_score,
+          'recommendation', cjm.recommendation,
+          'grade', cjm.grade,
+          'matched_skills', cjm.matched_skills,
+          'missing_skills', cjm.missing_skills,
+          'strengths', cjm.strengths,
+          'weaknesses', cjm.weaknesses,
+          'summary', cjm.summary,
+          'status', cjm.status
+        )) AS jd_matches,
+        MAX(cjm.overall_score) AS max_jd_score
+      FROM candidate_job_matches cjm
+      WHERE cjm.candidate_id = candidates.id 
+        AND cjm.jd_id = ANY($${placeholderIdx})
+    ) cjs ON TRUE`;
+
+    if (sortCol === 'total_score') {
+      sortExpression = 'COALESCE(cjs.max_jd_score, candidates.total_score)';
+    }
+  } else {
+    jdSelect = `, NULL::json AS jd_matches, NULL::numeric AS max_jd_score`;
+  }
+
   const [countRes, dataRes] = await Promise.all([
     pool.query<{ count: string }>(
       `SELECT COUNT(*) FROM candidates ${whereClause}`,
       params,
     ),
     pool.query<CandidateRow>(
-      `SELECT ${SELECT_COLUMNS}
+      `SELECT ${SELECT_COLUMNS} ${jdSelect}
        FROM candidates
+       ${jdJoin}
        ${whereClause}
-       ORDER BY ${sortCol} ${sortOrder}, id DESC
-       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      [...params, limitNum, offset],
+       ORDER BY ${sortExpression} ${sortOrder}, id DESC
+       LIMIT $${dataParams.length + 1} OFFSET $${dataParams.length + 2}`,
+      [...dataParams, limitNum, offset],
     ),
   ]);
 
@@ -262,7 +327,28 @@ export async function findCandidateById(
   id: number,
 ): Promise<CandidateRow | null> {
   const result = await db.query<CandidateRow>(
-    `SELECT ${SELECT_COLUMNS} FROM candidates WHERE id = $1`,
+    `SELECT ${SELECT_COLUMNS},
+            (
+              SELECT json_object_agg(cjm.jd_id, json_build_object(
+                'overall_score', cjm.overall_score,
+                'technical_score', cjm.technical_score,
+                'experience_score', cjm.experience_score,
+                'education_score', cjm.education_score,
+                'communication_score', cjm.communication_score,
+                'project_score', cjm.project_score,
+                'recommendation', cjm.recommendation,
+                'grade', cjm.grade,
+                'matched_skills', cjm.matched_skills,
+                'missing_skills', cjm.missing_skills,
+                'strengths', cjm.strengths,
+                'weaknesses', cjm.weaknesses,
+                'summary', cjm.summary,
+                'status', cjm.status
+              ))
+              FROM candidate_job_matches cjm
+              WHERE cjm.candidate_id = candidates.id
+            ) AS jd_matches
+     FROM candidates WHERE id = $1`,
     [id],
   );
   return result.rows[0] ?? null;

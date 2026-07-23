@@ -16,7 +16,7 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import type { Candidate, CandidateStageHistoryItem, PipelineStage } from '../types/candidate.types';
+import type { Candidate, CandidateStageHistoryItem, PipelineStage, JobDescription } from '../types/candidate.types';
 import {
   STAGE_META,
   formatDate,
@@ -36,6 +36,7 @@ interface CandidateDetailDrawerProps {
   updating: boolean;
   onClose: () => void;
   onMoveStage: (stage: PipelineStage, note?: string) => Promise<void> | void;
+  jds?: JobDescription[];
 }
 
 export function CandidateDetailDrawer({
@@ -45,10 +46,12 @@ export function CandidateDetailDrawer({
   updating,
   onClose,
   onMoveStage,
+  jds,
 }: CandidateDetailDrawerProps) {
   const [note, setNote] = useState(candidate.latest_stage_note ?? '');
   const [selectedStage, setSelectedStage] = useState<PipelineStage>(candidate.pipeline_stage);
   const [activeTab, setActiveTab] = useState<'details' | 'resume'>('details');
+  const [selectedJdId, setSelectedJdId] = useState<string>('global');
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeLoading, setResumeLoading] = useState(false);
   const [resumeError, setResumeError] = useState<string | null>(null);
@@ -162,8 +165,20 @@ export function CandidateDetailDrawer({
     await onMoveStage(selectedStage, note.trim() || undefined);
   }
 
-  const strengths = splitValues(candidate.strengths);
-  const weaknesses = splitValues(candidate.weaknesses);
+  const isGlobal = selectedJdId === 'global';
+  const activeMatch = !isGlobal ? candidate.jd_matches?.[selectedJdId] : null;
+
+  const displayScore = activeMatch ? Math.round(Number(activeMatch.overall_score)) : candidate.total_score;
+  const displayRecommendation = activeMatch ? activeMatch.recommendation : candidate.recommendation;
+  const displayGrade = activeMatch ? activeMatch.grade : candidate.grade;
+  const displaySummary = activeMatch ? activeMatch.summary : candidate.summary;
+
+  const strengths = activeMatch
+    ? (Array.isArray(activeMatch.strengths) ? activeMatch.strengths : splitValues(activeMatch.strengths))
+    : splitValues(candidate.strengths);
+  const weaknesses = activeMatch
+    ? (Array.isArray(activeMatch.weaknesses) ? activeMatch.weaknesses : splitValues(activeMatch.weaknesses))
+    : splitValues(candidate.weaknesses);
   const evaluationNotes = [
     { label: 'Frontend', value: candidate.frontend_feedback },
     { label: 'Backend', value: candidate.backend_feedback },
@@ -211,8 +226,8 @@ export function CandidateDetailDrawer({
               <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`}>
                 {getStageLabel(candidate.pipeline_stage)}
               </span>
-              <span className={`hf-rec-badge ${recommendationClass(candidate.recommendation)}`}>
-                {candidate.recommendation || 'Pending review'}
+              <span className={`hf-rec-badge ${recommendationClass(displayRecommendation)}`}>
+                {displayRecommendation || 'Pending review'}
               </span>
             </div>
             <div className="hf-contact-line">
@@ -226,8 +241,8 @@ export function CandidateDetailDrawer({
               )}
             </div>
           </div>
-          <div className={`hf-score-pill hf-score-pill--xl ${scoreClass(candidate.total_score)}`}>
-            <strong>{candidate.total_score}</strong>
+          <div className={`hf-score-pill hf-score-pill--xl ${scoreClass(displayScore)}`}>
+            <strong>{displayScore}</strong>
             <span>/100</span>
           </div>
         </section>
@@ -253,14 +268,39 @@ export function CandidateDetailDrawer({
 
         {activeTab === 'details' ? (
           <>
+            {candidate.jd_matches && Object.keys(candidate.jd_matches).length > 0 && (
+              <div className="hf-drawer-jd-score-selector">
+                <button
+                  type="button"
+                  className={`hf-drawer-jd-score-tab ${selectedJdId === 'global' ? 'hf-drawer-jd-score-tab--active' : ''}`}
+                  onClick={() => setSelectedJdId('global')}
+                >
+                  Global Profile
+                </button>
+                {Object.keys(candidate.jd_matches).map(jdIdStr => {
+                  const jd = jds?.find(j => String(j.id) === jdIdStr);
+                  return (
+                    <button
+                      key={jdIdStr}
+                      type="button"
+                      className={`hf-drawer-jd-score-tab ${selectedJdId === jdIdStr ? 'hf-drawer-jd-score-tab--active' : ''}`}
+                      onClick={() => setSelectedJdId(jdIdStr)}
+                    >
+                      {jd?.title || `JD #${jdIdStr}`}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             <section className="hf-detail-stats-row">
           <article className="glass-card hf-detail-stat-card">
             <span>Total score</span>
-            <strong>{candidate.total_score}/100</strong>
+            <strong>{displayScore}/100</strong>
           </article>
           <article className="glass-card hf-detail-stat-card">
             <span>Recommendation</span>
-            <strong>{candidate.recommendation || 'Pending'}</strong>
+            <strong>{displayRecommendation || 'Pending'}</strong>
           </article>
           <article className="glass-card hf-detail-stat-card">
             <span>Strengths found</span>
@@ -332,7 +372,7 @@ export function CandidateDetailDrawer({
                 <Trophy size={15} />
                 <span>AI Assessment</span>
               </div>
-              <p className="hf-summary-copy">{candidate.summary || 'No AI summary available yet.'}</p>
+              <p className="hf-summary-copy">{displaySummary || 'No AI summary available yet.'}</p>
               <div className="hf-assessment-grid">
                 <div className="hf-assessment-card hf-assessment-card--positive">
                   <h4>Strengths</h4>
@@ -400,9 +440,9 @@ export function CandidateDetailDrawer({
               <div className="hf-info-grid">
                 <div><span>Role</span><strong>{candidate.position_label}</strong></div>
                 <div><span>Experience</span><strong>{candidate.years_of_exp} years</strong></div>
-                <div><span>City</span><strong>{candidate.city || '-'}</strong></div>
-                <div><span>Grade</span><strong>{candidate.grade || '-'}</strong></div>
-                <div><span>Qualified</span><strong>{candidate.is_qualified ? 'Yes' : 'No'}</strong></div>
+                 <div><span>City</span><strong>{candidate.city || '-'}</strong></div>
+                 <div><span>Grade</span><strong>{displayGrade || '-'}</strong></div>
+                 <div><span>Qualified</span><strong>{candidate.is_qualified ? 'Yes' : 'No'}</strong></div>
                 <div><span>Current title</span><strong>{candidate.current_job_title || '-'}</strong></div>
                 <div><span>Submitted</span><strong>{formatDate(candidate.submitted_at)}</strong></div>
                 <div><span>Stage updated</span><strong>{formatDate(candidate.pipeline_stage_updated_at)}</strong></div>
@@ -427,15 +467,25 @@ export function CandidateDetailDrawer({
                 <span>Score Breakdown</span>
               </div>
               <div className="hf-score-grid">
-                {[
-                  ['Frontend', candidate.frontend_score],
-                  ['Backend', candidate.backend_score],
-                  ['Database', candidate.database_score],
-                  ['AI / ML', candidate.ai_ml_score],
-                  ['Experience', candidate.exp_score],
-                  ['Soft Skills', candidate.soft_score],
-                ].map(([label, value]) => (
-                  <div key={label} className="hf-score-metric">
+                 {(activeMatch
+                  ? [
+                      ['Technical', Math.round(Number(activeMatch.technical_score))],
+                      ['Experience', Math.round(Number(activeMatch.experience_score))],
+                      ['Education', Math.round(Number(activeMatch.education_score))],
+                      ['Communication', Math.round(Number(activeMatch.communication_score))],
+                      ['Project', Math.round(Number(activeMatch.project_score))],
+                      ['Overall Match', Math.round(Number(activeMatch.overall_score))],
+                    ]
+                  : [
+                      ['Frontend', candidate.frontend_score],
+                      ['Backend', candidate.backend_score],
+                      ['Database', candidate.database_score],
+                      ['AI / ML', candidate.ai_ml_score],
+                      ['Experience', candidate.exp_score],
+                      ['Soft Skills', candidate.soft_score],
+                    ]
+                ).map(([label, value]) => (
+                  <div key={label as string} className="hf-score-metric">
                     <span>{label}</span>
                     <strong>{value}</strong>
                   </div>
