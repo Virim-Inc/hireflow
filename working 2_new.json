@@ -426,7 +426,7 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const normMap = {\n  'javascript': 'JavaScript', 'java script': 'JavaScript', 'js': 'JavaScript',\n  'typescript': 'TypeScript', 'ts': 'TypeScript',\n  'react': 'React', 'reactjs': 'React', 'react.js': 'React',\n  'angularjs': 'Angular', 'angular.js': 'Angular',\n  'vuejs': 'Vue.js', 'vue': 'Vue.js',\n  'node': 'Node.js', 'nodejs': 'Node.js', 'node js': 'Node.js',\n  'expressjs': 'Express.js', 'express': 'Express.js',\n  'nextjs': 'Next.js', 'next': 'Next.js',\n  'postgres': 'PostgreSQL', 'postgresql': 'PostgreSQL',\n  'mongo': 'MongoDB', 'mongodb': 'MongoDB',\n  'python3': 'Python', 'py': 'Python',\n  'mysql': 'MySQL', 'my sql': 'MySQL',\n  'amazon web services': 'AWS',\n  'tailwind': 'Tailwind CSS', 'tailwindcss': 'Tailwind CSS',\n  'bootstrap4': 'Bootstrap', 'bootstrap5': 'Bootstrap',\n  'cpp': 'C++', 'c plus plus': 'C++',\n  'csharp': 'C#', 'c sharp': 'C#',\n  'golang': 'Go',\n  'tensorflow': 'TensorFlow',\n  'pytorch': 'PyTorch',\n  'github actions': 'GitHub Actions',\n  'ci/cd': 'CI/CD', 'cicd': 'CI/CD',\n};\n\nfunction normalizeSkillList(skillStr) {\n  if (!skillStr || typeof skillStr !== 'string') return skillStr || '';\n  return skillStr.split(',')\n    .map(s => {\n      const trimmed = s.trim();\n      const key = trimmed.toLowerCase().replace(/[.\\s-]/g, '');\n      for (const [pattern, canonical] of Object.entries(normMap)) {\n        if (key === pattern.replace(/[.\\s-]/g, '')) return canonical;\n      }\n      return trimmed;\n    })\n    .filter(Boolean)\n    .filter((v, i, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i)\n    .join(', ');\n}\n\nconst d = $input.item.json;\nreturn {\n  json: {\n    ...d,\n    frontendSkills: normalizeSkillList(d.frontendSkills),\n    backendSkills: normalizeSkillList(d.backendSkills),\n    databaseSkills: normalizeSkillList(d.databaseSkills),\n    aiMlSkills: normalizeSkillList(d.aiMlSkills),\n    cloudDevOps: normalizeSkillList(d.cloudDevOps),\n    programmingLanguages: normalizeSkillList(d.programmingLanguages),\n  }\n};"
+        "jsCode": "const normMap = {\n  'javascript': 'JavaScript', 'java script': 'JavaScript', 'js': 'JavaScript',\n  'typescript': 'TypeScript', 'ts': 'TypeScript',\n  'react': 'React', 'reactjs': 'React', 'react.js': 'React',\n  'angularjs': 'Angular', 'angular.js': 'Angular',\n  'vuejs': 'Vue.js', 'vue': 'Vue.js',\n  'node': 'Node.js', 'nodejs': 'Node.js', 'node js': 'Node.js',\n  'expressjs': 'Express.js', 'express': 'Express.js',\n  'nextjs': 'Next.js', 'next': 'Next.js',\n  'postgres': 'PostgreSQL', 'postgresql': 'PostgreSQL',\n  'mongo': 'MongoDB', 'mongodb': 'MongoDB',\n  'python3': 'Python', 'py': 'Python',\n  'mysql': 'MySQL', 'my sql': 'MySQL',\n  'amazon web services': 'AWS',\n  'tailwind': 'Tailwind CSS', 'tailwindcss': 'Tailwind CSS',\n  'bootstrap4': 'Bootstrap', 'bootstrap5': 'Bootstrap',\n  'cpp': 'C++', 'c plus plus': 'C++',\n  'csharp': 'C#', 'c sharp': 'C#',\n  'golang': 'Go',\n  'tensorflow': 'TensorFlow',\n  'pytorch': 'PyTorch',\n  'github actions': 'GitHub Actions',\n  'ci/cd': 'CI/CD', 'cicd': 'CI/CD',\n};\n\nfunction normalizeSkillList(skillStr) {\n  if (!skillStr || typeof skillStr !== 'string') return skillStr || '';\n  return skillStr.split(',')\n    .map(s => {\n      const trimmed = s.trim();\n      const key = trimmed.toLowerCase().replace(/[.\\s-]/g, '');\n      for (const [pattern, canonical] of Object.entries(normMap)) {\n        if (key === pattern.replace(/[.\\s-]/g, '')) return canonical;\n      }\n      return trimmed;\n    })\n    .filter(Boolean)\n    .filter((v, i, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i)\n    .join(', ');\n}\n\nconst rawInput = $input.item.json || {};\n// Support both nested output key and raw direct key structure\nconst d = rawInput.output || rawInput || {};\n\n// Restore candidate contact details from Restore Candidate Data\nlet contact = {};\ntry {\n  contact = $('Restore Candidate Data').item.json || {};\n} catch (e) {\n  contact = {};\n}\n\n// Convert camelCase to snake_case for Save Candidate postgres node inputs\nreturn {\n  json: {\n    submitted_at: contact.submittedAt || contact.submitted_at || new Date().toISOString(),\n    processed_at: new Date().toISOString(),\n    source: contact.source || 'unknown',\n    candidate_name: contact.candidateName || contact.candidate_name || 'Unknown',\n    email: contact.email || '',\n    phone: contact.phone || '',\n    position: contact.position || '',\n    years_of_exp: Number(contact.yearsOfExp || contact.years_of_exp || d.totalExperienceYears || 0),\n    linkedin: contact.linkedin || '',\n    \n    current_job_title: d.currentJobTitle || '',\n    highest_degree: d.highestDegree || '',\n    degree: d.degree || '',\n    college: d.college || '',\n    city: d.city || '',\n    passout_year: parseInt(d.passoutYear) || null,\n    internship_completed: (String(d.internship || '').toLowerCase().includes('yes') || Boolean(d.internshipCompany)),\n    certifications: d.certifications || '',\n    \n    frontend_skills: normalizeSkillList(d.frontendSkills),\n    frontend_level: d.frontendLevel || '',\n    backend_skills: normalizeSkillList(d.backendSkills),\n    backend_level: d.backendLevel || '',\n    database_skills: normalizeSkillList(d.databaseSkills),\n    database_level: d.databaseLevel || '',\n    ai_ml_skills: normalizeSkillList(d.aiMlSkills),\n    ai_ml_level: d.aiMlLevel || '',\n    cloud_devops: normalizeSkillList(d.cloudDevOps),\n    programming_langs: normalizeSkillList(d.programmingLanguages),\n    notable_projects: d.notableProjects || '',\n    \n    workdrive_file_id: contact.workdriveFileId || contact.workdrive_file_id || null,\n    workdrive_file_name: contact.workdriveFileName || contact.workdrive_file_name || null,\n    source_folder_id: contact.sourceFolderId || contact.source_folder_id || null,\n    processed_folder_id: contact.processedFolderId || contact.processed_folder_id || null\n  }\n};"
       },
       "id": "716c7645-5336-4e47-bf17-3775fc117df5",
       "name": "Normalize Skills",
@@ -434,48 +434,6 @@
       "typeVersion": 2,
       "position": [
         448,
-        560
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const d = $input.item.json;\n\nlet projects = [];\ntry {\n  projects = typeof d.projectDetails === 'string' ? JSON.parse(d.projectDetails) : (d.projectDetails || []);\n} catch(e) { projects = []; }\n\nconst complexityWeights = { 'Enterprise': 10, 'Advanced': 7, 'Intermediate': 4, 'Beginner': 2 };\nconst projectCount = projects.length || Math.min(5, (d.notableProjects || '').split('|').length || 0);\n\nconst totalWeight = projects.reduce((sum, p) => sum + (complexityWeights[p.complexity] || 4), 0);\nconst projectComplexityScore = projectCount > 0\n  ? Math.min(10, Math.round((totalWeight / projectCount) * 10) / 10)\n  : 0;\n\nreturn {\n  json: {\n    ...d,\n    project_count: projectCount,\n    project_complexity_score: projectComplexityScore,\n    projects_parsed: projects\n  }\n};"
-      },
-      "id": "aa9f68cb-30b0-43e7-99ce-ad971665ff48",
-      "name": "Project Complexity Analysis",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        600,
-        560
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const d = $input.item.json;\nconst resumeText = d.resumeText || '';\n\nlet atsScore = 20;\nif (/education|academic/i.test(resumeText)) atsScore += 5;\nif (/experience|internship|projects/i.test(resumeText)) atsScore += 5;\nif (/skills|technologies/i.test(resumeText)) atsScore += 5;\n\nlet contactScore = 5;\nif (d.email) contactScore += 5;\nif (d.phone) contactScore += 5;\n\nconst wordCount = resumeText.split(/\\s+/).length;\nlet lengthScore = wordCount >= 300 && wordCount <= 1200 ? 15 : 8;\n\nconst formattingScore = (resumeText.match(/•|\\*|-/g) || []).length >= 5 ? 15 : 10;\nconst grammarScore = 10;\n\nconst resumeQualityScore = Math.min(100, atsScore + contactScore + lengthScore + formattingScore + grammarScore);\n\nreturn { json: { ...d, resume_quality_score: resumeQualityScore } };"
-      },
-      "id": "895a040b-cdb3-4dd2-a41e-0b25779501d2",
-      "name": "Resume Quality Analysis",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1300,
-        560
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const d = $input.item.json;\nconst c = d.candidate;\nconst jList = d.jds;\n\nconst jdSections = jList.map((j, idx) => `--- JOB DESCRIPTION #${idx + 1} ---\n- jd_id: ${j.jd_id}\n- Title: ${j.title}\n- Department: ${j.department || 'N/A'}\n- Required Skills: ${Array.isArray(j.required_skills) ? j.required_skills.join(', ') : JSON.stringify(j.required_skills || 'None')}\n- Preferred Skills: ${Array.isArray(j.preferred_skills) ? j.preferred_skills.join(', ') : JSON.stringify(j.preferred_skills || 'None')}\n- Experience Required: ${j.experience_min || 0} - ${j.experience_max || 0} years\n- Education Required: ${j.education || 'N/A'}\n- AI Evaluation Guidelines: ${j.ai_prompt || 'None'}`).join('\\n\\n');\n\nconst prompt = `# HireFlow Enterprise AI Candidate Evaluation Prompt\n\nYou are a **Senior Technical Recruiter and Hiring Manager at Virim Infotech** with extensive experience screening software engineers, QA engineers, DevOps engineers, UI/UX designers, AI engineers, data engineers, and other technical professionals.\n\nYour responsibility is to evaluate a candidate **ONLY against the supplied Job Description (JD).**\n\nDo NOT compare the candidate against general industry hiring standards.\n\nDo NOT assume skills that are not explicitly mentioned in the resume.\n\nUse only the evidence available in:\n* Candidate Resume\n* Candidate Skills\n* Candidate Experience\n* Candidate Projects\n* Candidate Education\n* Job Description\n* Recruiter AI Evaluation Instructions\n\n---\n\n# Evaluation Rules\n\nFollow these principles strictly.\n\n## Rule 1\nTreat the Job Description as the source of truth.\nEvery score must be based on how well the candidate matches that specific Job Description.\n\n---\n\n## Rule 2\nOnly use evidence found in the resume.\nNever assume\n* hidden experience\n* hidden skills\n* hidden certifications\n* hidden projects\nIf something is not mentioned, treat it as unavailable.\n\n---\n\n## Rule 3\nDifferentiate between\nMandatory Skills\nPreferred Skills\nNice-to-have Skills\nMissing mandatory skills should reduce the score significantly.\nMissing preferred skills should reduce the score slightly.\nMissing nice-to-have skills should have minimal impact.\n\n---\n\n## Rule 4\nProjects matter.\nIf the candidate demonstrates required technologies through projects, award credit even if they have limited professional experience.\nProjects should influence the Technical Score and Project Score.\n\n---\n\n## Rule 5\nInternships count as experience only when they are relevant to the Job Description.\n\n---\n\n## Rule 6\nEducation should be evaluated based on relevance, not prestige.\nA relevant B.Tech, MCA, BCA, M.Tech, or equivalent should receive appropriate credit.\n\n---\n\n## Rule 7\nUse the Recruiter's AI Evaluation Instructions exactly as provided.\nIf the recruiter specifies\n* prioritize React\n* ignore AWS\n* projects matter more than certifications\nthen follow those instructions.\n\n---\n\n# Inputs\n\n## Active Job Descriptions\n${jdSections}\n\n---\n\n## Candidate\nName\n${c.name || 'Unknown'}\n\nExperience\n${c.experience_years || 0}\n\nEducation\n${c.degree || 'N/A'}\n\nSpecialization\n${c.specialization || 'N/A'}\n\nCollege\n${c.college || 'N/A'}\n\nFrontend Skills\n${c.frontend_skills || 'None'}\n\nBackend Skills\n${c.backend_skills || 'None'}\n\nDatabase Skills\n${c.database_skills || 'None'}\n\nAI Skills\n${c.ai_skills || 'None'}\n\nCloud Skills\n${c.cloud_skills || 'None'}\n\nProgramming Languages\n${c.programming_languages || 'None'}\n\nProjects\n${c.projects || 'None'}\n\nResume\n${c.resume_text || ''}\n\n---\n\n# Scoring Methodology\nEvaluate the candidate using these categories.\n\n## Technical Score (0-100)\nEvaluate\n* Required Skills\n* Preferred Skills\n* Technical depth\n* Technology relevance\n* Framework knowledge\n* Tools\n* Practical implementation\nWeight\n40%\n\n---\n\n## Experience Score (0-100)\nEvaluate\n* Years of experience\n* Relevant experience\n* Internship relevance\n* Role progression\n* Domain relevance\nWeight\n20%\n\n---\n\n## Education Score (0-100)\nEvaluate\n* Degree relevance\n* Specialization\n* Academic alignment\n* Certifications (only if relevant)\nWeight\n10%\n\n---\n\n## Communication Score (0-100)\nEvaluate\n* Resume clarity\n* Organization\n* Professional presentation\n* Communication quality\nWeight\n10%\n\n---\n\n## Project Score (0-100)\nEvaluate\n* Project complexity\n* Technologies used\n* Relevance to the JD\n* Practical implementation\n* Real-world impact\nWeight\n20%\n\n---\n\n# Overall Score\nCalculate\nOverall Score =\n(Technical × 0.40) +\n(Experience × 0.20) +\n(Education × 0.10) +\n(Communication × 0.10) +\n(Project × 0.20)\nRound to the nearest whole number.\n\n---\n\n# Recommendation Rules\n95-100\nStrong Hire\nOutstanding alignment.\n\n90-94\nHire\nExcellent fit.\n\n80-89\nConsider\nGood candidate with some gaps.\n\n70-79\nBorderline\nInterview only if candidate pool is limited.\n\nBelow 70\nReject\nDoes not sufficiently match the Job Description.\n\n---\n\n# Grade Rules\n97-100 → A+\n93-96 → A\n89-92 → B+\n85-88 → B\n75-84 → C\n65-74 → D\nBelow 65 → F\n\n---\n\n# Required Output\nReturn ONLY a valid JSON Array.\nDo NOT include markdown.\nDo NOT include explanations outside the JSON.\nReturn exactly this structure containing one object for each of the JDs listed above:\n[\n  {\n    \"jd_id\": <jd_id from corresponding Job Description>,\n    \"overallScore\": 0,\n    \"technicalScore\": 0,\n    \"experienceScore\": 0,\n    \"educationScore\": 0,\n    \"communicationScore\": 0,\n    \"projectScore\": 0,\n    \"grade\": \"\",\n    \"recommendation\": \"\",\n    \"matchedSkills\": [],\n    \"missingSkills\": [],\n    \"strengths\": [],\n    \"weaknesses\": [],\n    \"summary\": \"\",\n    \"reasoning\": {\n      \"technical\": \"\",\n      \"experience\": \"\",\n      \"education\": \"\",\n      \"communication\": \"\",\n      \"projects\": \"\"\n    }\n  }\n]`;\n\nreturn { json: { ...d, aiPrompt: prompt } };"
-      },
-      "id": "1c7a75ae-8ea4-43b8-92c2-fbefa300821a",
-      "name": "Build Scoring Prompt (/100)",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1440,
         560
       ]
     },
@@ -490,190 +448,9 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
       "position": [
-        1580,
+        1080,
         560
       ],
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "mergeByFields": {
-          "values": [
-            {}
-          ]
-        },
-        "options": {}
-      },
-      "id": "91824dd2-be8d-4ddb-82af-cf561fa0bfae",
-      "name": "Merge AI Results1",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 2.1,
-      "position": [
-        1680,
-        544
-      ]
-    },
-    {
-      "parameters": {
-        "schema": {
-          "__rl": true,
-          "mode": "list",
-          "value": "public"
-        },
-        "table": {
-          "__rl": true,
-          "value": "candidates",
-          "mode": "list",
-          "cachedResultName": "candidates"
-        },
-        "columns": {
-          "mappingMode": "autoMapInputData",
-          "value": {},
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
-            {
-              "id": "submitted_at",
-              "displayName": "submitted_at",
-              "type": "dateTime"
-            },
-            {
-              "id": "processed_at",
-              "displayName": "processed_at",
-              "type": "dateTime"
-            },
-            {
-              "id": "source",
-              "displayName": "source",
-              "type": "string"
-            },
-            {
-              "id": "candidate_name",
-              "displayName": "candidate_name",
-              "type": "string"
-            },
-            {
-              "id": "email",
-              "displayName": "email",
-              "type": "string"
-            },
-            {
-              "id": "phone",
-              "displayName": "phone",
-              "type": "string"
-            },
-            {
-              "id": "position",
-              "displayName": "position",
-              "type": "string"
-            },
-            {
-              "id": "years_of_exp",
-              "displayName": "years_of_exp",
-              "type": "number"
-            },
-            {
-              "id": "linkedin",
-              "displayName": "linkedin",
-              "type": "string"
-            },
-            {
-              "id": "current_job_title",
-              "displayName": "current_job_title",
-              "type": "string"
-            },
-            {
-              "id": "highest_degree",
-              "displayName": "highest_degree",
-              "type": "string"
-            },
-            {
-              "id": "degree",
-              "displayName": "degree",
-              "type": "string"
-            },
-            {
-              "id": "college",
-              "displayName": "college",
-              "type": "string"
-            },
-            {
-              "id": "city",
-              "displayName": "city",
-              "type": "string"
-            },
-            {
-              "id": "passout_year",
-              "displayName": "passout_year",
-              "type": "number"
-            },
-            {
-              "id": "internship_completed",
-              "displayName": "internship_completed",
-              "type": "boolean"
-            },
-            {
-              "id": "certifications",
-              "displayName": "certifications",
-              "type": "string"
-            },
-            {
-              "id": "frontend_skills",
-              "displayName": "frontend_skills",
-              "type": "string"
-            },
-            {
-              "id": "backend_skills",
-              "displayName": "backend_skills",
-              "type": "string"
-            },
-            {
-              "id": "database_skills",
-              "displayName": "database_skills",
-              "type": "string"
-            },
-            {
-              "id": "ai_ml_skills",
-              "displayName": "ai_ml_skills",
-              "type": "string"
-            },
-            {
-              "id": "cloud_devops",
-              "displayName": "cloud_devops",
-              "type": "string"
-            },
-            {
-              "id": "programming_langs",
-              "displayName": "programming_langs",
-              "type": "string"
-            },
-            {
-              "id": "notable_projects",
-              "displayName": "notable_projects",
-              "type": "string"
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "id": "c1389f8c-d960-4576-96ec-aa41f5f0ed9c",
-      "name": "Save Candidate — PostgreSQL",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.5,
-      "position": [
-        880,
-        560
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "OFGnvKVUjTZr2d4j",
-          "name": "Postgres account"
-        }
-      },
       "onError": "continueRegularOutput"
     },
     {
@@ -915,17 +692,236 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const d = $input.item.json || {};\n\nconst clean = (v) => String(v ?? '').trim();\nconst pickStr = (...vals) => {\n  const found = vals.map(clean).find(v => v && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none' && v !== 'undefined');\n  return found || '';\n};\n\nreturn {\n  json: {\n    submitted_at: pickStr(d.submittedAt, d.submitted_at) || new Date().toISOString(),\n    processed_at: new Date().toISOString(),\n    source: pickStr(d.source) || 'unknown',\n\n    candidate_name: pickStr(d.candidateName, d.candidate_name) || 'Unknown',\n    email: pickStr(d.email) || '',\n    phone: pickStr(d.phone) || '',\n    position: pickStr(d.position) || '',\n    years_of_exp: Number(d.totalExperienceYears || d.yearsOfExp || d.years_of_exp || 0),\n    linkedin: pickStr(d.linkedin) || '',\n    current_job_title: pickStr(d.currentJobTitle, d.current_job_title) || '',\n    highest_degree: pickStr(d.highestDegree, d.degree, d.highest_degree) || '',\n    degree: pickStr(d.degree, d.highestDegree) || '',\n    college: pickStr(d.college) || '',\n    city: pickStr(d.city) || '',\n    passout_year: parseInt(d.passoutYear || d.passout_year) || null,\n    internship_completed: (pickStr(d.internship).toLowerCase().includes('yes') || Boolean(d.internshipCompany) || d.internship_completed === true),\n    certifications: pickStr(d.certifications) || '',\n\n    frontend_skills: pickStr(d.frontendSkills, d.frontend_skills) || '',\n    frontend_level: pickStr(d.frontendLevel, d.frontend_level) || '',\n    backend_skills: pickStr(d.backendSkills, d.backend_skills) || '',\n    backend_level: pickStr(d.backendLevel, d.backend_level) || '',\n    database_skills: pickStr(d.databaseSkills, d.database_skills) || '',\n    database_level: pickStr(d.databaseLevel, d.database_level) || '',\n    ai_ml_skills: pickStr(d.aiMlSkills, d.ai_ml_skills) || '',\n    ai_ml_level: pickStr(d.aiMlLevel, d.ai_ml_level) || '',\n    cloud_devops: pickStr(d.cloudDevOps, d.cloud_devops) || '',\n    programming_langs: pickStr(d.programmingLanguages, d.programming_langs) || '',\n    notable_projects: pickStr(d.notableProjects, d.notable_projects) || '',\n\n    workdrive_file_id: pickStr(d.workdrive_file_id, d.workdriveFileId) || null,\n    workdrive_file_name: pickStr(d.workdrive_file_name, d.workdriveFileName, d.fileName) || null,\n    source_folder_id: pickStr(d.source_folder_id, d.sourceFolderId) || null,\n    processed_folder_id: pickStr(d.processed_folder_id, d.processedFolderId) || null\n  }\n};"
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "candidates",
+          "mode": "list",
+          "cachedResultName": "candidates"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "submitted_at": "={{ $json.submitted_at || new Date().toISOString() }}",
+            "processed_at": "={{ $json.processed_at || new Date().toISOString() }}",
+            "source": "={{ $json.source || \"unknown\" }}",
+            "candidate_name": "={{ $json.candidate_name || \"Unknown\" }}",
+            "email": "={{ $json.email || \"\" }}",
+            "phone": "={{ $json.phone || \"\" }}",
+            "position": "={{ $json.position || \"\" }}",
+            "years_of_exp": "={{ Number($json.years_of_exp || 0) }}",
+            "linkedin": "={{ $json.linkedin || \"\" }}",
+            "current_job_title": "={{ $json.current_job_title || \"\" }}",
+            "highest_degree": "={{ $json.highest_degree || \"\" }}",
+            "degree": "={{ $json.degree || \"\" }}",
+            "college": "={{ $json.college || \"\" }}",
+            "city": "={{ $json.city || \"\" }}",
+            "passout_year": "={{ parseInt($json.passout_year) || null }}",
+            "internship_completed": "={{ Boolean($json.internship_completed) }}",
+            "certifications": "={{ $json.certifications || \"\" }}",
+            "frontend_skills": "={{ $json.frontend_skills || \"\" }}",
+            "frontend_level": "={{ $json.frontend_level || \"\" }}",
+            "backend_skills": "={{ $json.backend_skills || \"\" }}",
+            "backend_level": "={{ $json.backend_level || \"\" }}",
+            "database_skills": "={{ $json.database_skills || \"\" }}",
+            "database_level": "={{ $json.database_level || \"\" }}",
+            "ai_ml_skills": "={{ $json.ai_ml_skills || \"\" }}",
+            "ai_ml_level": "={{ $json.ai_ml_level || \"\" }}",
+            "cloud_devops": "={{ $json.cloud_devops || \"\" }}",
+            "programming_langs": "={{ $json.programming_langs || \"\" }}",
+            "notable_projects": "={{ $json.notable_projects || \"\" }}",
+            "workdrive_file_id": "={{ $json.workdrive_file_id || null }}",
+            "workdrive_file_name": "={{ $json.workdrive_file_name || null }}",
+            "source_folder_id": "={{ $json.source_folder_id || null }}",
+            "processed_folder_id": "={{ $json.processed_folder_id || null }}"
+          },
+          "matchingColumns": [
+            "email"
+          ],
+          "schema": [
+            {
+              "id": "submitted_at",
+              "displayName": "submitted_at",
+              "type": "dateTime"
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "type": "dateTime"
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "type": "string"
+            },
+            {
+              "id": "candidate_name",
+              "displayName": "candidate_name",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "type": "string"
+            },
+            {
+              "id": "position",
+              "displayName": "position",
+              "type": "string"
+            },
+            {
+              "id": "years_of_exp",
+              "displayName": "years_of_exp",
+              "type": "number"
+            },
+            {
+              "id": "linkedin",
+              "displayName": "linkedin",
+              "type": "string"
+            },
+            {
+              "id": "current_job_title",
+              "displayName": "current_job_title",
+              "type": "string"
+            },
+            {
+              "id": "highest_degree",
+              "displayName": "highest_degree",
+              "type": "string"
+            },
+            {
+              "id": "degree",
+              "displayName": "degree",
+              "type": "string"
+            },
+            {
+              "id": "college",
+              "displayName": "college",
+              "type": "string"
+            },
+            {
+              "id": "city",
+              "displayName": "city",
+              "type": "string"
+            },
+            {
+              "id": "passout_year",
+              "displayName": "passout_year",
+              "type": "number"
+            },
+            {
+              "id": "internship_completed",
+              "displayName": "internship_completed",
+              "type": "boolean"
+            },
+            {
+              "id": "certifications",
+              "displayName": "certifications",
+              "type": "string"
+            },
+            {
+              "id": "frontend_skills",
+              "displayName": "frontend_skills",
+              "type": "string"
+            },
+            {
+              "id": "frontend_level",
+              "displayName": "frontend_level",
+              "type": "string"
+            },
+            {
+              "id": "backend_skills",
+              "displayName": "backend_skills",
+              "type": "string"
+            },
+            {
+              "id": "backend_level",
+              "displayName": "backend_level",
+              "type": "string"
+            },
+            {
+              "id": "database_skills",
+              "displayName": "database_skills",
+              "type": "string"
+            },
+            {
+              "id": "database_level",
+              "displayName": "database_level",
+              "type": "string"
+            },
+            {
+              "id": "ai_ml_skills",
+              "displayName": "ai_ml_skills",
+              "type": "string"
+            },
+            {
+              "id": "ai_ml_level",
+              "displayName": "ai_ml_level",
+              "type": "string"
+            },
+            {
+              "id": "cloud_devops",
+              "displayName": "cloud_devops",
+              "type": "string"
+            },
+            {
+              "id": "programming_langs",
+              "displayName": "programming_langs",
+              "type": "string"
+            },
+            {
+              "id": "notable_projects",
+              "displayName": "notable_projects",
+              "type": "string"
+            },
+            {
+              "id": "workdrive_file_id",
+              "displayName": "workdrive_file_id",
+              "type": "string"
+            },
+            {
+              "id": "workdrive_file_name",
+              "displayName": "workdrive_file_name",
+              "type": "string"
+            },
+            {
+              "id": "source_folder_id",
+              "displayName": "source_folder_id",
+              "type": "string"
+            },
+            {
+              "id": "processed_folder_id",
+              "displayName": "processed_folder_id",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "n871d956-bbd9-4fcd-a29e-b24d97f8ed47",
-      "name": "Normalize Candidate — PostgreSQL",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "id": "c1389f8c-d960-4576-96ec-aa41f5f0ed9c",
+      "name": "Save Candidate — PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
       "position": [
-        740,
+        600,
         560
-      ]
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "OFGnvKVUjTZr2d4j",
+          "name": "Postgres account"
+        }
+      }
     },
     {
       "parameters": {
@@ -937,7 +933,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        1020,
+        760,
         560
       ],
       "credentials": {
@@ -950,28 +946,28 @@
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const jds = $input.all().map(item => item.json);\nconst c = $('Save Candidate — PostgreSQL').first().json;\n\nreturn {\n  json: {\n    candidate: {\n      id: c.id,\n      name: c.candidate_name,\n      email: c.email,\n      phone: c.phone || '',\n      position: c.position || '',\n      experience_years: c.years_of_exp || 0,\n      degree: c.degree || '',\n      specialization: c.specialization || '',\n      college: c.college || '',\n      frontend_skills: c.frontend_skills || '',\n      backend_skills: c.backend_skills || '',\n      database_skills: c.database_skills || '',\n      ai_skills: c.ai_ml_skills || '',\n      cloud_skills: c.cloud_devops || '',\n      programming_languages: c.programming_langs || '',\n      projects: c.notable_projects || '',\n      resume_text: c.resumeText || c.resume_text || ''\n    },\n    jds: jds.map(jd => ({\n      jd_id: jd.id,\n      title: jd.title,\n      department: jd.department,\n      employment_type: jd.employment_type,\n      work_mode: jd.work_mode,\n      location: jd.location,\n      experience_min: jd.experience_min,\n      experience_max: jd.experience_max,\n      education: jd.education,\n      required_skills: jd.required_skills,\n      preferred_skills: jd.preferred_skills,\n      responsibilities: jd.responsibilities,\n      requirements: jd.requirements,\n      nice_to_have: jd.nice_to_have,\n      ai_prompt: jd.ai_prompt\n    }))\n  }\n};"
+        "jsCode": "// 1. Retrieve all JDs\nconst jds = $input.all().map(item => item.json);\n\n// 2. Retrieve Candidate ID from PostgreSQL Insert returning row\nconst saveCandidateNode = $('Save Candidate — PostgreSQL').first().json;\n\n// 3. Retrieve Candidate Profile Data + Resume Text from Normalize Skills output\nconst c = $('Normalize Skills').first().json;\n\nconst jdSections = jds.map((j, idx) => `--- JOB DESCRIPTION #${idx + 1} ---\n- jd_id: ${j.id}\n- Title: ${j.title}\n- Department: ${j.department || 'N/A'}\n- Required Skills: ${Array.isArray(j.required_skills) ? j.required_skills.join(', ') : JSON.stringify(j.required_skills || 'None')}\n- Preferred Skills: ${Array.isArray(j.preferred_skills) ? j.preferred_skills.join(', ') : JSON.stringify(j.preferred_skills || 'None')}\n- Experience Required: ${j.experience_min || 0} - ${j.experience_max || 0} years\n- Education Required: ${j.education || 'N/A'}\n- AI Evaluation Guidelines: ${j.ai_prompt || 'None'}`).join('\\n\\n');\n\nconst prompt = `# HireFlow Enterprise AI Candidate Evaluation Prompt\n\nYou are a **Senior Technical Recruiter and Hiring Manager at Virim Infotech** with extensive experience screening software engineers, QA engineers, DevOps engineers, UI/UX designers, AI engineers, data engineers, and other technical professionals.\n\nYour responsibility is to evaluate a candidate **ONLY against the supplied Job Description (JD).**\n\nDo NOT compare the candidate against general industry hiring standards.\n\nDo NOT assume skills that are not explicitly mentioned in the resume.\n\nUse only the evidence available in:\n* Candidate Resume\n* Candidate Skills\n* Candidate Experience\n* Candidate Projects\n* Candidate Education\n* Job Description\n* Recruiter AI Evaluation Instructions\n\n---\n\n# Evaluation Rules\n\nFollow these principles strictly.\n\n## Rule 1\nTreat the Job Description as the source of truth.\nEvery score must be based on how well the candidate matches that specific Job Description.\n\n---\n\n## Rule 2\nOnly use evidence found in the resume.\nNever assume\n* hidden experience\n* hidden skills\n* hidden certifications\n* hidden projects\nIf something is not mentioned, treat it as unavailable.\n\n---\n\n## Rule 3\nDifferentiate between\nMandatory Skills\nPreferred Skills\nNice-to-have Skills\nMissing mandatory skills should reduce the score significantly.\nMissing preferred skills should reduce the score slightly.\nMissing nice-to-have skills should have minimal impact.\n\n---\n\n## Rule 4\nProjects matter.\nIf the candidate demonstrates required technologies through projects, award credit even if they have limited professional experience.\nProjects should influence the Technical Score and Project Score.\n\n---\n\n## Rule 5\nInternships count as experience only when they are relevant to the Job Description.\n\n---\n\n## Rule 6\nEducation should be evaluated based on relevance, not prestige.\nA relevant B.Tech, MCA, BCA, M.Tech, or equivalent should receive appropriate credit.\n\n---\n\n## Rule 7\nUse the Recruiter's AI Evaluation Instructions exactly as provided.\nIf the recruiter specifies\n* prioritize React\n* ignore AWS\n* projects matter more than certifications\nthen follow those instructions.\n\n---\n\n# Inputs\n\n## Active Job Descriptions\n${jdSections}\n\n---\n\n## Candidate\nName: ${c.candidateName || c.candidate_name || 'Unknown'}\nExperience: ${c.yearsOfExp || c.years_of_exp || 0} years\nEducation: ${c.degree || 'N/A'}\nSpecialization: ${c.specialization || 'N/A'}\nCollege: ${c.college || 'N/A'}\nFrontend Skills: ${c.frontendSkills || 'None'}\nBackend Skills: ${c.backendSkills || 'None'}\nDatabase Skills: ${c.databaseSkills || 'None'}\nAI Skills: ${c.aiMlSkills || 'None'}\nCloud Skills: ${c.cloudDevOps || 'None'}\nProgramming Languages: ${c.programmingLanguages || 'None'}\nProjects: ${c.notableProjects || 'None'}\n\nResume Content:\n${c.resumeText || ''}\n\n---\n\n# Scoring Methodology\nEvaluate the candidate using these categories.\n\n## Technical Score (0-100)\nEvaluate\n* Required Skills\n* Preferred Skills\n* Technical depth\n* Technology relevance\n* Framework knowledge\n* Tools\n* Practical implementation\nWeight\n40%\n\n---\n\n## Experience Score (0-100)\nEvaluate\n* Years of experience\n* Relevant experience\n* Internship relevance\n* Role progression\n* Domain relevance\nWeight\n20%\n\n---\n\n## Education Score (0-100)\nEvaluate\n* Degree relevance\n* Specialization\n* Academic alignment\n* Certifications (only if relevant)\nWeight\n10%\n\n---\n\n## Communication Score (0-100)\nEvaluate\n* Resume clarity\n* Organization\n* Professional presentation\n* Communication quality\nWeight\n10%\n\n---\n\n## Project Score (0-100)\nEvaluate\n* Project complexity\n* Technologies used\n* Relevance to the JD\n* Practical implementation\n* Real-world impact\nWeight\n20%\n\n---\n\n# Overall Score\nCalculate\nOverall Score =\n(Technical × 0.40) +\n(Experience × 0.20) +\n(Education × 0.10) +\n(Communication × 0.10) +\n(Project × 0.20)\nRound to the nearest whole number.\n\n---\n\n# Recommendation Rules\n95-100\nStrong Hire\nOutstanding alignment.\n\n90-94\nHire\nExcellent fit.\n\n80-89\nConsider\nGood candidate with some gaps.\n\n70-79\nBorderline\nInterview only if candidate pool is limited.\n\nBelow 70\nReject\nDoes not sufficiently match the Job Description.\n\n---\n\n# Grade Rules\n97-100 → A+\n93-96 → A\n89-92 → B+\n85-88 → B\n75-84 → C\n65-74 → D\nBelow 65 → F\n\n---\n\n# Required Output\nReturn ONLY a valid JSON Array.\nDo NOT include markdown.\nDo NOT include explanations outside the JSON.\nReturn exactly this structure containing one object for each of the JDs listed above:\n[\n  {\n    \"jd_id\": <jd_id from corresponding Job Description>,\n    \"overallScore\": 0,\n    \"technicalScore\": 0,\n    \"experienceScore\": 0,\n    \"educationScore\": 0,\n    \"communicationScore\": 0,\n    \"projectScore\": 0,\n    \"grade\": \"\",\n    \"recommendation\": \"\",\n    \"matchedSkills\": [],\n    \"missingSkills\": [],\n    \"strengths\": [],\n    \"weaknesses\": [],\n    \"summary\": \"\",\n    \"reasoning\": {\n      \"technical\": \"\",\n      \"experience\": \"\",\n      \"education\": \"\",\n      \"communication\": \"\",\n      \"projects\": \"\"\n    }\n  }\n]`;\n\nreturn {\n  json: {\n    candidate_id: saveCandidateNode.id,\n    aiPrompt: prompt\n  }\n};"
       },
       "id": "c871d956-bbd9-4fcd-a29e-b24d97f8ed43",
-      "name": "Prepare AI Context",
+      "name": "Build Context & Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1160,
+        920,
         560
       ]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const d = $input.first().json || {};\n\n// Retrieve the context from Prepare AI Context\nlet context = {};\ntry {\n  context = $('Prepare AI Context').first().json || {};\n} catch (e) {\n  context = {};\n}\n\n// Retrieve candidate details with fallback to Save Candidate node\nlet c = context.candidate || {};\nif (!c.id) {\n  try {\n    c = $('Save Candidate — PostgreSQL').first().json || {};\n  } catch (e) {\n    c = {};\n  }\n}\n\n// Retrieve JD details with fallback to Fetch Active JDs or Pre-filled JD\nlet j = context.jd || {};\nif (!j.jd_id) {\n  try {\n    const fetchJds = $('Fetch Active JDs').first().json || {};\n    j = { jd_id: fetchJds.id || fetchJds.jd_id };\n  } catch (e) {\n    try {\n      const prefilledJd = $('Pre-filled JD').first().json || {};\n      j = { jd_id: prefilledJd.id || prefilledJd.jd_id || 1 };\n    } catch (err) {\n      j = { jd_id: 1 };\n    }\n  }\n}\n\n// Locate the raw response text from the LLM node\nconst rawResponse = d.text || d.output || d.response?.text || (d.choices || [])[0]?.message?.content;\n\nlet parsedList = [];\nif (rawResponse) {\n  try {\n    const cleaned = String(rawResponse)\n      .replace(/\\`\\`\\`json\\s*/gi, '')\n      .replace(/\\`\\`\\`\\s*/g, '')\n      .replace(/^[^{\\[]*/, '')\n      .replace(/[^}\\]]*$/, '');\n    parsedList = JSON.parse(cleaned);\n  } catch (e) {\n    parsedList = [];\n  }\n}\n\nif (!Array.isArray(parsedList)) {\n  parsedList = [parsedList];\n}\n\n// Helper function to pick key variations case-insensitively\nconst getVal = (obj, keys, defaultValue) => {\n  for (const key of keys) {\n    if (obj[key] !== undefined) return obj[key];\n    const foundKey = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());\n    if (foundKey) return obj[foundKey];\n  }\n  return defaultValue;\n};\n\n// Helper to normalize array formats\nconst getArrayVal = (obj, keys) => {\n  const val = getVal(obj, keys, []);\n  if (Array.isArray(val)) return val;\n  if (typeof val === 'string') {\n    return val.split(',').map(s => s.trim()).filter(Boolean);\n  }\n  return [];\n};\n\n// Return parsed matching array as separate n8n items\nreturn parsedList.map(evalObj => {\n  const jd_id = Number(getVal(evalObj, ['jd_id', 'jdId'], j.jd_id || 1));\n  const overall_score = Number(getVal(evalObj, ['overallScore', 'overall_score'], 0));\n  const technical_score = Number(getVal(evalObj, ['technicalScore', 'technical_score'], 0));\n  const experience_score = Number(getVal(evalObj, ['experienceScore', 'experience_score'], 0));\n  const education_score = Number(getVal(evalObj, ['educationScore', 'education_score'], 0));\n  const communication_score = Number(getVal(evalObj, ['communicationScore', 'communication_score'], 0));\n  const project_score = Number(getVal(evalObj, ['projectScore', 'project_score'], 0));\n\n  const recommendation = String(getVal(evalObj, ['recommendation'], 'Consider'));\n  const grade = String(getVal(evalObj, ['grade'], 'B'));\n\n  const matched_skills = getArrayVal(evalObj, ['matchedSkills', 'matched_skills']);\n  const missing_skills = getArrayVal(evalObj, ['missingSkills', 'missing_skills']);\n  const strengths = getArrayVal(evalObj, ['strengths']);\n  const weaknesses = getArrayVal(evalObj, ['weaknesses']);\n  const summary = String(getVal(evalObj, ['summary'], ''));\n\n  return {\n    json: {\n      candidate_id: Number(c.id || c.candidate_id || 1),\n      jd_id,\n      overall_score,\n      technical_score,\n      experience_score,\n      education_score,\n      communication_score,\n      project_score,\n      recommendation,\n      grade,\n      matched_skills: JSON.stringify(matched_skills),\n      missing_skills: JSON.stringify(missing_skills),\n      strengths,\n      weaknesses,\n      summary,\n      status: 'Completed',\n      scored_at: new Date().toISOString()\n    }\n  };\n});"
+        "jsCode": "const d = $input.first().json || {};\nconst buildContext = $('Build Context & Prompt').first().json || {};\nconst candidateId = Number(buildContext.candidate_id || 1);\n\nconst rawResponse = d.text || d.output || d.response?.text || (d.choices || [])[0]?.message?.content;\n\nlet parsedList = [];\nif (rawResponse) {\n  try {\n    const cleaned = String(rawResponse)\n      .replace(/\\`\\`\\`json\\s*/gi, '')\n      .replace(/\\`\\`\\`\\s*/g, '')\n      .replace(/^[^{\\[]*/, '')\n      .replace(/[^}\\]]*$/, '');\n    parsedList = JSON.parse(cleaned);\n  } catch (e) {\n    parsedList = [];\n  }\n}\n\nif (!Array.isArray(parsedList)) {\n  parsedList = [parsedList];\n}\n\nconst getVal = (obj, keys, defaultValue) => {\n  for (const key of keys) {\n    if (obj[key] !== undefined) return obj[key];\n    const foundKey = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());\n    if (foundKey) return obj[foundKey];\n  }\n  return defaultValue;\n};\n\nconst getArrayVal = (obj, keys) => {\n  const val = getVal(obj, keys, []);\n  if (Array.isArray(val)) return val;\n  if (typeof val === 'string') {\n    return val.split(',').map(s => s.trim()).filter(Boolean);\n  }\n  return [];\n};\n\nreturn parsedList.map(evalObj => {\n  const jd_id = Number(getVal(evalObj, ['jd_id', 'jdId'], 1));\n  const overall_score = Number(getVal(evalObj, ['overallScore', 'overall_score'], 0));\n  const technical_score = Number(getVal(evalObj, ['technicalScore', 'technical_score'], 0));\n  const experience_score = Number(getVal(evalObj, ['experienceScore', 'experience_score'], 0));\n  const education_score = Number(getVal(evalObj, ['educationScore', 'education_score'], 0));\n  const communication_score = Number(getVal(evalObj, ['communicationScore', 'communication_score'], 0));\n  const project_score = Number(getVal(evalObj, ['projectScore', 'project_score'], 0));\n\n  const recommendation = String(getVal(evalObj, ['recommendation'], 'Consider'));\n  const grade = String(getVal(evalObj, ['grade'], 'B'));\n\n  const matched_skills = getArrayVal(evalObj, ['matchedSkills', 'matched_skills']);\n  const missing_skills = getArrayVal(evalObj, ['missingSkills', 'missing_skills']);\n  const strengths = getArrayVal(evalObj, ['strengths']);\n  const weaknesses = getArrayVal(evalObj, ['weaknesses']);\n  \n  // Format summary from reasoning sections\n  const reasoning = evalObj.reasoning || {};\n  const explanation = String(getVal(evalObj, ['summary'], '')) || \n    `Tech Alignment: ${reasoning.technical || 'N/A'}. Experience Alignment: ${reasoning.experience || 'N/A'}.`;\n\n  return {\n    json: {\n      candidate_id: candidateId,\n      jd_id,\n      overall_score,\n      technical_score,\n      experience_score,\n      education_score,\n      communication_score,\n      project_score,\n      recommendation,\n      grade,\n      matched_skills: JSON.stringify(matched_skills),\n      missing_skills: JSON.stringify(missing_skills),\n      strengths,\n      weaknesses,\n      summary: explanation,\n      status: 'Completed',\n      scored_at: new Date().toISOString()\n    }\n  };\n});"
       },
       "id": "n871d956-bbd9-4fcd-a29e-b24d97f8ed45",
       "name": "Normalize AI Output",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1720,
+        1240,
         560
       ]
     },
@@ -1091,7 +1087,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        1860,
+        1400,
         560
       ],
       "credentials": {
@@ -1263,40 +1259,7 @@
       "main": [
         [
           {
-            "node": "Project Complexity Analysis",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Project Complexity Analysis": {
-      "main": [
-        [
-          {
-            "node": "Normalize Candidate — PostgreSQL",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Resume Quality Analysis": {
-      "main": [
-        [
-          {
-            "node": "Build Scoring Prompt (/100)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Scoring Prompt (/100)": {
-      "main": [
-        [
-          {
-            "node": "Remote AI — OpenRouter",
+            "node": "Save Candidate — PostgreSQL",
             "type": "main",
             "index": 0
           }
@@ -1308,28 +1271,6 @@
         [
           {
             "node": "Normalize AI Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge AI Results1": {
-      "main": [
-        [
-          {
-            "node": "Parse & Average Scores (/100)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save Candidate — PostgreSQL": {
-      "main": [
-        [
-          {
-            "node": "Fetch Active JDs",
             "type": "main",
             "index": 0
           }
@@ -1435,11 +1376,11 @@
         ]
       ]
     },
-    "Normalize Candidate — PostgreSQL": {
+    "Save Candidate — PostgreSQL": {
       "main": [
         [
           {
-            "node": "Save Candidate — PostgreSQL",
+            "node": "Fetch Active JDs",
             "type": "main",
             "index": 0
           }
@@ -1450,18 +1391,18 @@
       "main": [
         [
           {
-            "node": "Prepare AI Context",
+            "node": "Build Context & Prompt",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare AI Context": {
+    "Build Context & Prompt": {
       "main": [
         [
           {
-            "node": "Resume Quality Analysis",
+            "node": "Remote AI — OpenRouter",
             "type": "main",
             "index": 0
           }

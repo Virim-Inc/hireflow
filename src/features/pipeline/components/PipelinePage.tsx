@@ -413,9 +413,9 @@ export function PipelinePage() {
                             </div>
                           </div>
 
-                          <span className={`hf-score-pill ${scoreClass(candidate.total_score)}`}>
+                          <span className={`hf-score-pill ${scoreClass(candidate.best_score ?? 0)}`}>
                             <span className="hf-score-dot" />
-                            {candidate.total_score}
+                            {candidate.best_score ?? 0}
                           </span>
                         </div>
 

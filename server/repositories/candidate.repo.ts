@@ -13,7 +13,7 @@ import { isPipelineStage } from '../types/candidate.types.js';
 // ── SQL constants ─────────────────────────────────────────────────────────────
 
 export const POSITION_EXPR =
-  "COALESCE(NULLIF(TRIM(position), ''), NULLIF(TRIM(jd_title), ''), 'Unassigned role')";
+  "COALESCE(NULLIF(TRIM(position), ''), 'Unassigned role')";
 
 export const SELECT_COLUMNS = `
   id, submitted_at, processed_at, source,
@@ -25,13 +25,9 @@ export const SELECT_COLUMNS = `
   database_skills, database_level,
   ai_ml_skills, ai_ml_level,
   cloud_devops, programming_langs, notable_projects,
-  jd_title, jd_company,
-  total_score, frontend_score, backend_score,
-  database_score, ai_ml_score, exp_score, soft_score,
-  grade, recommendation, is_qualified,
-  summary, strengths, weaknesses,
-  frontend_feedback, backend_feedback, database_feedback,
-  ai_ml_feedback, hiring_note,
+  (SELECT MAX(overall_score) FROM candidate_job_matches WHERE candidate_id = candidates.id) AS best_score,
+  (SELECT recommendation FROM candidate_job_matches WHERE candidate_id = candidates.id ORDER BY overall_score DESC LIMIT 1) AS best_recommendation,
+  (SELECT grade FROM candidate_job_matches WHERE candidate_id = candidates.id ORDER BY overall_score DESC LIMIT 1) AS best_grade,
   workdrive_file_id, workdrive_file_name,
   source_folder_id, processed_folder_id,
   pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
@@ -41,10 +37,11 @@ export const SELECT_COLUMNS = `
 export const SORT_COLUMNS: Record<string, string> = {
   processed_at: 'processed_at',
   submitted_at: 'submitted_at',
-  total_score: 'total_score',
+  total_score: 'best_score',
+  best_score: 'best_score',
   candidate_name: 'candidate_name',
-  grade: 'grade',
-  recommendation: 'recommendation',
+  grade: 'best_grade',
+  recommendation: 'best_recommendation',
   position: 'position_label',
   years_of_exp: 'years_of_exp',
   pipeline_stage: 'pipeline_stage',
@@ -66,17 +63,15 @@ export function buildWhereClause(query: CandidatesQuery): {
       candidate_name ILIKE $${idx}
       OR email ILIKE $${idx}
       OR position ILIKE $${idx}
-      OR jd_title ILIKE $${idx}
       OR frontend_skills ILIKE $${idx}
       OR backend_skills ILIKE $${idx}
-      OR summary ILIKE $${idx}
     )`);
     params.push(`%${query.search}%`);
     idx++;
   }
 
   if (query.grade) {
-    where.push(`grade = $${idx}`);
+    where.push(`EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND grade = $${idx})`);
     params.push(query.grade);
     idx++;
   }
@@ -98,15 +93,15 @@ export function buildWhereClause(query: CandidatesQuery): {
   }
 
   if (query.recommendation) {
-    where.push(`recommendation ILIKE $${idx}`);
+    where.push(`EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND recommendation ILIKE $${idx})`);
     params.push(`%${query.recommendation}%`);
     idx++;
   }
 
   if (query.qualified === 'true') {
-    where.push('is_qualified = true');
+    where.push(`EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= 50)`);
   } else if (query.qualified === 'false') {
-    where.push('is_qualified = false');
+    where.push(`NOT EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= 50)`);
   }
 
   if (isPipelineStage(query.stage)) {
@@ -160,9 +155,9 @@ export function buildWhereClause(query: CandidatesQuery): {
     idx++;
   }
 
-  const minScore = parseFloat(query.min_score);
-  if (minScore !== null) {
-    where.push(`total_score >= $${idx}`);
+  const minScore = parseFloat(query.min_score || '');
+  if (minScore !== null && !isNaN(minScore as any)) {
+    where.push(`EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= $${idx})`);
     params.push(minScore);
     idx++;
   }

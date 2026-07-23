@@ -898,8 +898,8 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                         <p>{candidate.position_label}</p>
                       </div>
                     </div>
-                    <div className={`hf-score-pill ${scoreClass(candidate.total_score)}`}>
-                      {candidate.total_score}
+                    <div className={`hf-score-pill ${scoreClass(candidate.best_score ?? 0)}`}>
+                      {candidate.best_score ?? 0}
                     </div>
                   </div>
 
@@ -907,8 +907,8 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                     <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`}>
                       {getStageLabel(candidate.pipeline_stage)}
                     </span>
-                    <span className={`hf-rec-badge ${recommendationClass(candidate.recommendation)}`}>
-                      {candidate.recommendation || 'Pending review'}
+                    <span className={`hf-rec-badge ${recommendationClass(candidate.best_recommendation ?? '')}`}>
+                      {candidate.best_recommendation || 'Pending review'}
                     </span>
                     <span className={`hf-source-badge ${sourceClass(candidate.source)}`}>
                       {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 'Form'}
@@ -961,11 +961,15 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   <div className="hf-card-stats">
                     <div><span>Submitted</span><strong>{formatDate(candidate.submitted_at)}</strong></div>
                     <div><span>Experience</span><strong>{candidate.years_of_exp} yrs</strong></div>
-                    <div><span>Grade</span><strong>{candidate.grade}</strong></div>
-                    <div><span>Qualified</span><strong>{candidate.is_qualified ? 'Yes' : 'No'}</strong></div>
+                    <div><span>Grade</span><strong>{candidate.best_grade || '-'}</strong></div>
+                    <div><span>Qualified</span><strong>{(candidate.best_score ?? 0) >= 50 ? 'Yes' : 'No'}</strong></div>
                   </div>
 
-                  <p className="hf-card-summary">{candidate.summary || 'Open to inspect AI assessment and resume fit details.'}</p>
+                  <p className="hf-card-summary">
+                    {Object.keys(candidate.jd_matches || {}).length > 0 
+                      ? `Evaluated against ${Object.keys(candidate.jd_matches || {}).length} active job role${Object.keys(candidate.jd_matches || {}).length > 1 ? 's' : ''}.`
+                      : 'Open to inspect AI assessment and resume fit details.'}
+                  </p>
 
                   <div className="hf-tag-row">
                     {visibleSkills.length ? (
@@ -1023,6 +1027,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
           history={history}
           historyLoading={historyLoading}
           updating={updatingId === selected.id}
+          jds={jds}
           onClose={() => setSelected(null)}
           onMoveStage={(stage, note) => handleStageMove(selected, stage, note)}
         />

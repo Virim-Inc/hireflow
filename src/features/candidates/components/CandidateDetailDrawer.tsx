@@ -168,23 +168,36 @@ export function CandidateDetailDrawer({
   const isGlobal = selectedJdId === 'global';
   const activeMatch = !isGlobal ? candidate.jd_matches?.[selectedJdId] : null;
 
-  const displayScore = activeMatch ? Math.round(Number(activeMatch.overall_score)) : candidate.total_score;
-  const displayRecommendation = activeMatch ? activeMatch.recommendation : candidate.recommendation;
-  const displayGrade = activeMatch ? activeMatch.grade : candidate.grade;
-  const displaySummary = activeMatch ? activeMatch.summary : candidate.summary;
+  const displayScore = activeMatch ? Math.round(Number(activeMatch.overall_score)) : (candidate.best_score ?? 0);
+  const displayRecommendation = activeMatch ? activeMatch.recommendation : (candidate.best_recommendation ?? 'Pending review');
+  const displayGrade = activeMatch ? activeMatch.grade : (candidate.best_grade ?? '-');
+  const displaySummary = activeMatch ? activeMatch.summary : (candidate.best_recommendation ? `Awaiting detailed evaluation. Best match role recommendation: ${candidate.best_recommendation}` : 'No AI matching details evaluated yet.');
 
   const strengths = activeMatch
     ? (Array.isArray(activeMatch.strengths) ? activeMatch.strengths : splitValues(activeMatch.strengths))
-    : splitValues(candidate.strengths);
+    : Object.values(candidate.jd_matches || {}).flatMap(m => Array.isArray(m.strengths) ? m.strengths : splitValues(m.strengths)).filter((v, i, arr) => arr.indexOf(v) === i);
   const weaknesses = activeMatch
     ? (Array.isArray(activeMatch.weaknesses) ? activeMatch.weaknesses : splitValues(activeMatch.weaknesses))
-    : splitValues(candidate.weaknesses);
-  const evaluationNotes = [
-    { label: 'Frontend', value: candidate.frontend_feedback },
-    { label: 'Backend', value: candidate.backend_feedback },
-    { label: 'Database', value: candidate.database_feedback },
-    { label: 'AI / ML', value: candidate.ai_ml_feedback },
-  ].filter((item) => item.value && item.value !== 'N/A');
+    : Object.values(candidate.jd_matches || {}).flatMap(m => Array.isArray(m.weaknesses) ? m.weaknesses : splitValues(m.weaknesses)).filter((v, i, arr) => arr.indexOf(v) === i);
+
+  const parseJsonArray = (val: any) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    try { return JSON.parse(val); } catch(e) { return []; }
+  };
+
+  const matchedSkillsList = activeMatch ? parseJsonArray(activeMatch.matched_skills) : [];
+  const missingSkillsList = activeMatch ? parseJsonArray(activeMatch.missing_skills) : [];
+
+  const evaluationNotes = activeMatch
+    ? [
+        { label: 'Evaluation Summary', value: activeMatch.summary },
+        { label: 'Matched Skills', value: matchedSkillsList.length ? matchedSkillsList.join(', ') : 'None' },
+        { label: 'Missing Skills', value: missingSkillsList.length ? missingSkillsList.join(', ') : 'None' }
+      ].filter(item => item.value)
+    : [
+        { label: 'Global Overview', value: 'Select specific Job Description tabs at the top to inspect matched/missing skills, fit reasoning, and customized role alignment detail cards.' }
+      ];
   const skills = [
     ...splitValues(candidate.frontend_skills, 3),
     ...splitValues(candidate.backend_skills, 3),
@@ -198,6 +211,16 @@ export function CandidateDetailDrawer({
     { label: 'Cloud / DevOps', values: splitValues(candidate.cloud_devops) },
     { label: 'Languages', values: splitValues(candidate.programming_langs) },
   ];
+
+  const matches = Object.values(candidate.jd_matches || {});
+  const avgScores = {
+    technical: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.technical_score), 0) / matches.length) : 0,
+    experience: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.experience_score), 0) / matches.length) : 0,
+    education: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.education_score), 0) / matches.length) : 0,
+    communication: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.communication_score), 0) / matches.length) : 0,
+    project: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.project_score), 0) / matches.length) : 0,
+    overall: matches.length > 0 ? Math.round(matches.reduce((s, m) => s + Number(m.overall_score), 0) / matches.length) : 0,
+  };
 
   return (
     <div className="hf-drawer-shell">
@@ -442,7 +465,7 @@ export function CandidateDetailDrawer({
                 <div><span>Experience</span><strong>{candidate.years_of_exp} years</strong></div>
                  <div><span>City</span><strong>{candidate.city || '-'}</strong></div>
                  <div><span>Grade</span><strong>{displayGrade || '-'}</strong></div>
-                 <div><span>Qualified</span><strong>{candidate.is_qualified ? 'Yes' : 'No'}</strong></div>
+                 <div><span>Qualified</span><strong>{displayScore >= 50 ? 'Yes' : 'No'}</strong></div>
                 <div><span>Current title</span><strong>{candidate.current_job_title || '-'}</strong></div>
                 <div><span>Submitted</span><strong>{formatDate(candidate.submitted_at)}</strong></div>
                 <div><span>Stage updated</span><strong>{formatDate(candidate.pipeline_stage_updated_at)}</strong></div>
@@ -477,12 +500,12 @@ export function CandidateDetailDrawer({
                       ['Overall Match', Math.round(Number(activeMatch.overall_score))],
                     ]
                   : [
-                      ['Frontend', candidate.frontend_score],
-                      ['Backend', candidate.backend_score],
-                      ['Database', candidate.database_score],
-                      ['AI / ML', candidate.ai_ml_score],
-                      ['Experience', candidate.exp_score],
-                      ['Soft Skills', candidate.soft_score],
+                      ['Technical (Avg)', avgScores.technical],
+                      ['Experience (Avg)', avgScores.experience],
+                      ['Education (Avg)', avgScores.education],
+                      ['Communication (Avg)', avgScores.communication],
+                      ['Project (Avg)', avgScores.project],
+                      ['Overall Match (Avg)', avgScores.overall],
                     ]
                 ).map(([label, value]) => (
                   <div key={label as string} className="hf-score-metric">
