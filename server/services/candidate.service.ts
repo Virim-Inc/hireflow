@@ -82,7 +82,7 @@ export async function getCandidateMeta(): Promise<{
   return {
     ...meta,
     stages: PIPELINE_STAGES,
-    sources: ['form', 'email'],
+    sources: ['workdrive', 'email'],
   };
 }
 

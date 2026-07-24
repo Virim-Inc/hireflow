@@ -291,7 +291,7 @@ export function PipelinePage() {
           <div className="pl-select-wrapper">
             <select value={source} onChange={(event) => setSource(event.target.value)}>
               <option value="">All sources</option>
-              <option value="form">Form</option>
+              <option value="workdrive">Workdrive</option>
               <option value="email">Email</option>
             </select>
             <span className="pl-select-chevron"><ChevronDown size={13} /></span>

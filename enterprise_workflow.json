@@ -21,14 +21,46 @@
           "value": {},
           "matchingColumns": [],
           "schema": [
-            { "id": "timestamp", "displayName": "timestamp", "type": "string" },
-            { "id": "workflowName", "displayName": "workflowName", "type": "string" },
-            { "id": "workflowId", "displayName": "workflowId", "type": "string" },
-            { "id": "executionId", "displayName": "executionId", "type": "string" },
-            { "id": "failedNode", "displayName": "failedNode", "type": "string" },
-            { "id": "errorMessage", "displayName": "errorMessage", "type": "string" },
-            { "id": "errorType", "displayName": "errorType", "type": "string" },
-            { "id": "stack", "displayName": "stack", "type": "string" }
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "type": "string"
+            },
+            {
+              "id": "workflowName",
+              "displayName": "workflowName",
+              "type": "string"
+            },
+            {
+              "id": "workflowId",
+              "displayName": "workflowId",
+              "type": "string"
+            },
+            {
+              "id": "executionId",
+              "displayName": "executionId",
+              "type": "string"
+            },
+            {
+              "id": "failedNode",
+              "displayName": "failedNode",
+              "type": "string"
+            },
+            {
+              "id": "errorMessage",
+              "displayName": "errorMessage",
+              "type": "string"
+            },
+            {
+              "id": "errorType",
+              "displayName": "errorType",
+              "type": "string"
+            },
+            {
+              "id": "stack",
+              "displayName": "stack",
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -37,7 +69,10 @@
       "name": "Google Sheets — Error Log",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [-32, 2880],
+      "position": [
+        -32,
+        2880
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "nufGXWaPjYqIub52",
@@ -54,7 +89,10 @@
       "name": "Format Error For Sheet",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-288, 2880]
+      "position": [
+        -288,
+        2880
+      ]
     },
     {
       "parameters": {},
@@ -62,7 +100,10 @@
       "name": "Error Trigger",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
-      "position": [-544, 2880]
+      "position": [
+        -544,
+        2880
+      ]
     },
     {
       "parameters": {
@@ -74,7 +115,10 @@
       "name": "Extract PDF — Form",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [-352, 1984],
+      "position": [
+        -352,
+        1984
+      ],
       "onError": "continueRegularOutput"
     },
     {
@@ -87,7 +131,10 @@
       "name": "Extract PDF — Email",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
-      "position": [-384, 2192]
+      "position": [
+        -384,
+        2192
+      ]
     },
     {
       "parameters": {
@@ -98,7 +145,10 @@
       "name": "Normalize — Form",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-144, 1984],
+      "position": [
+        -144,
+        1984
+      ],
       "onError": "continueRegularOutput"
     },
     {
@@ -110,7 +160,10 @@
       "name": "Normalize — Email",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-144, 2192],
+      "position": [
+        -144,
+        2192
+      ],
       "onError": "continueRegularOutput"
     },
     {
@@ -122,7 +175,10 @@
       "name": "Remove resumeText — Sheet1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [624, 1904]
+      "position": [
+        624,
+        1904
+      ]
     },
     {
       "parameters": {},
@@ -130,7 +186,10 @@
       "name": "Merge Triggers",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [96, 2080]
+      "position": [
+        96,
+        2080
+      ]
     },
     {
       "parameters": {
@@ -141,7 +200,10 @@
       "name": "Email Duplicate Check — PostgreSQL",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [256, 2080],
+      "position": [
+        256,
+        2080
+      ],
       "credentials": {
         "postgres": {
           "id": "OFGnvKVUjTZr2d4j",
@@ -166,17 +228,29 @@
       "name": "Email Duplicate Gate",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [416, 2080]
+      "position": [
+        416,
+        2080
+      ]
     },
     {
       "parameters": {
         "values": {
           "boolean": [
-            { "name": "success", "value": false },
-            { "name": "duplicate", "value": true }
+            {
+              "name": "success",
+              "value": false
+            },
+            {
+              "name": "duplicate",
+              "value": true
+            }
           ],
           "string": [
-            { "name": "message", "value": "This email has already been registered. Multiple applications using the same email are not allowed." }
+            {
+              "name": "message",
+              "value": "This email has already been registered. Multiple applications using the same email are not allowed."
+            }
           ]
         },
         "options": {}
@@ -185,7 +259,10 @@
       "name": "Return Duplicate Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3,
-      "position": [576, 1720]
+      "position": [
+        576,
+        1720
+      ]
     },
     {
       "parameters": {
@@ -207,12 +284,36 @@
           "value": {},
           "matchingColumns": [],
           "schema": [
-            { "id": "timestamp", "displayName": "timestamp", "type": "string" },
-            { "id": "email", "displayName": "email", "type": "string" },
-            { "id": "candidate_name", "displayName": "candidate_name", "type": "string" },
-            { "id": "source", "displayName": "source", "type": "string" },
-            { "id": "existing_id", "displayName": "existing_id", "type": "string" },
-            { "id": "action_taken", "displayName": "action_taken", "type": "string" }
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "type": "string"
+            },
+            {
+              "id": "candidate_name",
+              "displayName": "candidate_name",
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "type": "string"
+            },
+            {
+              "id": "existing_id",
+              "displayName": "existing_id",
+              "type": "string"
+            },
+            {
+              "id": "action_taken",
+              "displayName": "action_taken",
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -221,7 +322,10 @@
       "name": "Log Duplicate Attempt",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [576, 1536],
+      "position": [
+        576,
+        1536
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "nufGXWaPjYqIub52",
@@ -239,7 +343,10 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [736, 1720]
+      "position": [
+        736,
+        1720
+      ]
     },
     {
       "parameters": {
@@ -250,40 +357,125 @@
       "name": "Resume Validation & Hash",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [576, 2080]
+      "position": [
+        576,
+        2080
+      ]
     },
     {
       "parameters": {
         "text": "={{ $json.resumeText }}",
         "attributes": {
           "attributes": [
-            { "name": "currentJobTitle", "description": "Current or most recent job title" },
-            { "name": "highestDegree", "description": "Highest degree or education level" },
-            { "name": "totalExperienceYears", "type": "number", "description": "Total years of professional experience" },
-            { "name": "frontendSkills", "description": "Comma-separated list of frontend frameworks, libraries, tools" },
-            { "name": "frontendLevel", "description": "Frontend level: expert, advanced, intermediate, beginner, none" },
-            { "name": "backendSkills", "description": "Comma-separated list of backend languages, frameworks, tools" },
-            { "name": "backendLevel", "description": "Backend level: expert, advanced, intermediate, beginner, none" },
-            { "name": "databaseSkills", "description": "Comma-separated list of databases" },
-            { "name": "databaseLevel", "description": "Database level: expert, advanced, intermediate, beginner, none" },
-            { "name": "aiMlSkills", "description": "Comma-separated list of AI/ML skills" },
-            { "name": "aiMlLevel", "description": "AI/ML level: expert, advanced, intermediate, beginner, none" },
-            { "name": "cloudDevOps", "description": "Comma-separated list of cloud and DevOps skills" },
-            { "name": "programmingLanguages", "description": "Comma-separated list of programming languages" },
-            { "name": "certifications", "description": "Comma-separated list of certifications" },
-            { "name": "notableProjects", "description": "Pipe-separated list of notable projects (max 3)" },
-            { "name": "city", "description": "Candidate city location" },
-            { "name": "internship", "description": "Completed internship? Yes/No" },
-            { "name": "passoutYear", "description": "4-digit graduation year" },
-            { "name": "degree", "description": "Highest degree completed" },
-            { "name": "college", "description": "Full name of college/university" },
-            { "name": "githubProfile", "description": "GitHub profile URL" },
-            { "name": "portfolioWebsite", "description": "Personal portfolio URL" },
-            { "name": "cgpa", "description": "CGPA/GPA score" },
-            { "name": "specialization", "description": "Degree specialization/stream" },
-            { "name": "internshipCompany", "description": "Company name where internship was done" },
-            { "name": "internshipRole", "description": "Role during internship" },
-            { "name": "projectDetails", "description": "JSON array string of top projects" }
+            {
+              "name": "currentJobTitle",
+              "description": "Current or most recent job title"
+            },
+            {
+              "name": "highestDegree",
+              "description": "Highest degree or education level"
+            },
+            {
+              "name": "totalExperienceYears",
+              "type": "number",
+              "description": "Total years of professional experience"
+            },
+            {
+              "name": "frontendSkills",
+              "description": "Comma-separated list of frontend frameworks, libraries, tools"
+            },
+            {
+              "name": "frontendLevel",
+              "description": "Frontend level: expert, advanced, intermediate, beginner, none"
+            },
+            {
+              "name": "backendSkills",
+              "description": "Comma-separated list of backend languages, frameworks, tools"
+            },
+            {
+              "name": "backendLevel",
+              "description": "Backend level: expert, advanced, intermediate, beginner, none"
+            },
+            {
+              "name": "databaseSkills",
+              "description": "Comma-separated list of databases"
+            },
+            {
+              "name": "databaseLevel",
+              "description": "Database level: expert, advanced, intermediate, beginner, none"
+            },
+            {
+              "name": "aiMlSkills",
+              "description": "Comma-separated list of AI/ML skills"
+            },
+            {
+              "name": "aiMlLevel",
+              "description": "AI/ML level: expert, advanced, intermediate, beginner, none"
+            },
+            {
+              "name": "cloudDevOps",
+              "description": "Comma-separated list of cloud and DevOps skills"
+            },
+            {
+              "name": "programmingLanguages",
+              "description": "Comma-separated list of programming languages"
+            },
+            {
+              "name": "certifications",
+              "description": "Comma-separated list of certifications"
+            },
+            {
+              "name": "notableProjects",
+              "description": "Pipe-separated list of notable projects (max 3)"
+            },
+            {
+              "name": "city",
+              "description": "Candidate city location"
+            },
+            {
+              "name": "internship",
+              "description": "Completed internship? Yes/No"
+            },
+            {
+              "name": "passoutYear",
+              "description": "4-digit graduation year"
+            },
+            {
+              "name": "degree",
+              "description": "Highest degree completed"
+            },
+            {
+              "name": "college",
+              "description": "Full name of college/university"
+            },
+            {
+              "name": "githubProfile",
+              "description": "GitHub profile URL"
+            },
+            {
+              "name": "portfolioWebsite",
+              "description": "Personal portfolio URL"
+            },
+            {
+              "name": "cgpa",
+              "description": "CGPA/GPA score"
+            },
+            {
+              "name": "specialization",
+              "description": "Degree specialization/stream"
+            },
+            {
+              "name": "internshipCompany",
+              "description": "Company name where internship was done"
+            },
+            {
+              "name": "internshipRole",
+              "description": "Role during internship"
+            },
+            {
+              "name": "projectDetails",
+              "description": "JSON array string of top projects"
+            }
           ]
         },
         "options": {
@@ -294,19 +486,25 @@
       "name": "Extract — All Skills & Details",
       "type": "@n8n/n8n-nodes-langchain.informationExtractor",
       "typeVersion": 1,
-      "position": [736, 2080],
+      "position": [
+        736,
+        2080
+      ],
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const normMap = {\n  'javascript': 'JavaScript', 'java script': 'JavaScript', 'js': 'JavaScript',\n  'typescript': 'TypeScript', 'ts': 'TypeScript',\n  'react': 'React', 'reactjs': 'React', 'react.js': 'React',\n  'angularjs': 'Angular', 'angular.js': 'Angular',\n  'vuejs': 'Vue.js', 'vue': 'Vue.js',\n  'node': 'Node.js', 'nodejs': 'Node.js', 'node js': 'Node.js',\n  'expressjs': 'Express.js', 'express': 'Express.js',\n  'nextjs': 'Next.js', 'next': 'Next.js',\n  'postgres': 'PostgreSQL', 'postgresql': 'PostgreSQL',\n  'mongo': 'MongoDB', 'mongodb': 'MongoDB',\n  'python3': 'Python', 'py': 'Python',\n  'mysql': 'MySQL', 'my sql': 'MySQL',\n  'amazon web services': 'AWS',\n  'tailwind': 'Tailwind CSS', 'tailwindcss': 'Tailwind CSS',\n  'bootstrap4': 'Bootstrap', 'bootstrap5': 'Bootstrap',\n  'cpp': 'C++', 'c plus plus': 'C++',\n  'csharp': 'C#', 'c sharp': 'C#',\n  'golang': 'Go',\n  'tensorflow': 'TensorFlow',\n  'pytorch': 'PyTorch',\n  'github actions': 'GitHub Actions',\n  'ci/cd': 'CI/CD', 'cicd': 'CI/CD',\n};\n\nfunction normalizeSkillList(skillStr) {\n  if (!skillStr || typeof skillStr !== 'string') return skillStr || '';\n  return skillStr.split(',')\n    .map(s => {\n      const trimmed = s.trim();\n      const key = trimmed.toLowerCase().replace(/[.\\s-]/g, '');\n      for (const [pattern, canonical] of Object.entries(normMap)) {\n        if (key === pattern.replace(/[.\\s-]/g, '')) return canonical;\n      }\n      return trimmed;\n    })\n    .filter(Boolean)\n    .filter((v, i, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i)\n    .join(', ');\n}\n\nconst d = $input.item.json;\nreturn {\n  json: {\n    ...d,\n    frontendSkills: normalizeSkillList(d.frontendSkills),\n    backendSkills: normalizeSkillList(d.backendSkills),\n    databaseSkills: normalizeSkillList(d.databaseSkills),\n    aiMlSkills: normalizeSkillList(d.aiMlSkills),\n    cloudDevOps: normalizeSkillList(d.cloudDevOps),\n    programmingLanguages: normalizeSkillList(d.programmingLanguages),\n  }\n};"
+        "jsCode": "const normMap = {\n  'javascript': 'JavaScript', 'java script': 'JavaScript', 'js': 'JavaScript',\n  'typescript': 'TypeScript', 'ts': 'TypeScript',\n  'react': 'React', 'reactjs': 'React', 'react.js': 'React',\n  'angularjs': 'Angular', 'angular.js': 'Angular',\n  'vuejs': 'Vue.js', 'vue': 'Vue.js',\n  'node': 'Node.js', 'nodejs': 'Node.js', 'node js': 'Node.js',\n  'expressjs': 'Express.js', 'express': 'Express.js',\n  'nextjs': 'Next.js', 'next': 'Next.js',\n  'postgres': 'PostgreSQL', 'postgresql': 'PostgreSQL',\n  'mongo': 'MongoDB', 'mongodb': 'MongoDB',\n  'python3': 'Python', 'py': 'Python',\n  'mysql': 'MySQL', 'my sql': 'MySQL',\n  'amazon web services': 'AWS',\n  'tailwind': 'Tailwind CSS', 'tailwindcss': 'Tailwind CSS',\n  'bootstrap4': 'Bootstrap', 'bootstrap5': 'Bootstrap',\n  'cpp': 'C++', 'c plus plus': 'C++',\n  'csharp': 'C#', 'c sharp': 'C#',\n  'golang': 'Go',\n  'tensorflow': 'TensorFlow',\n  'pytorch': 'PyTorch',\n  'github actions': 'GitHub Actions',\n  'ci/cd': 'CI/CD', 'cicd': 'CI/CD',\n};\n\nfunction normalizeSkillList(skillStr) {\n  if (!skillStr || typeof skillStr !== 'string') return skillStr || '';\n  return skillStr.split(',')\n    .map(s => {\n      const trimmed = s.trim();\n      const key = trimmed.toLowerCase().replace(/[.\\s-]/g, '');\n      for (const [pattern, canonical] of Object.entries(normMap)) {\n        if (key === pattern.replace(/[.\\s-]/g, '')) return canonical;\n      }\n      return trimmed;\n    })\n    .filter(Boolean)\n    .filter((v, i, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i)\n    .join(', ');\n}\n\nconst rawInput = $input.item.json || {};\nconst d = rawInput.output || rawInput || {};\n\n// Restore candidate contact details from Resume Validation & Hash node (index-aligned)\nlet contact = {};\ntry {\n  contact = $('Resume Validation & Hash').item.json || {};\n} catch (e) {\n  contact = {};\n}\n\n// Convert camelCase to snake_case for Save Candidate postgres node inputs\nreturn {\n  json: {\n    submitted_at: contact.submittedAt || contact.submitted_at || new Date().toISOString(),\n    processed_at: new Date().toISOString(),\n    source: contact.source || 'unknown',\n    candidate_name: contact.candidateName || contact.candidate_name || 'Unknown',\n    email: (contact.email || '').trim() || ('no-email-' + (contact.resumeHash || Date.now()) + '@hireflow.internal'),\n    phone: contact.phone || '',\n    position: contact.position || '',\n    years_of_exp: Number(contact.yearsOfExp || contact.years_of_exp || d.totalExperienceYears || 0),\n    linkedin: contact.linkedin || '',\n    \n    current_job_title: d.currentJobTitle || '',\n    highest_degree: d.highestDegree || '',\n    degree: d.degree || '',\n    college: d.college || '',\n    city: d.city || '',\n    passout_year: parseInt(d.passoutYear) || null,\n    internship_completed: (String(d.internship || '').toLowerCase().includes('yes') || Boolean(d.internshipCompany)),\n    certifications: d.certifications || '',\n    \n    frontend_skills: normalizeSkillList(d.frontendSkills),\n    frontend_level: d.frontendLevel || '',\n    backend_skills: normalizeSkillList(d.backendSkills),\n    backend_level: d.backendLevel || '',\n    database_skills: normalizeSkillList(d.databaseSkills),\n    database_level: d.databaseLevel || '',\n    ai_ml_skills: normalizeSkillList(d.aiMlSkills),\n    ai_ml_level: d.aiMlLevel || '',\n    cloud_devops: normalizeSkillList(d.cloudDevOps),\n    programming_langs: normalizeSkillList(d.programmingLanguages),\n    notable_projects: d.notableProjects || '',\n    \n    resume_text: contact.resumeText || contact.resume_text || '',\n    \n    workdrive_file_id: contact.workdriveFileId || contact.workdrive_file_id || null,\n    workdrive_file_name: contact.workdriveFileName || contact.workdrive_file_name || null,\n    source_folder_id: contact.sourceFolderId || contact.source_folder_id || null,\n    processed_folder_id: contact.processedFolderId || contact.processed_folder_id || null\n  }\n};"
       },
       "id": "ba91f2c4-88e8-4567-9328-abef98124008",
       "name": "Normalize Skills",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [896, 2080]
+      "position": [
+        896,
+        2080
+      ]
     },
     {
       "parameters": {
@@ -317,15 +515,27 @@
       "name": "Project Complexity Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1056, 2080]
+      "position": [
+        1056,
+        2080
+      ]
     },
     {
       "parameters": {
         "fields": {
           "values": [
-            { "name": "jd_text", "stringValue": "Job Title: Fresher Full Stack Developer  We are looking for a motivated Fresher Full Stack Developer to join our team and grow with hands-on project experience. The role is ideal for candidates who have a strong foundation in web development and a basic understanding of AI concepts or tools.  Responsibilities: - Assist in developing and maintaining web applications - Work on frontend features using React or similar frameworks - Support backend development using Node.js, Express, or similar technologies - Help build and test REST APIs - Work with databases such as MySQL or PostgreSQL - Fix bugs, improve UI, and support performance optimization - Collaborate with team members to deliver features on time - Learn and apply basic AI-assisted tools or integrations when needed  Required Skills: - Good knowledge of HTML, CSS, JavaScript, and basic TypeScript - Familiarity with React and Node.js - Basic understanding of backend APIs and databases - Knowledge of Git and version control - Problem-solving attitude and willingness to learn - Strong communication and teamwork skills  Preferred Skills: - Exposure to cloud platforms like AWS, Azure, or GCP - Basic understanding of AI tools, LLMs, or prompt engineering - Academic or personal projects in full stack development - Interest in learning modern development practices  Education / Experience: - Fresher or up to 1 year of experience - Bachelor's degree in Computer Science, IT, or related field preferred - Internship or project experience will be an advantage  We are looking for someone eager to learn, adaptable, and comfortable working across both frontend and backend tasks. A little knowledge of AI is enough; strong fundamentals and enthusiasm matter most." },
-            { "name": "jd_title", "stringValue": "Full Stack Developer" },
-            { "name": "jd_company", "stringValue": "Virim Infotech" }
+            {
+              "name": "jd_text",
+              "stringValue": "Job Title: Fresher Full Stack Developer  We are looking for a motivated Fresher Full Stack Developer to join our team and grow with hands-on project experience. The role is ideal for candidates who have a strong foundation in web development and a basic understanding of AI concepts or tools.  Responsibilities: - Assist in developing and maintaining web applications - Work on frontend features using React or similar frameworks - Support backend development using Node.js, Express, or similar technologies - Help build and test REST APIs - Work with databases such as MySQL or PostgreSQL - Fix bugs, improve UI, and support performance optimization - Collaborate with team members to deliver features on time - Learn and apply basic AI-assisted tools or integrations when needed  Required Skills: - Good knowledge of HTML, CSS, JavaScript, and basic TypeScript - Familiarity with React and Node.js - Basic understanding of backend APIs and databases - Knowledge of Git and version control - Problem-solving attitude and willingness to learn - Strong communication and teamwork skills  Preferred Skills: - Exposure to cloud platforms like AWS, Azure, or GCP - Basic understanding of AI tools, LLMs, or prompt engineering - Academic or personal projects in full stack development - Interest in learning modern development practices  Education / Experience: - Fresher or up to 1 year of experience - Bachelor's degree in Computer Science, IT, or related field preferred - Internship or project experience will be an advantage  We are looking for someone eager to learn, adaptable, and comfortable working across both frontend and backend tasks. A little knowledge of AI is enough; strong fundamentals and enthusiasm matter most."
+            },
+            {
+              "name": "jd_title",
+              "stringValue": "Full Stack Developer"
+            },
+            {
+              "name": "jd_company",
+              "stringValue": "Virim Infotech"
+            }
           ]
         },
         "options": {}
@@ -334,7 +544,10 @@
       "name": "Pre-filled JD",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3,
-      "position": [1216, 2080]
+      "position": [
+        1216,
+        2080
+      ]
     },
     {
       "parameters": {
@@ -345,7 +558,10 @@
       "name": "Resume Quality Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1376, 2080]
+      "position": [
+        1376,
+        2080
+      ]
     },
     {
       "parameters": {
@@ -356,7 +572,10 @@
       "name": "Build Scoring Prompt (/100)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1536, 2080]
+      "position": [
+        1536,
+        2080
+      ]
     },
     {
       "parameters": {
@@ -368,7 +587,10 @@
       "name": "Remote AI — OpenRouter",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
-      "position": [1792, 2208],
+      "position": [
+        1792,
+        2208
+      ],
       "onError": "continueRegularOutput"
     },
     {
@@ -378,20 +600,28 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
         "body": "={\"model\":\"llama3\",\"prompt\":{{ JSON.stringify($json.aiPrompt) }},\"stream\":false,\"format\":\"json\",\"options\":{\"temperature\":0.1,\"num_predict\":900}}",
-        "options": { "timeout": 120000 }
+        "options": {
+          "timeout": 120000
+        }
       },
       "id": "15f92150-13f5-449e-b9b2-ea7ed47c50be",
       "name": "Local AI — Ollama (llama3.1)1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1792, 1968],
+      "position": [
+        1792,
+        1968
+      ],
       "onError": "continueRegularOutput"
     },
     {
@@ -404,18 +634,24 @@
       "name": "Merge AI Results1",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2.1,
-      "position": [2048, 2080]
+      "position": [
+        2048,
+        2080
+      ]
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const d = $input.item.json;\nconst fromNode = (name) => {\n  try { return $(name).item.json || {}; } catch (e) { return {}; }\n};\nconst triggers = fromNode('Merge Triggers');\nconst validationNode = fromNode('Resume Validation & Hash');\nconst extracted = fromNode('Extract — All Skills & Details');\nconst normalized = fromNode('Normalize Skills');\nconst complexityNode = fromNode('Project Complexity Analysis');\nconst qualityNode = fromNode('Resume Quality Analysis');\nconst jdNode = fromNode('Pre-filled JD');\nconst promptNode = fromNode('Build Scoring Prompt (/100)');\nconst m = { ...triggers, ...validationNode, ...extracted, ...normalized, ...complexityNode, ...qualityNode, ...jdNode, ...promptNode, ...d };\nconst clean = (v) => String(v ?? '').trim();\nconst first = (...vals) => vals.find(v => v !== undefined && v !== null && v !== '');\nconst pickStr = (...vals) => {\n  const found = vals.map(clean).find(v => v && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none' && v !== 'undefined');\n  return found || '';\n};\n\nlet remote = {};\ntry {\n  const rawRemote = first(d.text, d.text1, d.text2, d.output, d.output1, d.output2, d.response?.text, (d.choices || [])[0]?.message?.content);\n  if (rawRemote !== undefined) {\n    const cleaned = String(rawRemote).replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').replace(/^[^{]*/, '').replace(/[^}]*$/, '');\n    remote = JSON.parse(cleaned);\n  }\n} catch (e) { remote = {}; }\n\nconst insights = remote.insights || {};\nconst scoreEvidence = remote.scoreEvidence || {};\nconst fieldConfidence = remote.fieldConfidence || {};\n\nconst technical_score = Number(remote.technicalScore || 0);\nconst project_score = Number(remote.projectScore || 0);\nconst experience_score = Number(remote.experienceScore || 0);\nconst education_score = Number(remote.educationScore || 0);\nconst resume_quality_score = Number(remote.resumeQualityScore || m.resume_quality_score || 0);\nconst certification_score = Number(remote.certificationScore || 0);\nconst achievement_score = Number(remote.achievementScore || 0);\n\nconst total_score = Number(remote.totalScore || (technical_score + project_score + experience_score + education_score + resume_quality_score + certification_score + achievement_score));\nconst grade = remote.grade || (total_score >= 90 ? 'A+' : total_score >= 80 ? 'A' : total_score >= 70 ? 'B+' : total_score >= 60 ? 'B' : total_score >= 50 ? 'C' : total_score >= 40 ? 'D' : 'F');\nconst recommendation = remote.recommendation || (total_score >= 80 ? 'Strong Hire' : total_score >= 65 ? 'Hire' : total_score >= 50 ? 'Consider' : 'Reject');\n\nconst strengths = Array.isArray(insights.strengths) ? insights.strengths.join(' | ') : (remote.strengths || '');\nconst weaknesses = Array.isArray(insights.weaknesses) ? insights.weaknesses.join(' | ') : (remote.weaknesses || '');\n\nreturn {\n  json: {\n    submitted_at: pickStr(m.submittedAt, m.submitted_at) || new Date().toISOString(),\n    processed_at: new Date().toISOString(),\n    source: pickStr(m.source) || 'unknown',\n    candidate_name: pickStr(m.candidateName, m.candidate_name) || 'Unknown',\n    email: pickStr(m.email) || '',\n    phone: pickStr(m.phone) || '',\n    position: pickStr(m.position) || '',\n    years_of_exp: Number(m.totalExperienceYears || m.yearsOfExp || 0),\n    linkedin: pickStr(m.linkedin) || '',\n    github: pickStr(m.githubProfile) || '',\n    portfolio: pickStr(m.portfolioWebsite) || '',\n    current_job_title: pickStr(m.currentJobTitle) || '',\n    highest_degree: pickStr(m.highestDegree, m.degree) || '',\n    degree: pickStr(m.degree, m.highestDegree) || '',\n    college: pickStr(m.college) || '',\n    city: pickStr(m.city) || '',\n    passout_year: parseInt(m.passoutYear) || null,\n    internship_completed: (pickStr(m.internship).toLowerCase().includes('yes') || Boolean(m.internshipCompany)),\n    internship_company: pickStr(m.internshipCompany) || '',\n    internship_role: pickStr(m.internshipRole) || '',\n    cgpa: parseFloat(m.cgpa) || null,\n    specialization: pickStr(m.specialization) || '',\n    certifications: pickStr(m.certifications) || '',\n    frontend_skills: pickStr(m.frontendSkills) || '',\n    frontend_level: pickStr(m.frontendLevel) || '',\n    backend_skills: pickStr(m.backendSkills) || '',\n    backend_level: pickStr(m.backendLevel) || '',\n    database_skills: pickStr(m.databaseSkills) || '',\n    database_level: pickStr(m.databaseLevel) || '',\n    ai_ml_skills: pickStr(m.aiMlSkills) || '',\n    ai_ml_level: pickStr(m.aiMlLevel) || '',\n    cloud_devops: pickStr(m.cloudDevOps) || '',\n    programming_langs: pickStr(m.programmingLanguages) || '',\n    notable_projects: pickStr(m.notableProjects) || '',\n    project_count: Number(m.project_count || 0),\n    project_complexity_score: Number(m.project_complexity_score || 0),\n    certification_count: (pickStr(m.certifications).split(',').filter(Boolean).length),\n    resume_quality_score,\n    confidence_score: Number(remote.confidenceScore || 85),\n    jd_title: pickStr(m.jd_title, m.jdTitle) || '',\n    jd_company: pickStr(m.jd_company, m.jdCompany) || '',\n    total_score,\n    technical_score,\n    project_score,\n    education_score,\n    certification_score,\n    achievement_score,\n    frontend_score: Math.round(technical_score * 0.4),\n    backend_score: Math.round(technical_score * 0.4),\n    database_score: Math.round(technical_score * 0.2),\n    ai_ml_score: Number(remote.aiMlScore || 0),\n    exp_score: experience_score,\n    soft_score: Number(remote.softSkillsScore || 3),\n    grade,\n    recommendation,\n    is_qualified: total_score >= 50,\n    summary: JSON.stringify(insights),\n    strengths,\n    weaknesses,\n    score_evidence: JSON.stringify(scoreEvidence),\n    field_confidence: JSON.stringify(fieldConfidence),\n    recommended_role: insights.recommendedRole || 'Full Stack Developer',\n    experience_level: insights.experienceLevel || 'Fresher',\n    key_technologies: Array.isArray(insights.keyTechnologies) ? insights.keyTechnologies.join(', ') : '',\n    hiring_note: insights.hiringNotes || remote.hiringNote || '',\n    resume_hash: pickStr(m.resumeHash) || '',\n    processing_ms: Date.now() - Number(m.processingStartMs || Date.now())\n  }\n};"
+        "jsCode": "const d = $input.item.json;\nconst fromNode = (name) => {\n  try { return $(name).item.json || {}; } catch (e) { return {}; }\n};\nconst triggers = fromNode('Merge Triggers');\nconst validationNode = fromNode('Resume Validation & Hash');\nconst extracted = fromNode('Extract — All Skills & Details');\nconst normalized = fromNode('Normalize Skills');\nconst complexityNode = fromNode('Project Complexity Analysis');\nconst qualityNode = fromNode('Resume Quality Analysis');\nconst jdNode = fromNode('Pre-filled JD');\nconst promptNode = fromNode('Build Scoring Prompt (/100)');\nconst m = { ...triggers, ...validationNode, ...extracted, ...normalized, ...complexityNode, ...qualityNode, ...jdNode, ...promptNode, ...d };\nconst clean = (v) => String(v ?? '').trim();\nconst first = (...vals) => vals.find(v => v !== undefined && v !== null && v !== '');\nconst pickStr = (...vals) => {\n  const found = vals.map(clean).find(v => v && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none' && v !== 'undefined');\n  return found || '';\n};\n\nlet remote = {};\ntry {\n  const rawRemote = first(d.text, d.text1, d.text2, d.output, d.output1, d.output2, d.response?.text, (d.choices || [])[0]?.message?.content);\n  if (rawRemote !== undefined) {\n    const cleaned = String(rawRemote).replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').replace(/^[^{]*/, '').replace(/[^}]*$/, '');\n    remote = JSON.parse(cleaned);\n  }\n} catch (e) { remote = {}; }\n\nconst insights = remote.insights || {};\nconst scoreEvidence = remote.scoreEvidence || {};\nconst fieldConfidence = remote.fieldConfidence || {};\n\nconst technical_score = Number(remote.technicalScore || 0);\nconst project_score = Number(remote.projectScore || 0);\nconst experience_score = Number(remote.experienceScore || 0);\nconst education_score = Number(remote.educationScore || 0);\nconst resume_quality_score = Number(remote.resumeQualityScore || m.resume_quality_score || 0);\nconst certification_score = Number(remote.certificationScore || 0);\nconst achievement_score = Number(remote.achievementScore || 0);\n\nconst total_score = Number(remote.totalScore || (technical_score + project_score + experience_score + education_score + resume_quality_score + certification_score + achievement_score));\nconst grade = remote.grade || (total_score >= 90 ? 'A+' : total_score >= 80 ? 'A' : total_score >= 70 ? 'B+' : total_score >= 60 ? 'B' : total_score >= 50 ? 'C' : total_score >= 40 ? 'D' : 'F');\nconst recommendation = remote.recommendation || (total_score >= 80 ? 'Strong Hire' : total_score >= 65 ? 'Hire' : total_score >= 50 ? 'Consider' : 'Reject');\n\nconst strengths = Array.isArray(insights.strengths) ? insights.strengths.join(' | ') : (remote.strengths || '');\nconst weaknesses = Array.isArray(insights.weaknesses) ? insights.weaknesses.join(' | ') : (remote.weaknesses || '');\n\nreturn {\n  json: {\n    submitted_at: pickStr(m.submittedAt, m.submitted_at) || new Date().toISOString(),\n    processed_at: new Date().toISOString(),\n    source: pickStr(m.source) || 'unknown',\n    candidate_name: pickStr(m.candidateName, m.candidate_name) || 'Unknown',\n    email: pickStr(m.email) || ('no-email-' + (m.resumeHash || Date.now()) + '@hireflow.internal'),\n    phone: pickStr(m.phone) || '',\n    position: pickStr(m.position) || '',\n    years_of_exp: Number(m.totalExperienceYears || m.yearsOfExp || 0),\n    linkedin: pickStr(m.linkedin) || '',\n    github: pickStr(m.githubProfile) || '',\n    portfolio: pickStr(m.portfolioWebsite) || '',\n    current_job_title: pickStr(m.currentJobTitle) || '',\n    highest_degree: pickStr(m.highestDegree, m.degree) || '',\n    degree: pickStr(m.degree, m.highestDegree) || '',\n    college: pickStr(m.college) || '',\n    city: pickStr(m.city) || '',\n    passout_year: parseInt(m.passoutYear) || null,\n    internship_completed: (pickStr(m.internship).toLowerCase().includes('yes') || Boolean(m.internshipCompany)),\n    internship_company: pickStr(m.internshipCompany) || '',\n    internship_role: pickStr(m.internshipRole) || '',\n    cgpa: parseFloat(m.cgpa) || null,\n    specialization: pickStr(m.specialization) || '',\n    certifications: pickStr(m.certifications) || '',\n    frontend_skills: pickStr(m.frontendSkills) || '',\n    frontend_level: pickStr(m.frontendLevel) || '',\n    backend_skills: pickStr(m.backendSkills) || '',\n    backend_level: pickStr(m.backendLevel) || '',\n    database_skills: pickStr(m.databaseSkills) || '',\n    database_level: pickStr(m.databaseLevel) || '',\n    ai_ml_skills: pickStr(m.aiMlSkills) || '',\n    ai_ml_level: pickStr(m.aiMlLevel) || '',\n    cloud_devops: pickStr(m.cloudDevOps) || '',\n    programming_langs: pickStr(m.programmingLanguages) || '',\n    notable_projects: pickStr(m.notableProjects) || '',\n    project_count: Number(m.project_count || 0),\n    project_complexity_score: Number(m.project_complexity_score || 0),\n    certification_count: (pickStr(m.certifications).split(',').filter(Boolean).length),\n    resume_quality_score,\n    confidence_score: Number(remote.confidenceScore || 85),\n    jd_title: pickStr(m.jd_title, m.jdTitle) || '',\n    jd_company: pickStr(m.jd_company, m.jdCompany) || '',\n    total_score,\n    technical_score,\n    project_score,\n    education_score,\n    certification_score,\n    achievement_score,\n    frontend_score: Math.round(technical_score * 0.4),\n    backend_score: Math.round(technical_score * 0.4),\n    database_score: Math.round(technical_score * 0.2),\n    ai_ml_score: Number(remote.aiMlScore || 0),\n    exp_score: experience_score,\n    soft_score: Number(remote.softSkillsScore || 3),\n    grade,\n    recommendation,\n    is_qualified: total_score >= 50,\n    summary: JSON.stringify(insights),\n    strengths,\n    weaknesses,\n    score_evidence: JSON.stringify(scoreEvidence),\n    field_confidence: JSON.stringify(fieldConfidence),\n    recommended_role: insights.recommendedRole || 'Full Stack Developer',\n    experience_level: insights.experienceLevel || 'Fresher',\n    key_technologies: Array.isArray(insights.keyTechnologies) ? insights.keyTechnologies.join(', ') : '',\n    hiring_note: insights.hiringNotes || remote.hiringNote || '',\n    resume_hash: pickStr(m.resumeHash) || '',\n    processing_ms: Date.now() - Number(m.processingStartMs || Date.now())\n  }\n};"
       },
       "id": "6fcd96fa-99fc-4853-b025-8d0d8e633354",
       "name": "Parse & Average Scores (/100)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2208, 2080]
+      "position": [
+        2208,
+        2080
+      ]
     },
     {
       "parameters": {
@@ -426,80 +662,346 @@
       "name": "Recruiter Recommendation Engine",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2368, 2080]
+      "position": [
+        2368,
+        2080
+      ]
     },
     {
       "parameters": {
-        "schema": { "__rl": true, "mode": "list", "value": "public" },
-        "table": { "__rl": true, "value": "candidates", "mode": "list", "cachedResultName": "candidates" },
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "candidates",
+          "mode": "list",
+          "cachedResultName": "candidates"
+        },
         "columns": {
           "mappingMode": "autoMapInputData",
           "value": {},
-          "matchingColumns": ["id"],
+          "matchingColumns": [
+            "id"
+          ],
           "schema": [
-            { "id": "submitted_at", "displayName": "submitted_at", "type": "dateTime" },
-            { "id": "processed_at", "displayName": "processed_at", "type": "dateTime" },
-            { "id": "source", "displayName": "source", "type": "string" },
-            { "id": "candidate_name", "displayName": "candidate_name", "type": "string" },
-            { "id": "email", "displayName": "email", "type": "string" },
-            { "id": "phone", "displayName": "phone", "type": "string" },
-            { "id": "position", "displayName": "position", "type": "string" },
-            { "id": "years_of_exp", "displayName": "years_of_exp", "type": "number" },
-            { "id": "linkedin", "displayName": "linkedin", "type": "string" },
-            { "id": "github", "displayName": "github", "type": "string" },
-            { "id": "portfolio", "displayName": "portfolio", "type": "string" },
-            { "id": "current_job_title", "displayName": "current_job_title", "type": "string" },
-            { "id": "highest_degree", "displayName": "highest_degree", "type": "string" },
-            { "id": "degree", "displayName": "degree", "type": "string" },
-            { "id": "college", "displayName": "college", "type": "string" },
-            { "id": "city", "displayName": "city", "type": "string" },
-            { "id": "passout_year", "displayName": "passout_year", "type": "number" },
-            { "id": "internship_completed", "displayName": "internship_completed", "type": "boolean" },
-            { "id": "internship_company", "displayName": "internship_company", "type": "string" },
-            { "id": "internship_role", "displayName": "internship_role", "type": "string" },
-            { "id": "cgpa", "displayName": "cgpa", "type": "number" },
-            { "id": "specialization", "displayName": "specialization", "type": "string" },
-            { "id": "certifications", "displayName": "certifications", "type": "string" },
-            { "id": "frontend_skills", "displayName": "frontend_skills", "type": "string" },
-            { "id": "backend_skills", "displayName": "backend_skills", "type": "string" },
-            { "id": "database_skills", "displayName": "database_skills", "type": "string" },
-            { "id": "ai_ml_skills", "displayName": "ai_ml_skills", "type": "string" },
-            { "id": "cloud_devops", "displayName": "cloud_devops", "type": "string" },
-            { "id": "programming_langs", "displayName": "programming_langs", "type": "string" },
-            { "id": "notable_projects", "displayName": "notable_projects", "type": "string" },
-            { "id": "project_count", "displayName": "project_count", "type": "number" },
-            { "id": "project_complexity_score", "displayName": "project_complexity_score", "type": "number" },
-            { "id": "certification_count", "displayName": "certification_count", "type": "number" },
-            { "id": "resume_quality_score", "displayName": "resume_quality_score", "type": "number" },
-            { "id": "confidence_score", "displayName": "confidence_score", "type": "number" },
-            { "id": "jd_title", "displayName": "jd_title", "type": "string" },
-            { "id": "jd_company", "displayName": "jd_company", "type": "string" },
-            { "id": "total_score", "displayName": "total_score", "type": "number" },
-            { "id": "technical_score", "displayName": "technical_score", "type": "number" },
-            { "id": "project_score", "displayName": "project_score", "type": "number" },
-            { "id": "education_score", "displayName": "education_score", "type": "number" },
-            { "id": "certification_score", "displayName": "certification_score", "type": "number" },
-            { "id": "achievement_score", "displayName": "achievement_score", "type": "number" },
-            { "id": "frontend_score", "displayName": "frontend_score", "type": "number" },
-            { "id": "backend_score", "displayName": "backend_score", "type": "number" },
-            { "id": "database_score", "displayName": "database_score", "type": "number" },
-            { "id": "ai_ml_score", "displayName": "ai_ml_score", "type": "number" },
-            { "id": "exp_score", "displayName": "exp_score", "type": "number" },
-            { "id": "soft_score", "displayName": "soft_score", "type": "number" },
-            { "id": "grade", "displayName": "grade", "type": "string" },
-            { "id": "recommendation", "displayName": "recommendation", "type": "string" },
-            { "id": "is_qualified", "displayName": "is_qualified", "type": "boolean" },
-            { "id": "summary", "displayName": "summary", "type": "string" },
-            { "id": "strengths", "displayName": "strengths", "type": "string" },
-            { "id": "weaknesses", "displayName": "weaknesses", "type": "string" },
-            { "id": "score_evidence", "displayName": "score_evidence", "type": "string" },
-            { "id": "field_confidence", "displayName": "field_confidence", "type": "string" },
-            { "id": "recommended_role", "displayName": "recommended_role", "type": "string" },
-            { "id": "experience_level", "displayName": "experience_level", "type": "string" },
-            { "id": "key_technologies", "displayName": "key_technologies", "type": "string" },
-            { "id": "recommendation_rationale", "displayName": "recommendation_rationale", "type": "string" },
-            { "id": "resume_hash", "displayName": "resume_hash", "type": "string" },
-            { "id": "processing_ms", "displayName": "processing_ms", "type": "number" }
+            {
+              "id": "submitted_at",
+              "displayName": "submitted_at",
+              "type": "dateTime"
+            },
+            {
+              "id": "processed_at",
+              "displayName": "processed_at",
+              "type": "dateTime"
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "type": "string"
+            },
+            {
+              "id": "candidate_name",
+              "displayName": "candidate_name",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "type": "string"
+            },
+            {
+              "id": "position",
+              "displayName": "position",
+              "type": "string"
+            },
+            {
+              "id": "years_of_exp",
+              "displayName": "years_of_exp",
+              "type": "number"
+            },
+            {
+              "id": "linkedin",
+              "displayName": "linkedin",
+              "type": "string"
+            },
+            {
+              "id": "github",
+              "displayName": "github",
+              "type": "string"
+            },
+            {
+              "id": "portfolio",
+              "displayName": "portfolio",
+              "type": "string"
+            },
+            {
+              "id": "current_job_title",
+              "displayName": "current_job_title",
+              "type": "string"
+            },
+            {
+              "id": "highest_degree",
+              "displayName": "highest_degree",
+              "type": "string"
+            },
+            {
+              "id": "degree",
+              "displayName": "degree",
+              "type": "string"
+            },
+            {
+              "id": "college",
+              "displayName": "college",
+              "type": "string"
+            },
+            {
+              "id": "city",
+              "displayName": "city",
+              "type": "string"
+            },
+            {
+              "id": "passout_year",
+              "displayName": "passout_year",
+              "type": "number"
+            },
+            {
+              "id": "internship_completed",
+              "displayName": "internship_completed",
+              "type": "boolean"
+            },
+            {
+              "id": "internship_company",
+              "displayName": "internship_company",
+              "type": "string"
+            },
+            {
+              "id": "internship_role",
+              "displayName": "internship_role",
+              "type": "string"
+            },
+            {
+              "id": "cgpa",
+              "displayName": "cgpa",
+              "type": "number"
+            },
+            {
+              "id": "specialization",
+              "displayName": "specialization",
+              "type": "string"
+            },
+            {
+              "id": "certifications",
+              "displayName": "certifications",
+              "type": "string"
+            },
+            {
+              "id": "frontend_skills",
+              "displayName": "frontend_skills",
+              "type": "string"
+            },
+            {
+              "id": "backend_skills",
+              "displayName": "backend_skills",
+              "type": "string"
+            },
+            {
+              "id": "database_skills",
+              "displayName": "database_skills",
+              "type": "string"
+            },
+            {
+              "id": "ai_ml_skills",
+              "displayName": "ai_ml_skills",
+              "type": "string"
+            },
+            {
+              "id": "cloud_devops",
+              "displayName": "cloud_devops",
+              "type": "string"
+            },
+            {
+              "id": "programming_langs",
+              "displayName": "programming_langs",
+              "type": "string"
+            },
+            {
+              "id": "notable_projects",
+              "displayName": "notable_projects",
+              "type": "string"
+            },
+            {
+              "id": "project_count",
+              "displayName": "project_count",
+              "type": "number"
+            },
+            {
+              "id": "project_complexity_score",
+              "displayName": "project_complexity_score",
+              "type": "number"
+            },
+            {
+              "id": "certification_count",
+              "displayName": "certification_count",
+              "type": "number"
+            },
+            {
+              "id": "resume_quality_score",
+              "displayName": "resume_quality_score",
+              "type": "number"
+            },
+            {
+              "id": "confidence_score",
+              "displayName": "confidence_score",
+              "type": "number"
+            },
+            {
+              "id": "jd_title",
+              "displayName": "jd_title",
+              "type": "string"
+            },
+            {
+              "id": "jd_company",
+              "displayName": "jd_company",
+              "type": "string"
+            },
+            {
+              "id": "total_score",
+              "displayName": "total_score",
+              "type": "number"
+            },
+            {
+              "id": "technical_score",
+              "displayName": "technical_score",
+              "type": "number"
+            },
+            {
+              "id": "project_score",
+              "displayName": "project_score",
+              "type": "number"
+            },
+            {
+              "id": "education_score",
+              "displayName": "education_score",
+              "type": "number"
+            },
+            {
+              "id": "certification_score",
+              "displayName": "certification_score",
+              "type": "number"
+            },
+            {
+              "id": "achievement_score",
+              "displayName": "achievement_score",
+              "type": "number"
+            },
+            {
+              "id": "frontend_score",
+              "displayName": "frontend_score",
+              "type": "number"
+            },
+            {
+              "id": "backend_score",
+              "displayName": "backend_score",
+              "type": "number"
+            },
+            {
+              "id": "database_score",
+              "displayName": "database_score",
+              "type": "number"
+            },
+            {
+              "id": "ai_ml_score",
+              "displayName": "ai_ml_score",
+              "type": "number"
+            },
+            {
+              "id": "exp_score",
+              "displayName": "exp_score",
+              "type": "number"
+            },
+            {
+              "id": "soft_score",
+              "displayName": "soft_score",
+              "type": "number"
+            },
+            {
+              "id": "grade",
+              "displayName": "grade",
+              "type": "string"
+            },
+            {
+              "id": "recommendation",
+              "displayName": "recommendation",
+              "type": "string"
+            },
+            {
+              "id": "is_qualified",
+              "displayName": "is_qualified",
+              "type": "boolean"
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "type": "string"
+            },
+            {
+              "id": "strengths",
+              "displayName": "strengths",
+              "type": "string"
+            },
+            {
+              "id": "weaknesses",
+              "displayName": "weaknesses",
+              "type": "string"
+            },
+            {
+              "id": "score_evidence",
+              "displayName": "score_evidence",
+              "type": "string"
+            },
+            {
+              "id": "field_confidence",
+              "displayName": "field_confidence",
+              "type": "string"
+            },
+            {
+              "id": "recommended_role",
+              "displayName": "recommended_role",
+              "type": "string"
+            },
+            {
+              "id": "experience_level",
+              "displayName": "experience_level",
+              "type": "string"
+            },
+            {
+              "id": "key_technologies",
+              "displayName": "key_technologies",
+              "type": "string"
+            },
+            {
+              "id": "recommendation_rationale",
+              "displayName": "recommendation_rationale",
+              "type": "string"
+            },
+            {
+              "id": "resume_hash",
+              "displayName": "resume_hash",
+              "type": "string"
+            },
+            {
+              "id": "processing_ms",
+              "displayName": "processing_ms",
+              "type": "number"
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -510,9 +1012,15 @@
       "name": "Save Candidate — PostgreSQL",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [2528, 2080],
+      "position": [
+        2528,
+        2080
+      ],
       "credentials": {
-        "postgres": { "id": "OFGnvKVUjTZr2d4j", "name": "Postgres account" }
+        "postgres": {
+          "id": "OFGnvKVUjTZr2d4j",
+          "name": "Postgres account"
+        }
       },
       "onError": "continueRegularOutput"
     },
@@ -538,16 +1046,56 @@
           "value": {},
           "matchingColumns": [],
           "schema": [
-            { "id": "submitted_at", "displayName": "submitted_at", "type": "string" },
-            { "id": "source", "displayName": "source", "type": "string" },
-            { "id": "candidate_name", "displayName": "candidate_name", "type": "string" },
-            { "id": "email", "displayName": "email", "type": "string" },
-            { "id": "phone", "displayName": "phone", "type": "string" },
-            { "id": "position", "displayName": "position", "type": "string" },
-            { "id": "total_score", "displayName": "total_score", "type": "string" },
-            { "id": "grade", "displayName": "grade", "type": "string" },
-            { "id": "recommendation", "displayName": "recommendation", "type": "string" },
-            { "id": "summary", "displayName": "summary", "type": "string" }
+            {
+              "id": "submitted_at",
+              "displayName": "submitted_at",
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "type": "string"
+            },
+            {
+              "id": "candidate_name",
+              "displayName": "candidate_name",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "type": "string"
+            },
+            {
+              "id": "position",
+              "displayName": "position",
+              "type": "string"
+            },
+            {
+              "id": "total_score",
+              "displayName": "total_score",
+              "type": "string"
+            },
+            {
+              "id": "grade",
+              "displayName": "grade",
+              "type": "string"
+            },
+            {
+              "id": "recommendation",
+              "displayName": "recommendation",
+              "type": "string"
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "type": "string"
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -558,9 +1106,15 @@
       "name": "Google Sheets — Focused Log",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [2528, 1904],
+      "position": [
+        2528,
+        1904
+      ],
       "credentials": {
-        "googleSheetsOAuth2Api": { "id": "nufGXWaPjYqIub52", "name": "Google Sheets account" }
+        "googleSheetsOAuth2Api": {
+          "id": "nufGXWaPjYqIub52",
+          "name": "Google Sheets account"
+        }
       },
       "disabled": true
     },
@@ -570,23 +1124,40 @@
         "subject": "=We've received your application for {{ $json.position || 'our open role' }}",
         "emailType": "text",
         "message": "=Hi {{ $json.candidateName || 'Candidate' }}\n\nThank you for applying for the {{ $json.position || 'open role' }}\nrole at Virim Infotech.\n\nThis email is to confirm we've successfully received your application. Our hiring team will review it, and if your skills and experience are a good match, we'll be in touch.\n\nBest regards,\nThe Virim Team",
-        "options": { "appendAttribution": false }
+        "options": {
+          "appendAttribution": false
+        }
       },
       "id": "0f5f88dc-402c-4fde-94b0-86f7f59b2edd",
       "name": "Send Confirmation Email",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [624, 1712],
+      "position": [
+        624,
+        1712
+      ],
       "credentials": {
-        "gmailOAuth2": { "id": "PCtnA3WmRvlTkJyT", "name": "Gmail account" }
+        "gmailOAuth2": {
+          "id": "PCtnA3WmRvlTkJyT",
+          "name": "Gmail account"
+        }
       },
       "disabled": true,
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "schema": { "__rl": true, "mode": "list", "value": "public" },
-        "table": { "__rl": true, "value": "users", "mode": "list", "cachedResultName": "users" },
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -599,16 +1170,50 @@
             "years_of_exp": "={{ $json.yearsOfExp || 0 }}",
             "submitted_at": "={{ $json.submittedAt || new Date().toISOString() }}"
           },
-          "matchingColumns": ["email"],
+          "matchingColumns": [
+            "email"
+          ],
           "schema": [
-            { "id": "candidate_name", "displayName": "candidate_name", "type": "string" },
-            { "id": "email", "displayName": "email", "type": "string" },
-            { "id": "phone", "displayName": "phone", "type": "string" },
-            { "id": "position", "displayName": "position", "type": "string" },
-            { "id": "source", "displayName": "source", "type": "string" },
-            { "id": "linkedin", "displayName": "linkedin", "type": "string" },
-            { "id": "years_of_exp", "displayName": "years_of_exp", "type": "number" },
-            { "id": "submitted_at", "displayName": "submitted_at", "type": "dateTime" }
+            {
+              "id": "candidate_name",
+              "displayName": "candidate_name",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "type": "string"
+            },
+            {
+              "id": "position",
+              "displayName": "position",
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "type": "string"
+            },
+            {
+              "id": "linkedin",
+              "displayName": "linkedin",
+              "type": "string"
+            },
+            {
+              "id": "years_of_exp",
+              "displayName": "years_of_exp",
+              "type": "number"
+            },
+            {
+              "id": "submitted_at",
+              "displayName": "submitted_at",
+              "type": "dateTime"
+            }
           ]
         },
         "options": {}
@@ -617,19 +1222,34 @@
       "name": "Save User — PostgreSQL",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [624, 2080],
+      "position": [
+        624,
+        2080
+      ],
       "credentials": {
-        "postgres": { "id": "OFGnvKVUjTZr2d4j", "name": "Postgres account" }
+        "postgres": {
+          "id": "OFGnvKVUjTZr2d4j",
+          "name": "Postgres account"
+        }
       },
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "rule": { "interval": [{ "triggerAtHour": 9 }] }
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
       },
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
-      "position": [-1264, 1984],
+      "position": [
+        -1264,
+        1984
+      ],
       "id": "9a385105-ec86-4d6e-b538-f29dd4ab6610",
       "name": "Schedule Trigger"
     },
@@ -641,11 +1261,17 @@
       },
       "type": "n8n-nodes-workdrive.workDrive",
       "typeVersion": 1,
-      "position": [-528, 1984],
+      "position": [
+        -528,
+        1984
+      ],
       "id": "3418aa9f-06c8-4fa4-8e70-76895f04ce96",
       "name": "Download a file",
       "credentials": {
-        "workDriveOAuth2Api": { "id": "erSQKlK1fUgXKQK0", "name": "Zoho WorkDrive account" }
+        "workDriveOAuth2Api": {
+          "id": "erSQKlK1fUgXKQK0",
+          "name": "Zoho WorkDrive account"
+        }
       },
       "onError": "continueRegularOutput"
     },
@@ -658,11 +1284,17 @@
       },
       "type": "n8n-nodes-workdrive.workDrive",
       "typeVersion": 1,
-      "position": [2800, 2240],
+      "position": [
+        2800,
+        2240
+      ],
       "id": "69f409ba-2fee-4267-8eb3-3f4aaa9aee2b",
       "name": "Move a file",
       "credentials": {
-        "workDriveOAuth2Api": { "id": "erSQKlK1fUgXKQK0", "name": "Zoho WorkDrive account" }
+        "workDriveOAuth2Api": {
+          "id": "erSQKlK1fUgXKQK0",
+          "name": "Zoho WorkDrive account"
+        }
       },
       "onError": "continueRegularOutput"
     },
@@ -670,9 +1302,18 @@
       "parameters": {
         "fields": {
           "values": [
-            { "name": "sourceFolderId", "stringValue": "s91hq18c6e731501d42aa8a86ced586fb5641" },
-            { "name": "processedFolderId", "stringValue": "s91hqfbc61c3668e34a6fb04ebd9da48e6f21" },
-            { "name": "source", "stringValue": "workdrive" }
+            {
+              "name": "sourceFolderId",
+              "stringValue": "s91hq18c6e731501d42aa8a86ced586fb5641"
+            },
+            {
+              "name": "processedFolderId",
+              "stringValue": "s91hqfbc61c3668e34a6fb04ebd9da48e6f21"
+            },
+            {
+              "name": "source",
+              "stringValue": "workdrive"
+            }
           ]
         },
         "options": {}
@@ -681,7 +1322,10 @@
       "name": "WorkDrive Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3,
-      "position": [-1072, 1984]
+      "position": [
+        -1072,
+        1984
+      ]
     },
     {
       "parameters": {
@@ -691,7 +1335,10 @@
       "name": "Prepare WorkDrive Files",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-688, 1984]
+      "position": [
+        -688,
+        1984
+      ]
     },
     {
       "parameters": {
@@ -701,34 +1348,57 @@
       "name": "Keep WorkDrive Items",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2688, 2240]
+      "position": [
+        2688,
+        2240
+      ]
     },
     {
       "parameters": {
-        "projectId": { "__rl": true, "value": "virim-internal-project", "mode": "id" },
+        "projectId": {
+          "__rl": true,
+          "value": "virim-internal-project",
+          "mode": "id"
+        },
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
       "typeVersion": 1,
-      "position": [736, 2288],
+      "position": [
+        736,
+        2288
+      ],
       "id": "1456f734-3f20-49cb-a64a-993c8a3937d2",
       "name": "Google Vertex Chat Model",
       "credentials": {
-        "googleApi": { "id": "KOHj5ZcJWDMRoTCL", "name": "Google Service Account account" }
+        "googleApi": {
+          "id": "KOHj5ZcJWDMRoTCL",
+          "name": "Google Service Account account"
+        }
       }
     },
     {
       "parameters": {
-        "projectId": { "__rl": true, "value": "virim-internal-project", "mode": "id" },
+        "projectId": {
+          "__rl": true,
+          "value": "virim-internal-project",
+          "mode": "id"
+        },
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
       "typeVersion": 1,
-      "position": [1792, 2400],
+      "position": [
+        1792,
+        2400
+      ],
       "id": "999a6ea6-42b1-4937-8c30-3319396c17cf",
       "name": "Google Vertex Chat Model1",
       "credentials": {
-        "googleApi": { "id": "KOHj5ZcJWDMRoTCL", "name": "Google Service Account account" }
+        "googleApi": {
+          "id": "KOHj5ZcJWDMRoTCL",
+          "name": "Google Service Account account"
+        }
       }
     },
     {
@@ -738,11 +1408,17 @@
       },
       "type": "n8n-nodes-base.emailReadImap",
       "typeVersion": 2.1,
-      "position": [-608, 2208],
+      "position": [
+        -608,
+        2208
+      ],
       "id": "211373a6-a9b1-40fc-a7b4-bbbf1957b0bc",
       "name": "Email Trigger (IMAP)",
       "credentials": {
-        "imap": { "id": "tLQV1UzQNUrvIiYU", "name": "IMAP account" }
+        "imap": {
+          "id": "tLQV1UzQNUrvIiYU",
+          "name": "IMAP account"
+        }
       }
     },
     {
@@ -754,11 +1430,17 @@
       },
       "type": "n8n-nodes-workdrive.workDrive",
       "typeVersion": 1,
-      "position": [-864, 1984],
+      "position": [
+        -864,
+        1984
+      ],
       "id": "6bdcb83a-6c58-41b6-8eca-c69945b05dae",
       "name": "List folder contents",
       "credentials": {
-        "workDriveOAuth2Api": { "id": "erSQKlK1fUgXKQK0", "name": "Zoho WorkDrive account" }
+        "workDriveOAuth2Api": {
+          "id": "erSQKlK1fUgXKQK0",
+          "name": "Zoho WorkDrive account"
+        }
       }
     },
     {
@@ -770,129 +1452,412 @@
       "name": "Workflow Logger",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2528, 2256]
+      "position": [
+        2528,
+        2256
+      ]
     }
   ],
   "pinData": {},
   "connections": {
     "Format Error For Sheet": {
-      "main": [[{ "node": "Google Sheets — Error Log", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Google Sheets — Error Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Error Trigger": {
-      "main": [[{ "node": "Format Error For Sheet", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Format Error For Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Extract PDF — Form": {
-      "main": [[{ "node": "Normalize — Form", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Normalize — Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Extract PDF — Email": {
-      "main": [[{ "node": "Normalize — Email", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Normalize — Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Normalize — Form": {
-      "main": [[{ "node": "Merge Triggers", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Normalize — Email": {
-      "main": [[{ "node": "Merge Triggers", "type": "main", "index": 1 }]]
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
     },
     "Merge Triggers": {
-      "main": [[{ "node": "Email Duplicate Check — PostgreSQL", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Email Duplicate Check — PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Email Duplicate Check — PostgreSQL": {
-      "main": [[{ "node": "Email Duplicate Gate", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Email Duplicate Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Email Duplicate Gate": {
       "main": [
         [
-          { "node": "Return Duplicate Response", "type": "main", "index": 0 },
-          { "node": "Log Duplicate Attempt", "type": "main", "index": 0 }
+          {
+            "node": "Return Duplicate Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Duplicate Attempt",
+            "type": "main",
+            "index": 0
+          }
         ],
         [
-          { "node": "Remove resumeText — Sheet1", "type": "main", "index": 0 },
-          { "node": "Send Confirmation Email", "type": "main", "index": 0 },
-          { "node": "Save User — PostgreSQL", "type": "main", "index": 0 },
-          { "node": "Resume Validation & Hash", "type": "main", "index": 0 }
+          {
+            "node": "Remove resumeText — Sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Confirmation Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save User — PostgreSQL",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Resume Validation & Hash",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Return Duplicate Response": {
-      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Resume Validation & Hash": {
-      "main": [[{ "node": "Extract — All Skills & Details", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Extract — All Skills & Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Extract — All Skills & Details": {
-      "main": [[{ "node": "Normalize Skills", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Normalize Skills",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Normalize Skills": {
-      "main": [[{ "node": "Project Complexity Analysis", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Project Complexity Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Project Complexity Analysis": {
-      "main": [[{ "node": "Pre-filled JD", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Pre-filled JD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Pre-filled JD": {
-      "main": [[{ "node": "Resume Quality Analysis", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Resume Quality Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Resume Quality Analysis": {
-      "main": [[{ "node": "Build Scoring Prompt (/100)", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Build Scoring Prompt (/100)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Build Scoring Prompt (/100)": {
       "main": [
-        [{ "node": "Remote AI — OpenRouter", "type": "main", "index": 0 }],
-        [{ "node": "Local AI — Ollama (llama3.1)1", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Remote AI — OpenRouter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Local AI — Ollama (llama3.1)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Local AI — Ollama (llama3.1)1": {
-      "main": [[{ "node": "Merge AI Results1", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Merge AI Results1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Remote AI — OpenRouter": {
-      "main": [[{ "node": "Merge AI Results1", "type": "main", "index": 1 }]]
+      "main": [
+        [
+          {
+            "node": "Merge AI Results1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
     },
     "Merge AI Results1": {
-      "main": [[{ "node": "Parse & Average Scores (/100)", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Parse & Average Scores (/100)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Parse & Average Scores (/100)": {
       "main": [
         [
-          { "node": "Google Sheets — Focused Log", "type": "main", "index": 0 },
-          { "node": "Recruiter Recommendation Engine", "type": "main", "index": 0 },
-          { "node": "Workflow Logger", "type": "main", "index": 0 }
+          {
+            "node": "Google Sheets — Focused Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Recruiter Recommendation Engine",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Workflow Logger",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Recruiter Recommendation Engine": {
-      "main": [[{ "node": "Save Candidate — PostgreSQL", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Save Candidate — PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Save Candidate — PostgreSQL": {
-      "main": [[{ "node": "Keep WorkDrive Items", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Keep WorkDrive Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Keep WorkDrive Items": {
-      "main": [[{ "node": "Move a file", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Move a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Remove resumeText — Sheet1": {
       "main": []
     },
     "Schedule Trigger": {
-      "main": [[{ "node": "WorkDrive Config", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "WorkDrive Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Download a file": {
-      "main": [[{ "node": "Extract PDF — Form", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Extract PDF — Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "WorkDrive Config": {
-      "main": [[{ "node": "List folder contents", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "List folder contents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Prepare WorkDrive Files": {
-      "main": [[{ "node": "Download a file", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Download a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Google Vertex Chat Model": {
-      "ai_languageModel": [[{ "node": "Extract — All Skills & Details", "type": "ai_languageModel", "index": 0 }]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract — All Skills & Details",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Google Vertex Chat Model1": {
-      "ai_languageModel": [[{ "node": "Remote AI — OpenRouter", "type": "ai_languageModel", "index": 0 }]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "Remote AI — OpenRouter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Email Trigger (IMAP)": {
-      "main": [[{ "node": "Extract PDF — Email", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Extract PDF — Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "List folder contents": {
-      "main": [[{ "node": "Prepare WorkDrive Files", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Prepare WorkDrive Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,

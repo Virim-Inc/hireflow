@@ -1,5 +1,5 @@
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, Filter, Plus, RefreshCw, Search, Users, X } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, RefreshCw, Search, Users, X } from 'lucide-react';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import {
@@ -289,6 +289,180 @@ function FilterDropdown({
   );
 }
 
+function ModernDatePicker({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (value) return new Date(value);
+    return new Date();
+  });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (value) {
+      setCurrentDate(new Date(value));
+    }
+  }, [value]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  const daysGrid: Array<{ day: number; currentMonth: boolean; dateString: string }> = [];
+
+  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+    const d = daysInPrevMonth - i;
+    const prevMonthDate = new Date(year, month - 1, d);
+    daysGrid.push({
+      day: d,
+      currentMonth: false,
+      dateString: formatDateString(prevMonthDate),
+    });
+  }
+
+  for (let i = 1; i <= daysInMonth; i++) {
+    const currMonthDate = new Date(year, month, i);
+    daysGrid.push({
+      day: i,
+      currentMonth: true,
+      dateString: formatDateString(currMonthDate),
+    });
+  }
+
+  const remainingCells = 42 - daysGrid.length;
+  for (let i = 1; i <= remainingCells; i++) {
+    const nextMonthDate = new Date(year, month + 1, i);
+    daysGrid.push({
+      day: i,
+      currentMonth: false,
+      dateString: formatDateString(nextMonthDate),
+    });
+  }
+
+  function formatDateString(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function handlePrevMonth() {
+    setCurrentDate(new Date(year, month - 1, 1));
+  }
+
+  function handleNextMonth() {
+    setCurrentDate(new Date(year, month + 1, 1));
+  }
+
+  function handleSelectDay(dateStr: string) {
+    onChange(dateStr);
+    setOpen(false);
+  }
+
+  function handleClear() {
+    onChange('');
+    setOpen(false);
+  }
+
+  function handleToday() {
+    const todayStr = formatDateString(new Date());
+    onChange(todayStr);
+    setCurrentDate(new Date());
+    setOpen(false);
+  }
+
+  const displayLabel = value
+    ? new Intl.DateTimeFormat('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(value))
+    : 'dd-mm-yyyy';
+
+  return (
+    <div ref={containerRef} className={`hf-select-field hf-modern-select ${open ? 'is-open' : ''}`} style={{ position: 'relative' }}>
+      <span>{label}</span>
+      <button
+        type="button"
+        className={`hf-modern-select-trigger ${open ? 'is-open' : ''}`}
+        onClick={() => setOpen(!open)}
+        style={{ cursor: 'pointer' }}
+      >
+        <span className="hf-modern-select-value">{displayLabel}</span>
+        <ChevronDown size={14} />
+      </button>
+
+      {open && (
+        <div className="hf-date-picker-menu" style={{ position: 'absolute', bottom: '100%', left: 0, marginBottom: '8px', zIndex: 1000 }}>
+          <div className="hf-date-picker-header">
+            <button type="button" onClick={handlePrevMonth} className="hf-date-picker-nav-btn">
+              <ChevronLeft size={14} />
+            </button>
+            <strong className="hf-date-picker-month-label">{monthNames[month]} {year}</strong>
+            <button type="button" onClick={handleNextMonth} className="hf-date-picker-nav-btn">
+              <ChevronRight size={14} />
+            </button>
+          </div>
+
+          <div className="hf-date-picker-weekdays">
+            {daysOfWeek.map((day) => (
+              <span key={day} className="hf-date-picker-weekday">{day}</span>
+            ))}
+          </div>
+
+          <div className="hf-date-picker-days-grid">
+            {daysGrid.map((item, idx) => {
+              const isSelected = item.dateString === value;
+              const isToday = item.dateString === formatDateString(new Date());
+              return (
+                <button
+                  key={`${item.dateString}-${idx}`}
+                  type="button"
+                  onClick={() => handleSelectDay(item.dateString)}
+                  className={`hf-date-picker-day-btn ${!item.currentMonth ? 'is-outside' : ''} ${isSelected ? 'is-selected' : ''} ${isToday ? 'is-today' : ''}`}
+                >
+                  {item.day}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="hf-date-picker-footer">
+            <button type="button" onClick={handleClear} className="hf-date-picker-clear-btn">Clear</button>
+            <button type="button" onClick={handleToday} className="hf-date-picker-today-btn">Today</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<CandidateFilters> | null }) {
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -479,7 +653,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
   const sourceOptions: FilterOption[] = [
     { label: 'All sources', value: '' },
-    { label: 'Form', value: 'form' },
+    { label: 'Workdrive', value: 'workdrive' },
     { label: 'Email', value: 'email' },
   ];
 
@@ -779,15 +953,17 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                 />
               </label>
 
-              <label className="hf-select-field">
-                <span>Date from</span>
-                <input type="date" value={filters.date_from} onChange={(event) => updateFilter('date_from', event.target.value)} />
-              </label>
+              <ModernDatePicker
+                label="Date from"
+                value={filters.date_from}
+                onChange={(value) => updateFilter('date_from', value)}
+              />
 
-              <label className="hf-select-field">
-                <span>Date to</span>
-                <input type="date" value={filters.date_to} onChange={(event) => updateFilter('date_to', event.target.value)} />
-              </label>
+              <ModernDatePicker
+                label="Date to"
+                value={filters.date_to}
+                onChange={(value) => updateFilter('date_to', value)}
+              />
 
               <FilterDropdown
                 label="Sort by"
@@ -911,7 +1087,9 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                       {candidate.best_recommendation || 'Pending review'}
                     </span>
                     <span className={`hf-source-badge ${sourceClass(candidate.source)}`}>
-                      {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 'Form'}
+                      {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 
+                       (candidate.source ?? '').toLowerCase().includes('workdrive') ? 'Workdrive' : 
+                       (candidate.source ? candidate.source.charAt(0).toUpperCase() + candidate.source.slice(1) : 'Form')}
                     </span>
                   </div>
 
@@ -966,7 +1144,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   </div>
 
                   <p className="hf-card-summary">
-                    {Object.keys(candidate.jd_matches || {}).length > 0 
+                    {Object.keys(candidate.jd_matches || {}).length > 0
                       ? `Evaluated against ${Object.keys(candidate.jd_matches || {}).length} active job role${Object.keys(candidate.jd_matches || {}).length > 1 ? 's' : ''}.`
                       : 'Open to inspect AI assessment and resume fit details.'}
                   </p>

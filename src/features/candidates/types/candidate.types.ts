@@ -156,7 +156,7 @@ export interface CandidateStats {
     last30Days: DailyRecruitmentStats;
   };
   sourceBreakdown: {
-    form: number;
+    workdrive: number;
     email: number;
   };
   recommendationBreakdown: {

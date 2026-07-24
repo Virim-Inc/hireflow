@@ -180,24 +180,24 @@ export function CandidateDetailDrawer({
     ? (Array.isArray(activeMatch.weaknesses) ? activeMatch.weaknesses : splitValues(activeMatch.weaknesses))
     : Object.values(candidate.jd_matches || {}).flatMap(m => Array.isArray(m.weaknesses) ? m.weaknesses : splitValues(m.weaknesses)).filter((v, i, arr) => arr.indexOf(v) === i);
 
-  const parseJsonArray = (val: any) => {
-    if (!val) return [];
-    if (Array.isArray(val)) return val;
-    try { return JSON.parse(val); } catch(e) { return []; }
-  };
+  // const parseJsonArray = (val: any) => {
+  //   if (!val) return [];
+  //   if (Array.isArray(val)) return val;
+  //   try { return JSON.parse(val); } catch(e) { return []; }
+  // };
 
-  const matchedSkillsList = activeMatch ? parseJsonArray(activeMatch.matched_skills) : [];
-  const missingSkillsList = activeMatch ? parseJsonArray(activeMatch.missing_skills) : [];
+  // const matchedSkillsList = activeMatch ? parseJsonArray(activeMatch.matched_skills) : [];
+  // const missingSkillsList = activeMatch ? parseJsonArray(activeMatch.missing_skills) : [];
 
-  const evaluationNotes = activeMatch
-    ? [
-        { label: 'Evaluation Summary', value: activeMatch.summary },
-        { label: 'Matched Skills', value: matchedSkillsList.length ? matchedSkillsList.join(', ') : 'None' },
-        { label: 'Missing Skills', value: missingSkillsList.length ? missingSkillsList.join(', ') : 'None' }
-      ].filter(item => item.value)
-    : [
-        { label: 'Global Overview', value: 'Select specific Job Description tabs at the top to inspect matched/missing skills, fit reasoning, and customized role alignment detail cards.' }
-      ];
+  // const evaluationNotes = activeMatch
+  //   ? [
+  //       { label: 'Evaluation Summary', value: activeMatch.summary },
+  //       { label: 'Matched Skills', value: matchedSkillsList.length ? matchedSkillsList.join(', ') : 'None' },
+  //       { label: 'Missing Skills', value: missingSkillsList.length ? missingSkillsList.join(', ') : 'None' }
+  //     ].filter(item => item.value)
+  //   : [
+  //       { label: 'Global Overview', value: 'Select specific Job Description tabs at the top to inspect matched/missing skills, fit reasoning, and customized role alignment detail cards.' }
+  //     ];
   const allSkills = [
     ...splitValues(candidate.frontend_skills),
     ...splitValues(candidate.backend_skills),
@@ -247,7 +247,9 @@ export function CandidateDetailDrawer({
             <div className="hf-inline-meta">
               <span className={`hf-source-badge ${sourceClass(candidate.source)}`}>
                 {(candidate.source ?? '').toLowerCase().includes('email') ? <Inbox size={12} /> : <FileText size={12} />}
-                {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 'Form'}
+                {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 
+                 (candidate.source ?? '').toLowerCase().includes('workdrive') ? 'Workdrive' : 
+                 (candidate.source ? candidate.source.charAt(0).toUpperCase() + candidate.source.slice(1) : 'Form')}
               </span>
               <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`}>
                 {getStageLabel(candidate.pipeline_stage)}
@@ -433,7 +435,7 @@ export function CandidateDetailDrawer({
               </div>
             </article>
 
-            <article className="glass-card hf-panel">
+            {/* <article className="glass-card hf-panel">
               <div className="hf-panel-head">
                 <FileText size={15} />
                 <span>Evaluator Notes</span>
@@ -450,7 +452,7 @@ export function CandidateDetailDrawer({
                   <p className="hf-panel-subtle">No detailed evaluator notes saved yet.</p>
                 )}
               </div>
-            </article>
+            </article> */}
 
             <article className="glass-card hf-panel">
               <div className="hf-panel-head">

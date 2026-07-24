@@ -157,7 +157,7 @@ export async function getStats(): Promise<Record<string, unknown>> {
     dailyAcquisition,
     dailyRecruitmentStats,
     sourceBreakdown: {
-      form: asNumber(summary.from_form),
+      workdrive: asNumber(summary.from_workdrive),
       email: asNumber(summary.from_email),
     },
     recommendationBreakdown: {

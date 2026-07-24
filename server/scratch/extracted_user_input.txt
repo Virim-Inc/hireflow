@@ -1,0 +1,801 @@
+<USER_REQUEST>
+Now can you please do one hting for me as i can not rerun the full flwo i have the normalised data so i am providing you rhat data so please correctly insert it itnot the database if oyu have any question please ask me and dont break anything and in the AI output there is the issue of JD i that we have solved but the response is previous so di it correclty rthe active JD id was 3 and all the candaite resusme is evaludated on that basis only so use the jd is 3
+
+below is rthe full response of thre normalize AI output 
+
+[
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset for a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset for a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset for a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills": "[\"React\",\"SQL\",\"Database\",\"DSA\",\"AI Tool\",\"AI\"]",
+    "missing_skills": "[\"Python\",\"Tailwind\",\"CICD\",\"JAVA\",\".Net\"]",
+    "strengths": [
+      "Strong foundation in required frontend technologies (React) and database management (SQL, DBMS).",
+      "Demonstrated practical experience with AI/ML concepts and specific AI tools (RPA, UiPath, n8n).",
+      "Excellent project portfolio showcasing application of required skills in functional and innovative solutions.",
+      "Valuable internship experience for a fresher candidate, directly matching the experience requirements.",
+      "Relevant academic background (B.Tech) and highly aligned certifications (RPA, MERN, DSA).",
+      "Professional and well-structured resume indicating good communication skills."
+    ],
+    "weaknesses": [
+      "Lacks explicit mention of Python, which is a required skill.",
+      "No mention of Tailwind CSS, a required skill.",
+      "Does not demonstrate experience with preferred skills like CICD, Java, or .Net."
+    ],
+    "summary": "Shalini is a highly promising candidate for the Junior Software Engineer role. She meets most of the required technical skills, especially in React, SQL, Database, DSA, and AI, which are further solidified by strong project work and relevant certifications. Her internship experience is a significant asset to a fresher, demonstrating practical application of skills. While Python and Tailwind are noted gaps, her overall profile presents a strong match.",
+    "status": "Completed",
+    "scored_at": "2026-07-24T08:11:28.226Z"
+  },
+  {
+    "candidate_id": 52,
+    "jd_id": 3,
+    "overall_score": 85,
+    "technical_score": 45,
+    "experience_score": 10,
+    "education_score": 15,
+    "communication_score": 5,
+    "project_score": 10,
+    "recommendation": "Hire",
+    "grade": "B",
+    "matched_skills":
+<truncated 144586 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

@@ -65,13 +65,13 @@
         },
         "options": {}
       },
-      "id": "c50120da-88dd-4007-bfca-44a7ed238a64",
+      "id": "41ba20e5-781f-4258-8d03-bb1c97504e03",
       "name": "Google Sheets — Error Log",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [
-        -768,
-        1360
+        496,
+        3120
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -85,24 +85,24 @@
         "mode": "runOnceForEachItem",
         "jsCode": "const d = $input.item.json || {};\nconst err = d.error || {};\nconst wf = d.workflow || {};\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    workflowName: wf.name || 'Unknown Workflow',\n    workflowId: wf.id || '',\n    executionId: d.execution?.id || d.id || '',\n    failedNode: err.node?.name || d.lastNodeExecuted || '',\n    errorMessage: err.message || d.message || 'Unknown error',\n    errorType: err.name || d.name || '',\n    stack: (err.stack || '').toString().substring(0, 5000)\n  }\n};"
       },
-      "id": "fb4abd71-1181-45ec-afe3-6957ed716c2d",
+      "id": "07ad6954-86ea-4d4d-8ad7-8b9e8f14ae72",
       "name": "Format Error For Sheet",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1024,
-        1360
+        240,
+        3120
       ]
     },
     {
       "parameters": {},
-      "id": "28bc70a8-d7e6-40e1-8648-38b0d0dae8b2",
+      "id": "c58509e4-9955-4976-8852-710ede552260",
       "name": "Error Trigger",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
       "position": [
-        -1280,
-        1360
+        -16,
+        3120
       ]
     },
     {
@@ -111,13 +111,13 @@
         "binaryPropertyName": "={{ Object.keys($binary || {})[0] || 'Upload Resume' }}",
         "options": {}
       },
-      "id": "2a25c4c3-9682-4011-aa3f-e76616fe6edb",
+      "id": "b42bcc55-1022-4e67-b957-dabceb90fae6",
       "name": "Extract PDF — Form",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        -1088,
-        464
+        176,
+        2224
       ],
       "onError": "continueRegularOutput"
     },
@@ -127,13 +127,13 @@
         "binaryPropertyName": "attachment_0",
         "options": {}
       },
-      "id": "b2974ff6-d52a-4be0-b9af-e92b6c029717",
+      "id": "26fd8f27-4fc6-4cd9-8156-094eaab8adea",
       "name": "Extract PDF — Email",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        -1120,
-        672
+        144,
+        2432
       ]
     },
     {
@@ -141,13 +141,13 @@
         "mode": "runOnceForEachItem",
         "jsCode": "const d = $input.item.json || {};\nlet form = {};\nlet workDrive = {};\ntry {\n  workDrive = $('Prepare WorkDrive Files').item.json || {};\n} catch (e) {\n  workDrive = {};\n}\n\nconst resumeText = (d.text || '').substring(0, 12000);\n\nlet candidateName = d['Full Name'] || form['Full Name'] || '';\nlet email = d['Email Address'] || form['Email Address'] || '';\nlet phone = d['Phone Number'] || form['Phone Number'] || '';\nlet position = d['Position Applied For'] || form['Position Applied For'] || '';\nlet linkedin = d['LinkedIn Profile'] || form['LinkedIn Profile'] || '';\nconst yearsOfExp = d['Years of Experience'] || form['Years of Experience'] || 0;\n\nif (!email) {\n  const emailPatterns = [\n    /\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b/,\n    /email[:\\s]*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,})/i,\n    /([A-Za-z0-9._%+-]+@gmail\\.com)/i,\n    /([A-Za-z0-9._%+-]+@yahoo\\.com)/i,\n    /([A-Za-z0-9._%+-]+@outlook\\.com)/i,\n  ];\n  for (const pattern of emailPatterns) {\n    const match = resumeText.match(pattern);\n    if (match) {\n      email = match[match.length - 1];\n      if (email && email.includes('@')) break;\n    }\n  }\n  if (!email) email = '';\n}\n\nif (!candidateName) {\n  const nameLine = (resumeText.split('\\n')[0] || '').trim();\n  if (nameLine && nameLine.length > 2 && nameLine.length < 60 && !nameLine.includes('@') && !nameLine.match(/\\d+/)) {\n    candidateName = nameLine;\n  }\n  if (!candidateName) {\n    const regardsPatterns = [/(?:regards|sincerely|best regards|kind regards|warm regards|yours)[,\\s]+([A-Za-z\\s]+)/i];\n    for (const pattern of regardsPatterns) {\n      const match = resumeText.match(pattern);\n      if (match) {\n        const name = match[match.length - 1].trim();\n        if (name.length > 2 && name.length < 60 && !name.includes('@') && !name.match(/^[0-9]+$/)) {\n          candidateName = name;\n          break;\n        }\n      }\n    }\n  }\n  if (!candidateName) candidateName = 'Unknown';\n}\n\nif (!phone) {\n  const phonePatterns = [\n    /(?:phone|mobile|ph|tel|contact)[:\\s]+([\\d\\s\\-\\(\\)\\+\\.]+(?:\\d{7,15}))/i,\n    /(\\+\\d{1,3}[\\s.-]?\\d{1,4}[\\s.-]?\\d{1,9})/,\n    /(\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4})/,\n    /(\\d{1,3}[\\s.-]?\\d{3,4}[\\s.-]?\\d{4,5})/,\n  ];\n  for (const pattern of phonePatterns) {\n    const match = resumeText.match(pattern);\n    if (match) {\n      phone = match[match.length - 1].trim().replace(/^[^\\d\\+]/g, '');\n      if (phone.match(/\\d{7,}/)) break;\n    }\n  }\n}\n\nif (!linkedin) {\n  const linkedinPatterns = [/linkedin\\.com\\/in\\/([\\w\\-]+)/i, /li\\.in\\/([\\w\\-]+)/i];\n  for (const pattern of linkedinPatterns) {\n    const match = resumeText.match(pattern);\n    if (match) {\n      linkedin = match[0].includes('linkedin.com') ? 'https://' + match[0] : 'https://linkedin.com/in/' + match[1];\n      break;\n    }\n  }\n}\n\nif (!position) position = 'Not Specified';\n\nreturn {\n  json: {\n    source: workDrive.source || d.source || 'form',\n    candidateName,\n    email,\n    phone: phone || '',\n    position,\n    yearsOfExp,\n    linkedin: linkedin || '',\n    resumeText,\n    workdriveFileId: workDrive.fileId || d.workdriveFileId || d.resourceId || '',\n    workdriveFileName: workDrive.fileName || d.workdriveFileName || d.fileName || '',\n    sourceFolderId: workDrive.sourceFolderId || d.sourceFolderId || '',\n    processedFolderId: workDrive.processedFolderId || d.processedFolderId || '',\n    submittedAt: new Date().toISOString(),\n  },\n};"
       },
-      "id": "d5ac3a25-dcf7-4e8e-b80c-815e3185b667",
+      "id": "4d2cd46c-0116-4b5c-afea-8c2e67732f2f",
       "name": "Normalize — Form",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -880,
-        464
+        384,
+        2224
       ],
       "onError": "continueRegularOutput"
     },
@@ -156,25 +156,25 @@
         "mode": "runOnceForEachItem",
         "jsCode": "const d = $input.item.json;\nconst fromRaw   = d.from || '';\nconst senderEmail= (fromRaw.match(/<(.+?)>/) || [])[1] || fromRaw;\nconst resumeText = (d.text || '').substring(0, 12000);\n\nlet extractedEmail = '';\nconst emailPatterns = [\n  /\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b/,\n  /email[:\\s]*([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,})/i,\n  /([A-Za-z0-9._%+-]+@gmail\\.com)/i,\n  /([A-Za-z0-9._%+-]+@yahoo\\.com)/i,\n  /([A-Za-z0-9._%+-]+@outlook\\.com)/i\n];\nfor (const pattern of emailPatterns) {\n  const match = resumeText.match(pattern);\n  if (match) {\n    extractedEmail = match[match.length - 1];\n    if (extractedEmail && extractedEmail.includes('@')) break;\n  }\n}\nconst finalEmail = extractedEmail || senderEmail;\n\nlet candidateName = fromRaw.replace(/<.*>/, '').trim() || 'Unknown';\nconst nameLine = (resumeText.split('\\n')[0] || '').trim();\nif (nameLine && nameLine.length > 2 && nameLine.length < 60 && !nameLine.includes('@') && !nameLine.match(/\\d+/)) {\n  candidateName = nameLine;\n}\n\nlet phone = '';\nconst phonePatterns = [\n  /(?:phone|mobile|ph|tel|contact)[:\\s]+([\\d\\s\\-\\(\\)\\+\\.]+(?:\\d{7,15}))/i,\n  /(\\+\\d{1,3}[\\s.-]?\\d{1,4}[\\s.-]?\\d{1,9})/,\n  /(\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4})/,\n  /(\\d{1,3}[\\s.-]?\\d{3,4}[\\s.-]?\\d{4,5})/\n];\nfor (const pattern of phonePatterns) {\n  const match = resumeText.match(pattern);\n  if (match) {\n    phone = match[match.length - 1].trim().replace(/^[^\\d\\+]/g, '');\n    if (phone.match(/\\d{7,}/)) break;\n  }\n}\n\nlet linkedin = '';\nconst linkedinPatterns = [\n  /linkedin\\.com\\/in\\/([\\w\\-]+)/i,\n  /li\\.in\\/([\\w\\-]+)/i\n];\nfor (const pattern of linkedinPatterns) {\n  const match = resumeText.match(pattern);\n  if (match) {\n    linkedin = match[0].includes('linkedin.com') ? 'https://' + match[0] : 'https://linkedin.com/in/' + match[1];\n    break;\n  }\n}\n\nlet position = 'Open Application';\nconst subject = (d.subject || '').trim();\nif (subject && subject.length > 3) {\n  let cleanSubject = subject.replace(/^(re|fwd|fw)[:\\s]?/gi, '').trim();\n  const fieldPattern = /(?:position|role|designation|apply|applying)[:\\s]+([^-\\n]+)/i;\n  const fieldMatch = cleanSubject.match(fieldPattern);\n  if (fieldMatch && fieldMatch[1]) {\n    position = fieldMatch[1].trim();\n    if (position.length < 2 || position.length > 100) position = 'Open Application';\n  }\n  if (position === 'Open Application') {\n    const keywords = ['frontend developer','backend developer','fullstack developer','full stack developer','devops engineer','qa engineer','software engineer','data scientist','cloud architect','senior developer','junior developer','developer','engineer','analyst','manager','architect','designer'];\n    for (const keyword of keywords) {\n      if (cleanSubject.toLowerCase().includes(keyword)) {\n        position = keyword.charAt(0).toUpperCase() + keyword.slice(1);\n        break;\n      }\n    }\n  }\n  if (position === 'Open Application') {\n    position = cleanSubject.replace(/application|resume|cv|curriculum|vitae/gi, '').trim();\n    if (position.length < 2 || position.length > 100) position = 'Open Application';\n  }\n}\n\nreturn {\n  json: {\n    source:        'email',\n    candidateName: candidateName,\n    email:         finalEmail,\n    phone:         phone,\n    position:      position,\n    yearsOfExp:    0,\n    linkedin:      linkedin,\n    resumeText:    resumeText,\n    submittedAt:   new Date().toISOString()\n  }\n};"
       },
-      "id": "8812cbbc-9df9-472f-8ea8-ed00adc970d0",
+      "id": "b48e794d-84eb-490a-b31c-bdd1ee99b0eb",
       "name": "Normalize — Email",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -880,
-        672
+        384,
+        2432
       ],
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {},
-      "id": "9a86d39c-d0f3-4018-85f3-355d899da168",
+      "id": "88c413f0-de56-4cf3-9c1d-b63895eb7720",
       "name": "Merge Triggers",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
       "position": [
-        -640,
-        560
+        624,
+        2320
       ]
     },
     {
@@ -183,13 +183,13 @@
         "query": "SELECT EXISTS(SELECT 1 FROM candidates WHERE LOWER(email) = LOWER('{{ $json.email }}')) as email_exists;",
         "options": {}
       },
-      "id": "272a79b3-7386-4201-b30c-45996cb37677",
+      "id": "c01b8bc1-3f3a-4f5b-872f-41709166bdab",
       "name": "Email Duplicate Check — PostgreSQL",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        -464,
-        560
+        800,
+        2320
       ],
       "credentials": {
         "postgres": {
@@ -205,78 +205,44 @@
           "boolean": [
             {
               "value1": "={{ $json.email_exists }}",
-              "operation": "equal",
               "value2": true
             }
           ]
         }
       },
-      "id": "44bf84c8-fcf7-43bb-a788-8515bc7dcf73",
+      "id": "c7b59efb-0165-426e-aca3-217247c30688",
       "name": "Email Duplicate Gate",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        -304,
-        560
+        960,
+        2320
       ]
     },
     {
       "parameters": {
-        "values": {
-          "boolean": [
-            {
-              "name": "success",
-              "value": false
-            },
-            {
-              "name": "duplicate",
-              "value": true
-            }
-          ],
-          "string": [
-            {
-              "name": "message",
-              "value": "This email has already been registered. Multiple applications using the same email are not allowed."
-            }
-          ]
-        },
         "options": {}
       },
-      "id": "583987ee-5189-467e-9435-e93f6fcc3942",
+      "id": "c597bc17-231a-4452-9ca6-d1c33f925809",
       "name": "Return Duplicate Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3,
       "position": [
-        -96,
-        -192
+        1168,
+        1568
       ]
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
         "jsCode": "const triggers = $('Merge Triggers').all().map(item => item.json);\nconst checks = $('Email Duplicate Check — PostgreSQL').all().map(item => item.json);\n\nreturn triggers.map((t, idx) => {\n  const c = checks[idx] || {};\n  return {\n    json: {\n      ...t,\n      email_exists: Boolean(c.email_exists)\n    }\n  };\n});"
       },
-      "id": "a3b8c9d0-1234-5678-abcd-ef0123456789",
+      "id": "2f5cf172-e4c7-4166-9696-b0b750b3d854",
       "name": "Merge Candidate Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -144,
-        560
-      ]
-    },
-    {
-      "parameters": {
-        "respondWith": "allIncomingItems",
-        "options": {}
-      },
-      "id": "c009d2f0-b09c-4323-b68a-0ea7f3ae11cb",
-      "name": "Respond to Webhook",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [
-        208,
-        -192
+        1120,
+        2320
       ]
     },
     {
@@ -284,13 +250,13 @@
         "mode": "runOnceForEachItem",
         "jsCode": "const d = $input.item.json || {};\nconst resumeText = (d.resumeText || '').trim();\n\nconst validationErrors = [];\nif (!resumeText || resumeText.length < 100)\n  validationErrors.push('Resume text too short or empty');\nif (resumeText.length < 200 && resumeText.split(' ').length < 30)\n  validationErrors.push('Possible corrupted PDF');\n\nlet resumeHash = '';\ntry {\n  const crypto = require('crypto');\n  resumeHash = crypto\n    .createHash('sha256')\n    .update(resumeText.substring(0, 5000).toLowerCase().replace(/\\s+/g, ' '))\n    .digest('hex')\n    .substring(0, 16);\n} catch(e) {\n  resumeHash = 'hash_' + Date.now();\n}\n\nreturn {\n  json: {\n    ...d,\n    resumeHash,\n    resumeLength: resumeText.length,\n    validationErrors: validationErrors.join('; ') || null,\n    isValidResume: validationErrors.length === 0,\n    processingStartMs: Date.now(),\n  }\n};"
       },
-      "id": "e871d956-bbd9-4fcd-a29e-b24d97f8ed42",
+      "id": "fb432c1a-e01a-4c9c-9889-a4f4e2b9de14",
       "name": "Resume Validation & Hash",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -80,
-        560
+        1184,
+        2320
       ]
     },
     {
@@ -413,28 +379,28 @@
           "systemPromptTemplate": "You are a precise, evidence-based technical recruiter and resume parser. Extract ALL candidate details accurately. Return null or 'N/A' for missing fields — NEVER hallucinate. For skill levels, judge based on context, depth of project work, and experience duration."
         }
       },
-      "id": "66ae163f-834a-469b-8d82-e572bb71a875",
+      "id": "594f8ead-0b92-4fe4-903e-cc9e3dafe766",
       "name": "Extract — All Skills & Details",
       "type": "@n8n/n8n-nodes-langchain.informationExtractor",
       "typeVersion": 1,
       "position": [
-        128,
-        560
+        1392,
+        2320
       ],
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const normMap = {\n  'javascript': 'JavaScript', 'java script': 'JavaScript', 'js': 'JavaScript',\n  'typescript': 'TypeScript', 'ts': 'TypeScript',\n  'react': 'React', 'reactjs': 'React', 'react.js': 'React',\n  'angularjs': 'Angular', 'angular.js': 'Angular',\n  'vuejs': 'Vue.js', 'vue': 'Vue.js',\n  'node': 'Node.js', 'nodejs': 'Node.js', 'node js': 'Node.js',\n  'expressjs': 'Express.js', 'express': 'Express.js',\n  'nextjs': 'Next.js', 'next': 'Next.js',\n  'postgres': 'PostgreSQL', 'postgresql': 'PostgreSQL',\n  'mongo': 'MongoDB', 'mongodb': 'MongoDB',\n  'python3': 'Python', 'py': 'Python',\n  'mysql': 'MySQL', 'my sql': 'MySQL',\n  'amazon web services': 'AWS',\n  'tailwind': 'Tailwind CSS', 'tailwindcss': 'Tailwind CSS',\n  'bootstrap4': 'Bootstrap', 'bootstrap5': 'Bootstrap',\n  'cpp': 'C++', 'c plus plus': 'C++',\n  'csharp': 'C#', 'c sharp': 'C#',\n  'golang': 'Go',\n  'tensorflow': 'TensorFlow',\n  'pytorch': 'PyTorch',\n  'github actions': 'GitHub Actions',\n  'ci/cd': 'CI/CD', 'cicd': 'CI/CD',\n};\n\nfunction normalizeSkillList(skillStr) {\n  if (!skillStr || typeof skillStr !== 'string') return skillStr || '';\n  return skillStr.split(',')\n    .map(s => {\n      const trimmed = s.trim();\n      const key = trimmed.toLowerCase().replace(/[.\\s-]/g, '');\n      for (const [pattern, canonical] of Object.entries(normMap)) {\n        if (key === pattern.replace(/[.\\s-]/g, '')) return canonical;\n      }\n      return trimmed;\n    })\n    .filter(Boolean)\n    .filter((v, i, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i)\n    .join(', ');\n}\n\nconst rawInput = $input.item.json || {};\nconst d = rawInput.output || rawInput || {};\n\n// Restore candidate contact details from Resume Validation & Hash node (index-aligned)\nlet contact = {};\ntry {\n  contact = $('Resume Validation & Hash').item.json || {};\n} catch (e) {\n  contact = {};\n}\n\n// Convert camelCase to snake_case for Save Candidate postgres node inputs\nreturn {\n  json: {\n    submitted_at: contact.submittedAt || contact.submitted_at || new Date().toISOString(),\n    processed_at: new Date().toISOString(),\n    source: contact.source || 'unknown',\n    candidate_name: contact.candidateName || contact.candidate_name || 'Unknown',\n    email: contact.email || '',\n    phone: contact.phone || '',\n    position: contact.position || '',\n    years_of_exp: Number(contact.yearsOfExp || contact.years_of_exp || d.totalExperienceYears || 0),\n    linkedin: contact.linkedin || '',\n    \n    current_job_title: d.currentJobTitle || '',\n    highest_degree: d.highestDegree || '',\n    degree: d.degree || '',\n    college: d.college || '',\n    city: d.city || '',\n    passout_year: parseInt(d.passoutYear) || null,\n    internship_completed: (String(d.internship || '').toLowerCase().includes('yes') || Boolean(d.internshipCompany)),\n    certifications: d.certifications || '',\n    \n    frontend_skills: normalizeSkillList(d.frontendSkills),\n    frontend_level: d.frontendLevel || '',\n    backend_skills: normalizeSkillList(d.backendSkills),\n    backend_level: d.backendLevel || '',\n    database_skills: normalizeSkillList(d.databaseSkills),\n    database_level: d.databaseLevel || '',\n    ai_ml_skills: normalizeSkillList(d.aiMlSkills),\n    ai_ml_level: d.aiMlLevel || '',\n    cloud_devops: normalizeSkillList(d.cloudDevOps),\n    programming_langs: normalizeSkillList(d.programmingLanguages),\n    notable_projects: d.notableProjects || '',\n    \n    resume_text: contact.resumeText || contact.resume_text || '',\n    \n    workdrive_file_id: contact.workdriveFileId || contact.workdrive_file_id || null,\n    workdrive_file_name: contact.workdriveFileName || contact.workdrive_file_name || null,\n    source_folder_id: contact.sourceFolderId || contact.source_folder_id || null,\n    processed_folder_id: contact.processedFolderId || contact.processed_folder_id || null\n  }\n};"
+        "jsCode": "const normMap = {\n  'javascript': 'JavaScript', 'java script': 'JavaScript', 'js': 'JavaScript',\n  'typescript': 'TypeScript', 'ts': 'TypeScript',\n  'react': 'React', 'reactjs': 'React', 'react.js': 'React',\n  'angularjs': 'Angular', 'angular.js': 'Angular',\n  'vuejs': 'Vue.js', 'vue': 'Vue.js',\n  'node': 'Node.js', 'nodejs': 'Node.js', 'node js': 'Node.js',\n  'expressjs': 'Express.js', 'express': 'Express.js',\n  'nextjs': 'Next.js', 'next': 'Next.js',\n  'postgres': 'PostgreSQL', 'postgresql': 'PostgreSQL',\n  'mongo': 'MongoDB', 'mongodb': 'MongoDB',\n  'python3': 'Python', 'py': 'Python',\n  'mysql': 'MySQL', 'my sql': 'MySQL',\n  'amazon web services': 'AWS',\n  'tailwind': 'Tailwind CSS', 'tailwindcss': 'Tailwind CSS',\n  'bootstrap4': 'Bootstrap', 'bootstrap5': 'Bootstrap',\n  'cpp': 'C++', 'c plus plus': 'C++',\n  'csharp': 'C#', 'c sharp': 'C#',\n  'golang': 'Go',\n  'tensorflow': 'TensorFlow',\n  'pytorch': 'PyTorch',\n  'github actions': 'GitHub Actions',\n  'ci/cd': 'CI/CD', 'cicd': 'CI/CD',\n};\n\nfunction normalizeSkillList(skillStr) {\n  if (!skillStr || typeof skillStr !== 'string') return skillStr || '';\n  return skillStr.split(',')\n    .map(s => {\n      const trimmed = s.trim();\n      const key = trimmed.toLowerCase().replace(/[.\\s-]/g, '');\n      for (const [pattern, canonical] of Object.entries(normMap)) {\n        if (key === pattern.replace(/[.\\s-]/g, '')) return canonical;\n      }\n      return trimmed;\n    })\n    .filter(Boolean)\n    .filter((v, i, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i)\n    .join(', ');\n}\n\nconst rawInput = $input.item.json || {};\nconst d = rawInput.output || rawInput || {};\n\n// Restore candidate contact details from Resume Validation & Hash node (index-aligned)\nlet contact = {};\ntry {\n  contact = $('Resume Validation & Hash').item.json || {};\n} catch (e) {\n  contact = {};\n}\n\n// Convert camelCase to snake_case for Save Candidate postgres node inputs\nreturn {\n  json: {\n    submitted_at: contact.submittedAt || contact.submitted_at || new Date().toISOString(),\n    processed_at: new Date().toISOString(),\n    source: contact.source || 'unknown',\n    candidate_name: contact.candidateName || contact.candidate_name || 'Unknown',\n    email: (contact.email || '').trim() || ('no-email-' + (contact.resumeHash || Date.now()) + '@hireflow.internal'),\n    phone: contact.phone || '',\n    position: contact.position || '',\n    years_of_exp: Number(contact.yearsOfExp || contact.years_of_exp || d.totalExperienceYears || 0),\n    linkedin: contact.linkedin || '',\n    \n    current_job_title: d.currentJobTitle || '',\n    highest_degree: d.highestDegree || '',\n    degree: d.degree || '',\n    college: d.college || '',\n    city: d.city || '',\n    passout_year: parseInt(d.passoutYear) || null,\n    internship_completed: (String(d.internship || '').toLowerCase().includes('yes') || Boolean(d.internshipCompany)),\n    certifications: d.certifications || '',\n    \n    frontend_skills: normalizeSkillList(d.frontendSkills),\n    frontend_level: d.frontendLevel || '',\n    backend_skills: normalizeSkillList(d.backendSkills),\n    backend_level: d.backendLevel || '',\n    database_skills: normalizeSkillList(d.databaseSkills),\n    database_level: d.databaseLevel || '',\n    ai_ml_skills: normalizeSkillList(d.aiMlSkills),\n    ai_ml_level: d.aiMlLevel || '',\n    cloud_devops: normalizeSkillList(d.cloudDevOps),\n    programming_langs: normalizeSkillList(d.programmingLanguages),\n    notable_projects: d.notableProjects || '',\n    \n    resume_text: contact.resumeText || contact.resume_text || '',\n    \n    workdrive_file_id: contact.workdriveFileId || contact.workdrive_file_id || null,\n    workdrive_file_name: contact.workdriveFileName || contact.workdrive_file_name || null,\n    source_folder_id: contact.sourceFolderId || contact.source_folder_id || null,\n    processed_folder_id: contact.processedFolderId || contact.processed_folder_id || null\n  }\n};"
       },
-      "id": "716c7645-5336-4e47-bf17-3775fc117df5",
+      "id": "065f9002-c5fa-4601-80cb-c8697a8c23d2",
       "name": "Normalize Skills",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        448,
-        560
+        1712,
+        2320
       ]
     },
     {
@@ -443,13 +409,13 @@
         "text": "={{ $json.aiPrompt }}",
         "batching": {}
       },
-      "id": "d273b9c7-47b3-4e62-86b2-789bae87ee5b",
+      "id": "5fd91d19-4bcf-4cfd-9702-3a27d71e1d90",
       "name": "Remote AI — OpenRouter",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
       "position": [
-        1080,
-        560
+        2352,
+        2320
       ],
       "onError": "continueRegularOutput"
     },
@@ -463,13 +429,13 @@
           "appendAttribution": false
         }
       },
-      "id": "95a9e6c5-ff1a-4bee-ba3d-ee813c9c8ddf",
+      "id": "edf5a946-6ed5-4a50-8e6c-abcadacb926a",
       "name": "Send Confirmation Email",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        160,
-        -16
+        1424,
+        1744
       ],
       "webhookId": "33cc794d-448d-49eb-abf6-935e67861245",
       "credentials": {
@@ -478,7 +444,6 @@
           "name": "Gmail account"
         }
       },
-      "disabled": true,
       "onError": "continueRegularOutput"
     },
     {
@@ -494,10 +459,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
       "position": [
-        -2000,
-        464
+        -736,
+        2224
       ],
-      "id": "6351c03f-ab64-4159-8004-76a3b6dfcf56",
+      "id": "6f887cef-c3a1-43bb-b935-f2f48a5da40f",
       "name": "Schedule Trigger"
     },
     {
@@ -509,10 +474,10 @@
       "type": "n8n-nodes-workdrive.workDrive",
       "typeVersion": 1,
       "position": [
-        -1264,
-        464
+        0,
+        2224
       ],
-      "id": "a3597240-3d2a-42dc-b061-daede67ba3e4",
+      "id": "56d8b403-faf4-434d-a603-7ca0264196fd",
       "name": "Download a file",
       "credentials": {
         "workDriveOAuth2Api": {
@@ -532,10 +497,10 @@
       "type": "n8n-nodes-workdrive.workDrive",
       "typeVersion": 1,
       "position": [
-        2140,
-        560
+        3408,
+        2320
       ],
-      "id": "d544ae87-d509-445b-b42f-176ffdd35547",
+      "id": "abf0cc77-b743-441d-af29-d9ab6f2c3d98",
       "name": "Move a file",
       "credentials": {
         "workDriveOAuth2Api": {
@@ -565,39 +530,39 @@
         },
         "options": {}
       },
-      "id": "6cefce4d-f041-47f0-8a4f-404f46aa10de",
+      "id": "d0d41467-8ad0-4e9f-bc96-6bd834649900",
       "name": "WorkDrive Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3,
       "position": [
-        -1808,
-        464
+        -544,
+        2224
       ]
     },
     {
       "parameters": {
         "jsCode": "const config = $input.first()?.json || {};\nconst sourceFolderId = String(config.sourceFolderId || '').trim();\nconst processedFolderId = String(config.processedFolderId || '').trim();\n\nreturn $input.all().map(({ json }) => {\n  const attrs = json.attributes || {};\n  const fileId = json.id || json.resourceId || attrs.id || '';\n  const fileName = attrs.name || json.name || json.fileName || '';\n  const mimeType = attrs.mime_type || attrs.mimeType || json.mimeType || '';\n  const extension = attrs.extn || (fileName.includes('.') ? fileName.split('.').pop() : '') || '';\n  return {\n    json: {\n      source: 'workdrive',\n      sourceFolderId,\n      processedFolderId,\n      fileId,\n      fileName,\n      mimeType,\n      extension,\n    },\n  };\n}).filter(({ json }) => {\n  if (!json.fileId || !json.fileName) return false;\n  const lowerName = json.fileName.toLowerCase();\n  const lowerMime = String(json.mimeType || '').toLowerCase();\n  const lowerExt = String(json.extension || '').toLowerCase();\n  return lowerName.endsWith('.pdf') || lowerMime.includes('pdf') || lowerExt === 'pdf';\n});"
       },
-      "id": "28dc0a6a-153a-43e3-a5d9-76263b78fabe",
+      "id": "92191e90-962b-4c6c-b658-624c6506de9d",
       "name": "Prepare WorkDrive Files",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1424,
-        464
+        -160,
+        2224
       ]
     },
     {
       "parameters": {
         "jsCode": "return $input.all().map(({ json }) => ({\n  json: {\n    ...json,\n    source: String(json.source || '').trim().toLowerCase(),\n    workdrive_file_id: String(json.workdrive_file_id || json.workdriveFileId || '').trim(),\n    processed_folder_id: String(json.processed_folder_id || json.processedFolderId || '').trim(),\n  },\n})).filter(({ json }) => Boolean(json.workdrive_file_id && json.processed_folder_id));"
       },
-      "id": "3384c82f-147d-4c28-ae9c-16bbb0fe41ec",
+      "id": "2770e02e-8e2d-48f9-8bdd-4b000522aca3",
       "name": "Keep WorkDrive Items",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2000,
-        560
+        3264,
+        2320
       ]
     },
     {
@@ -612,10 +577,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
       "typeVersion": 1,
       "position": [
-        176,
-        816
+        1440,
+        2576
       ],
-      "id": "954ce8f3-227b-447e-9c2c-dc06ae441b1a",
+      "id": "0b236a57-b547-441a-b6fd-634b39fa814a",
       "name": "Google Vertex Chat Model",
       "credentials": {
         "googleApi": {
@@ -636,10 +601,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
       "typeVersion": 1,
       "position": [
-        1376,
-        768
+        2640,
+        2528
       ],
-      "id": "ad4d6582-e12e-4e49-977c-a9b4da9aceef",
+      "id": "21e0022a-00fd-4b5e-ac3b-bccbc3f8acf2",
       "name": "Google Vertex Chat Model1",
       "credentials": {
         "googleApi": {
@@ -656,10 +621,10 @@
       "type": "n8n-nodes-base.emailReadImap",
       "typeVersion": 2.1,
       "position": [
-        -1344,
-        688
+        -80,
+        2448
       ],
-      "id": "6555601b-eb8b-4a14-b9d5-20442baee9a2",
+      "id": "e58ca6d7-09c1-4c49-9bd0-a6ee5ccf5bf5",
       "name": "Email Trigger (IMAP)",
       "credentials": {
         "imap": {
@@ -678,10 +643,10 @@
       "type": "n8n-nodes-workdrive.workDrive",
       "typeVersion": 1,
       "position": [
-        -1600,
-        464
+        -336,
+        2224
       ],
-      "id": "46b18d65-0e40-457f-9dfe-04356a98273d",
+      "id": "e1b0e538-aa0f-4a76-8807-75c255618f66",
       "name": "List folder contents",
       "credentials": {
         "workDriveOAuth2Api": {
@@ -914,13 +879,13 @@
         },
         "options": {}
       },
-      "id": "c1389f8c-d960-4576-96ec-aa41f5f0ed9c",
+      "id": "98511d49-8d87-42e8-b1a0-d52ed19e7381",
       "name": "Save Candidate — PostgreSQL",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        600,
-        560
+        1872,
+        2320
       ],
       "credentials": {
         "postgres": {
@@ -932,15 +897,16 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT \n  id, \n  title, \n  department, \n  employment_type, \n  work_mode, \n  location, \n  experience_min, \n  experience_max, \n  education, \n  required_skills, \n  preferred_skills, \n  responsibilities, \n  requirements, \n  nice_to_have, \n  ai_prompt \nFROM job_descriptions \nWHERE is_active = TRUE \nORDER BY id;"
+        "query": "SELECT \n  id, \n  title, \n  department, \n  employment_type, \n  work_mode, \n  location, \n  experience_min, \n  experience_max, \n  education, \n  required_skills, \n  preferred_skills, \n  responsibilities, \n  requirements, \n  nice_to_have, \n  ai_prompt \nFROM job_descriptions \nWHERE is_active = TRUE \nORDER BY id;",
+        "options": {}
       },
-      "id": "f871d956-bbd9-4fcd-a29e-b24d97f8ed42",
+      "id": "d1ebc9da-f4eb-4d7b-99b8-17c9b1e5051b",
       "name": "Fetch Active JDs",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        760,
-        560
+        2032,
+        2320
       ],
       "credentials": {
         "postgres": {
@@ -951,30 +917,28 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "// 1. Retrieve all active JDs\nconst jds = $('Fetch Active JDs').all().map(item => item.json);\n\n// 2. Retrieve all saved Candidates\nconst savedCandidates = $('Save Candidate — PostgreSQL').all().map(item => item.json);\n\n// 3. Retrieve all parsed candidates from Normalize Skills\nconst candidates = $('Normalize Skills').all().map(item => item.json);\n\nreturn candidates.map((c, idx) => {\n  const savedC = savedCandidates.find(sc => sc.email === c.email) || savedCandidates[idx] || {};\n  \n  const jdSections = jds.map((j, jdIdx) => `--- JOB DESCRIPTION #${jdIdx + 1} ---\n- jd_id: ${j.id}\n- Title: ${j.title}\n- Department: ${j.department || 'N/A'}\n- Required Skills: ${Array.isArray(j.required_skills) ? j.required_skills.join(', ') : JSON.stringify(j.required_skills || 'None')}\n- Preferred Skills: ${Array.isArray(j.preferred_skills) ? j.preferred_skills.join(', ') : JSON.stringify(j.preferred_skills || 'None')}\n- Experience Required: ${j.experience_min || 0} - ${j.experience_max || 0} years\n- Education Required: ${j.education || 'N/A'}\n- AI Evaluation Guidelines: ${j.ai_prompt || 'None'}`).join('\\n\\n');\n\n  const prompt = `# HireFlow Enterprise AI Candidate Evaluation Prompt\n\nYou are a **Senior Technical Recruiter and Hiring Manager at Virim Infotech** with extensive experience screening software engineers.\n\nYour responsibility is to evaluate a candidate **ONLY against the supplied Job Description (JD).**\n\nDo NOT assume skills that are not explicitly mentioned in the resume.\n\nUse only the evidence available in:\n* Candidate Resume\n* Candidate Skills\n* Candidate Experience\n* Candidate Projects\n* Candidate Education\n* Job Description\n\n---\n\n# Evaluation Rules\n\nFollow these principles strictly.\n\n## Rule 1\nTreat the Job Description as the source of truth.\nEvery score must be based on how well the candidate matches that specific Job Description.\n\n## Rule 2\nOnly use evidence found in the resume.\nNever assume hidden experience, hidden skills, or hidden projects. If something is not mentioned, treat it as unavailable.\n\n## Rule 3\nBe lenient but fair. Mark candidate scores based on the detailed grading criteria below.\n\n---\n\n# Scoring Breakdown (Sum to 100 overall score)\n\n## 1. Technical Score (0-60 points)\n- Evaluate coverage of mandatory and preferred skills listed in the JD.\n- If the candidate covers all technical skills mentioned in the JD, reward a full score of **60 out of 60**. \n- Reduce the score proportionally for missing skills.\n\n## 2. Experience Score (0-10 points)\n- If the candidate matches the experience requirements (years of experience), mark **10 out of 10**.\n- **Fresher Internship Rule**: If the candidate is a fresher (0 years of experience) but has completed internships, mark **10 out of 10**.\n- If the candidate is a fresher (0 years of experience) and has NOT done any internship, mark **5 out of 10**.\n\n## 3. Project Score (0-10 points)\n- Evaluate projects based on whether they use the skills listed in the JD.\n- The projects must be somewhat innovative and functional (not just extremely basic tutorials).\n- Rate the projects out of **10**.\n\n## 4. Education & Certification Score (0-15 points)\nThis score combines academic matches and certification alignments:\n- **Academic matching (0-5 points)**: If the candidate's degree/college education matches the JD criteria, reward **5 points**. For non-matching or other degrees, be lenient and award a minimum of **2 points**.\n- **Certifications (0-10 points)**: If the candidate has certifications matching or highly relevant to the JD skills, award **10 points**. If they have some certifications but they are not fully aligned, award **5 points**. If they have no certifications, award **0 points**.\n\n## 5. Communication Score (0-5 points)\n- Evaluate resume presentation, clarity of layout, and use of proper English.\n- If the resume is professionally written in proper English, award up to **5 points**. \n- Award a minimum of **2 points** as a baseline for legible English.\n\n---\n\n# Overall Score\nOverall Score = Technical Score + Experience Score + Project Score + Education & Certification Score + Communication Score. (Must be an integer sum from 0 to 100).\n\n---\n\n# Inputs\n\n## Active Job Descriptions\n${jdSections}\n\n---\n\n## Candidate Profile\nName: ${c.candidate_name || 'Unknown'}\nExperience: ${c.years_of_exp || 0} years\nEducation: ${c.degree || 'N/A'}\nSpecialization: ${c.specialization || 'N/A'}\nCollege: ${c.college || 'N/A'}\nFrontend Skills: ${c.frontend_skills || 'None'}\nBackend Skills: ${c.backend_skills || 'None'}\nDatabase Skills: ${c.database_skills || 'None'}\nAI Skills: ${c.ai_ml_skills || 'None'}\nCloud Skills: ${c.cloud_devops || 'None'}\nProgramming Languages: ${c.programming_langs || 'None'}\nProjects: ${c.notable_projects || 'None'}\nCertifications: ${c.certifications || 'None'}\n\nResume Text:\n${c.resume_text || ''}\n\n---\n\n# Required Output\nReturn ONLY a valid JSON Array.\nDo NOT include markdown block markers (such as triple backticks followed by 'json') in the response.\nReturn exactly this structure containing one object for each of the JDs listed above:\n[\n  {\n    \"jd_id\": <jd_id from corresponding Job Description>,\n    \"overallScore\": 0,\n    \"technicalScore\": 0,\n    \"experienceScore\": 0,\n    \"educationScore\": 0, // This should hold the Education & Certification Score (0-15)\n    \"communicationScore\": 0,\n    \"projectScore\": 0,\n    \"grade\": \"A|B|C|D|F\",\n    \"recommendation\": \"Strong Hire|Hire|Consider|Reject\",\n    \"matchedSkills\": [],\n    \"missingSkills\": [],\n    \"strengths\": [],\n    \"weaknesses\": [],\n    \"summary\": \"\",\n    \"reasoning\": {\n      \"technical\": \"\",\n      \"experience\": \"\",\n      \"education\": \"\",\n      \"communication\": \"\",\n      \"projects\": \"\"\n    }\n  }\n]`;\n\n  return {\n    json: {\n      candidate_id: savedC.id,\n      aiPrompt: prompt\n    }\n  };\n});"
+        "jsCode": "// 1. Retrieve all active JDs and deduplicate by ID\nconst rawJds = $('Fetch Active JDs').all().map(item => item.json);\nconst jds = [];\nconst seenIds = new Set();\nfor (const j of rawJds) {\n  if (j && j.id && !seenIds.has(j.id)) {\n    seenIds.add(j.id);\n    jds.push(j);\n  }\n}\n\n// 2. Retrieve all saved Candidates\nconst savedCandidates = $('Save Candidate — PostgreSQL').all().map(item => item.json);\n\n// 3. Retrieve all parsed candidates from Normalize Skills\nconst candidates = $('Normalize Skills').all().map(item => item.json);\n\nreturn candidates.map((c, idx) => {\n  const savedC = savedCandidates.find(sc => sc.email === c.email) || savedCandidates[idx] || {};\n  \n  const jdSections = jds.map((j, jdIdx) => `--- JOB DESCRIPTION #${jdIdx + 1} ---\n- jd_id: ${j.id}\n- Title: ${j.title}\n- Department: ${j.department || 'N/A'}\n- Required Skills: ${Array.isArray(j.required_skills) ? j.required_skills.join(', ') : JSON.stringify(j.required_skills || 'None')}\n- Preferred Skills: ${Array.isArray(j.preferred_skills) ? j.preferred_skills.join(', ') : JSON.stringify(j.preferred_skills || 'None')}\n- Experience Required: ${j.experience_min || 0} - ${j.experience_max || 0} years\n- Education Required: ${j.education || 'N/A'}\n- AI Evaluation Guidelines: ${j.ai_prompt || 'None'}`).join('\\n\\n');\n\n  const prompt = `# HireFlow Enterprise AI Candidate Evaluation Prompt\n\nYou are a **Senior Technical Recruiter and Hiring Manager at Virim Infotech** with extensive experience screening software engineers.\n\nYour responsibility is to evaluate a candidate **ONLY against the supplied Job Description (JD).**\n\nDo NOT assume skills that are not explicitly mentioned in the resume.\n\nUse only the evidence available in:\n* Candidate Resume\n* Candidate Skills\n* Candidate Experience\n* Candidate Projects\n* Candidate Education\n* Job Description\n\n---\n\n# Evaluation Rules\n\nFollow these principles strictly.\n\n## Rule 1\nTreat the Job Description as the source of truth.\nEvery score must be based on how well the candidate matches that specific Job Description.\n\n## Rule 2\nOnly use evidence found in the resume.\nNever assume hidden experience, hidden skills, or hidden projects. If something is not mentioned, treat it as unavailable.\n\n## Rule 3\nBe lenient but fair. Mark candidate scores based on the detailed grading criteria below.\n\n---\n\n# Scoring Breakdown (Sum to 100 overall score)\n\n## 1. Technical Score (0-60 points)\n- Evaluate coverage of mandatory and preferred skills listed in the JD.\n- If the candidate covers all technical skills mentioned in the JD, reward a full score of **60 out of 60**. \n- Reduce the score proportionally for missing skills.\n\n## 2. Experience Score (0-10 points)\n- If the candidate matches the experience requirements (years of experience), mark **10 out of 10**.\n- **Fresher Internship Rule**: If the candidate is a fresher (0 years of experience) but has completed internships, mark **10 out of 10**.\n- If the candidate is a fresher (0 years of experience) and has NOT done any internship, mark **5 out of 10**.\n\n## 3. Project Score (0-10 points)\n- Evaluate projects based on whether they use the skills listed in the JD.\n- The projects must be somewhat innovative and functional (not just extremely basic tutorials).\n- Rate the projects out of **10**.\n\n## 4. Education & Certification Score (0-15 points)\nThis score combines academic matches and certification alignments:\n- **Academic matching (0-5 points)**: If the candidate's degree/college education matches the JD criteria, reward **5 points**. For non-matching or other degrees, be lenient and award a minimum of **2 points**.\n- **Certifications (0-10 points)**: If the candidate has certifications matching or highly relevant to the JD skills, award **10 points**. If they have some certifications but they are not fully aligned, award **5 points**. If they have no certifications, award **0 points**.\n\n## 5. Communication Score (0-5 points)\n- Evaluate resume presentation, clarity of layout, and use of proper English.\n- If the resume is professionally written in proper English, award up to **5 points**. \n- Award a minimum of **2 points** as a baseline for legible English.\n\n---\n\n# Overall Score\nOverall Score = Technical Score + Experience Score + Project Score + Education & Certification Score + Communication Score. (Must be an integer sum from 0 to 100).\n\n---\n\n# Inputs\n\n## Active Job Descriptions\n${jdSections}\n\n---\n\n## Candidate Profile\nName: ${c.candidate_name || 'Unknown'}\nExperience: ${c.years_of_exp || 0} years\nEducation: ${c.degree || 'N/A'}\nSpecialization: ${c.specialization || 'N/A'}\nCollege: ${c.college || 'N/A'}\nFrontend Skills: ${c.frontend_skills || 'None'}\nBackend Skills: ${c.backend_skills || 'None'}\nDatabase Skills: ${c.database_skills || 'None'}\nAI Skills: ${c.ai_ml_skills || 'None'}\nCloud Skills: ${c.cloud_devops || 'None'}\nProgramming Languages: ${c.programming_langs || 'None'}\nProjects: ${c.notable_projects || 'None'}\nCertifications: ${c.certifications || 'None'}\n\nResume Text:\n${c.resume_text || ''}\n\n---\n\n# Required Output\nReturn ONLY a valid JSON Array.\nDo NOT include markdown block markers (such as triple backticks followed by 'json') in the response.\nReturn exactly this structure containing one object for each of the JDs listed above:\n[\n  {\n    \"jd_id\": <jd_id from corresponding Job Description>,\n    \"jd_title\": \"<Title from corresponding Job Description>\",\n    \"overallScore\": 0,\n    \"technicalScore\": 0,\n    \"experienceScore\": 0,\n    \"educationScore\": 0, // This should hold the Education & Certification Score (0-15)\n    \"communicationScore\": 0,\n    \"projectScore\": 0,\n    \"grade\": \"A|B|C|D|F\",\n    \"recommendation\": \"Strong Hire|Hire|Consider|Reject\",\n    \"matchedSkills\": [],\n    \"missingSkills\": [],\n    \"strengths\": [],\n    \"weaknesses\": [],\n    \"summary\": \"\",\n    \"reasoning\": {\n      \"technical\": \"\",\n      \"experience\": \"\",\n      \"education\": \"\",\n      \"communication\": \"\",\n      \"projects\": \"\"\n    }\n  }\n]`;\n\n  return {\n    json: {\n      candidate_id: savedC.id,\n      aiPrompt: prompt\n    }\n  };\n});"
       },
-      "id": "c871d956-bbd9-4fcd-a29e-b24d97f8ed43",
+      "id": "d267afd1-aa51-4dae-ba59-30861c084441",
       "name": "Build Context & Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        920,
-        560
+        2192,
+        2320
       ]
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const items = $input.all();\nconst promptItems = $('Build Context & Prompt').all();\nconst allMatches = [];\n\nfor (let idx = 0; idx < items.length; idx++) {\n  const item = items[idx];\n  const promptItem = promptItems[idx] || {};\n  const candidateId = Number(promptItem.json?.candidate_id || 1);\n\n  const d = item.json || {};\n  const rawResponse = d.text || d.output || d.response?.text || (d.choices || [])[0]?.message?.content;\n\n  let parsedList = [];\n  if (rawResponse) {\n    try {\n      const cleaned = String(rawResponse)\n        .replace(/\\`\\`\\`json\\s*/gi, '')\n        .replace(/\\`\\`\\`\\s*/g, '')\n        .replace(/^[^{\\[]*/, '')\n        .replace(/[^}\\]]*$/, '');\n      parsedList = JSON.parse(cleaned);\n    } catch (e) {\n      parsedList = [];\n    }\n  }\n\n  if (!Array.isArray(parsedList)) {\n    parsedList = [parsedList];\n  }\n\n  const getVal = (obj, keys, defaultValue) => {\n    for (const key of keys) {\n      if (obj[key] !== undefined) return obj[key];\n      const foundKey = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());\n      if (foundKey) return obj[foundKey];\n    }\n    return defaultValue;\n  };\n\n  const getArrayVal = (obj, keys) => {\n    const val = getVal(obj, keys, []);\n    if (Array.isArray(val)) return val;\n    if (typeof val === 'string') {\n      return val.split(',').map(s => s.trim()).filter(Boolean);\n    }\n    return [];\n  };\n\n  for (const evalObj of parsedList) {\n    const jd_id = Number(getVal(evalObj, ['jd_id', 'jdId'], 1));\n    const overall_score = Number(getVal(evalObj, ['overallScore', 'overall_score'], 0));\n    const technical_score = Number(getVal(evalObj, ['technicalScore', 'technical_score'], 0));\n    const experience_score = Number(getVal(evalObj, ['experienceScore', 'experience_score'], 0));\n    const education_score = Number(getVal(evalObj, ['educationScore', 'education_score'], 0));\n    const communication_score = Number(getVal(evalObj, ['communicationScore', 'communication_score'], 0));\n    const project_score = Number(getVal(evalObj, ['projectScore', 'project_score'], 0));\n\n    const recommendation = String(getVal(evalObj, ['recommendation'], 'Consider'));\n    const grade = String(getVal(evalObj, ['grade'], 'B'));\n\n    const matched_skills = getArrayVal(evalObj, ['matchedSkills', 'matched_skills']);\n    const missing_skills = getArrayVal(evalObj, ['missingSkills', 'missing_skills']);\n    const strengths = getArrayVal(evalObj, ['strengths']);\n    const weaknesses = getArrayVal(evalObj, ['weaknesses']);\n    \n    const reasoning = evalObj.reasoning || {};\n    const explanation = String(getVal(evalObj, ['summary'], '')) || \n      `Tech Alignment: ${reasoning.technical || 'N/A'}. Experience Alignment: ${reasoning.experience || 'N/A'}.`;\n\n    allMatches.push({\n      json: {\n        candidate_id: candidateId,\n        jd_id,\n        overall_score,\n        technical_score,\n        experience_score,\n        education_score,\n        communication_score,\n        project_score,\n        recommendation,\n        grade,\n        matched_skills: JSON.stringify(matched_skills),\n        missing_skills: JSON.stringify(missing_skills),\n        strengths,\n        weaknesses,\n        summary: explanation,\n        status: 'Completed',\n        scored_at: new Date().toISOString()\n      }\n    });\n  }\n}\n\nreturn allMatches;"
+        "jsCode": "const items = $input.all();\nconst promptItems = $('Build Context & Prompt').all();\nconst activeJds = $('Fetch Active JDs').all().map(item => item.json);\nconst validJdIds = activeJds.map(j => Number(j.id));\nconst allMatches = [];\n\nfor (let idx = 0; idx < items.length; idx++) {\n  const item = items[idx];\n  const promptItem = promptItems[idx] || {};\n  const candidateId = Number(promptItem.json?.candidate_id || 1);\n\n  const d = item.json || {};\n  const rawResponse = d.text || d.output || d.response?.text || (d.choices || [])[0]?.message?.content;\n\n  let parsedList = [];\n  if (rawResponse) {\n    try {\n      const cleaned = String(rawResponse)\n        .replace(/\\`\\`\\`json\\s*/gi, '')\n        .replace(/\\`\\`\\`\\s*/g, '')\n        .replace(/^[^{\\[]*/, '')\n        .replace(/[^}\\]]*$/, '');\n      parsedList = JSON.parse(cleaned);\n    } catch (e) {\n      parsedList = [];\n    }\n  }\n\n  if (!Array.isArray(parsedList)) {\n    parsedList = [parsedList];\n  }\n\n  const getVal = (obj, keys, defaultValue) => {\n    for (const key of keys) {\n      if (obj[key] !== undefined) return obj[key];\n      const foundKey = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());\n      if (foundKey) return obj[foundKey];\n    }\n    return defaultValue;\n  };\n\n  const getArrayVal = (obj, keys) => {\n    const val = getVal(obj, keys, []);\n    if (Array.isArray(val)) return val;\n    if (typeof val === 'string') {\n      return val.split(',').map(s => s.trim()).filter(Boolean);\n    }\n    return [];\n  };\n\n  let evalIdx = 0;\n  for (const evalObj of parsedList) {\n    let jd_id = Number(getVal(evalObj, ['jd_id', 'jdId'], 0));\n    if (!validJdIds.includes(jd_id)) {\n      const returnedTitle = String(getVal(evalObj, ['jd_title', 'jdTitle', 'title'], '')).toLowerCase().trim();\n      const matchedJdByTitle = activeJds.find(j => \n        j.title && (returnedTitle.includes(j.title.toLowerCase().trim()) || \n        j.title.toLowerCase().trim().includes(returnedTitle))\n      );\n      if (matchedJdByTitle) {\n        jd_id = Number(matchedJdByTitle.id);\n      } else if (evalIdx < activeJds.length) {\n        jd_id = Number(activeJds[evalIdx].id);\n      } else {\n        jd_id = validJdIds[0] || 1;\n      }\n    }\n    evalIdx++;\n\n    const overall_score = Number(getVal(evalObj, ['overallScore', 'overall_score'], 0));\n    const technical_score = Number(getVal(evalObj, ['technicalScore', 'technical_score'], 0));\n    const experience_score = Number(getVal(evalObj, ['experienceScore', 'experience_score'], 0));\n    const education_score = Number(getVal(evalObj, ['educationScore', 'education_score'], 0));\n    const communication_score = Number(getVal(evalObj, ['communicationScore', 'communication_score'], 0));\n    const project_score = Number(getVal(evalObj, ['projectScore', 'project_score'], 0));\n\n    const recommendation = String(getVal(evalObj, ['recommendation'], 'Consider'));\n    const grade = String(getVal(evalObj, ['grade'], 'B'));\n\n    const matched_skills = getArrayVal(evalObj, ['matchedSkills', 'matched_skills']);\n    const missing_skills = getArrayVal(evalObj, ['missingSkills', 'missing_skills']);\n    const strengths = getArrayVal(evalObj, ['strengths']);\n    const weaknesses = getArrayVal(evalObj, ['weaknesses']);\n    \n    const reasoning = evalObj.reasoning || {};\n    const explanation = String(getVal(evalObj, ['summary'], '')) || \n      `Tech Alignment: ${reasoning.technical || 'N/A'}. Experience Alignment: ${reasoning.experience || 'N/A'}.`;\n\n    allMatches.push({\n      json: {\n        candidate_id: candidateId,\n        jd_id,\n        overall_score,\n        technical_score,\n        experience_score,\n        education_score,\n        communication_score,\n        project_score,\n        recommendation,\n        grade,\n        matched_skills: JSON.stringify(matched_skills),\n        missing_skills: JSON.stringify(missing_skills),\n        strengths,\n        weaknesses,\n        summary: explanation,\n        status: 'Completed',\n        scored_at: new Date().toISOString()\n      }\n    });\n  }\n}\n\nreturn allMatches;"
       },
-      "id": "n871d956-bbd9-4fcd-a29e-b24d97f8ed45",
+      "id": "25f63f0a-baf1-48e3-8621-871fc3b34142",
       "name": "Normalize AI Output",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1240,
-        560
+        2736,
+        2320
       ]
     },
     {
@@ -1088,13 +1052,13 @@
         },
         "options": {}
       },
-      "id": "s871d956-bbd9-4fcd-a29e-b24d97f8ed44",
+      "id": "60e57668-21b4-4fe0-b9e0-644c8e7b2436",
       "name": "Save Match — PostgreSQL",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
       "position": [
-        1400,
-        560
+        3008,
+        2320
       ],
       "credentials": {
         "postgres": {
@@ -1211,33 +1175,6 @@
           },
           {
             "node": "Resume Validation & Hash",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Restore Candidate Data": {
-      "main": [
-        [
-          {
-            "node": "Send Confirmation Email",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Resume Validation & Hash",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Return Duplicate Response": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
             "type": "main",
             "index": 0
           }
@@ -1454,15 +1391,15 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "69ba6931-6382-4c74-a641-616abc8a820d",
+  "versionId": "e3e29164-b481-4096-bb5b-50d2f5c50467",
   "meta": {
     "instanceId": "5c6f3ce33c327a0f909317e26bcd0c95f605fe4df56484e563de120f9dd53e8d"
   },
-  "id": "K2vbIvBzVvCWRdu2",
+  "id": "KSSlceZ01xPIBHKh",
   "tags": []
 }

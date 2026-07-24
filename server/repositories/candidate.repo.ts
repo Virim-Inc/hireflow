@@ -111,9 +111,13 @@ export function buildWhereClause(query: CandidatesQuery): {
   }
 
   if (query.source) {
-    where.push(`LOWER(source) = LOWER($${idx})`);
-    params.push(query.source);
-    idx++;
+    if (query.source.toLowerCase() === 'workdrive') {
+      where.push(`LOWER(source) IN ('form', 'workdrive')`);
+    } else {
+      where.push(`LOWER(source) = LOWER($${idx})`);
+      params.push(query.source);
+      idx++;
+    }
   }
 
   if (query.position) {

@@ -32,8 +32,8 @@ export function initials(name: string): string {
 }
 
 export function scoreClass(score: number): string {
-  if (score >= 80) return 'hf-score-pill--high';
-  if (score >= 60) return 'hf-score-pill--mid';
+  if (score > 60) return 'hf-score-pill--high';
+  if (score >= 30) return 'hf-score-pill--mid';
   return 'hf-score-pill--low';
 }
 
@@ -46,7 +46,10 @@ export function recommendationClass(recommendation: string | null | undefined): 
 }
 
 export function sourceClass(source: string | null | undefined): string {
-  return (source ?? '').toLowerCase().includes('email') ? 'hf-source--email' : 'hf-source--form';
+  const val = (source ?? '').toLowerCase();
+  if (val.includes('email')) return 'hf-source--email';
+  if (val.includes('workdrive')) return 'hf-source--workdrive';
+  return 'hf-source--form';
 }
 
 export function splitValues(raw: string, max?: number): string[] {

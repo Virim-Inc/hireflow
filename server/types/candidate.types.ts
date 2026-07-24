@@ -157,7 +157,7 @@ export interface StatsSummaryRow {
   candidates_yesterday: string;
   candidates_last_7_days: string;
   candidates_last_30_days: string;
-  from_form: string;
+  from_workdrive: string;
   from_email: string;
   stage_screening: string;
   stage_shortlisted: string;

@@ -173,7 +173,7 @@
 .dash-metric-badge {
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 10px 12px;
   border-radius: 999px;
   background: color-mix(in oklab, var(--hf-success) 10%, transparent);
 }
