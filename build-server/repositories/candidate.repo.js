@@ -1,7 +1,7 @@
 import { pool } from '../config/db.js';
 import { isPipelineStage } from '../types/candidate.types.js';
 // ── SQL constants ─────────────────────────────────────────────────────────────
-export const POSITION_EXPR = "COALESCE(NULLIF(TRIM(position), ''), NULLIF(TRIM(jd_title), ''), 'Unassigned role')";
+export const POSITION_EXPR = "COALESCE(NULLIF(TRIM(position), ''), 'Unassigned role')";
 export const SELECT_COLUMNS = `
   id, submitted_at, processed_at, source,
   candidate_name, email, phone, position,
@@ -12,13 +12,9 @@ export const SELECT_COLUMNS = `
   database_skills, database_level,
   ai_ml_skills, ai_ml_level,
   cloud_devops, programming_langs, notable_projects,
-  jd_title, jd_company,
-  total_score, frontend_score, backend_score,
-  database_score, ai_ml_score, exp_score, soft_score,
-  grade, recommendation, is_qualified,
-  summary, strengths, weaknesses,
-  frontend_feedback, backend_feedback, database_feedback,
-  ai_ml_feedback, hiring_note,
+  (SELECT MAX(overall_score) FROM candidate_job_matches WHERE candidate_id = candidates.id) AS best_score,
+  (SELECT recommendation FROM candidate_job_matches WHERE candidate_id = candidates.id ORDER BY overall_score DESC LIMIT 1) AS best_recommendation,
+  (SELECT grade FROM candidate_job_matches WHERE candidate_id = candidates.id ORDER BY overall_score DESC LIMIT 1) AS best_grade,
   workdrive_file_id, workdrive_file_name,
   source_folder_id, processed_folder_id,
   pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
@@ -27,10 +23,11 @@ export const SELECT_COLUMNS = `
 export const SORT_COLUMNS = {
     processed_at: 'processed_at',
     submitted_at: 'submitted_at',
-    total_score: 'total_score',
+    total_score: 'best_score',
+    best_score: 'best_score',
     candidate_name: 'candidate_name',
-    grade: 'grade',
-    recommendation: 'recommendation',
+    grade: 'best_grade',
+    recommendation: 'best_recommendation',
     position: 'position_label',
     years_of_exp: 'years_of_exp',
     pipeline_stage: 'pipeline_stage',
@@ -46,16 +43,14 @@ export function buildWhereClause(query) {
       candidate_name ILIKE $${idx}
       OR email ILIKE $${idx}
       OR position ILIKE $${idx}
-      OR jd_title ILIKE $${idx}
       OR frontend_skills ILIKE $${idx}
       OR backend_skills ILIKE $${idx}
-      OR summary ILIKE $${idx}
     )`);
         params.push(`%${query.search}%`);
         idx++;
     }
     if (query.grade) {
-        where.push(`grade = $${idx}`);
+        where.push(`EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND grade = $${idx})`);
         params.push(query.grade);
         idx++;
     }
@@ -75,15 +70,15 @@ export function buildWhereClause(query) {
         });
     }
     if (query.recommendation) {
-        where.push(`recommendation ILIKE $${idx}`);
+        where.push(`EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND recommendation ILIKE $${idx})`);
         params.push(`%${query.recommendation}%`);
         idx++;
     }
     if (query.qualified === 'true') {
-        where.push('is_qualified = true');
+        where.push(`EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= 50)`);
     }
     else if (query.qualified === 'false') {
-        where.push('is_qualified = false');
+        where.push(`NOT EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= 50)`);
     }
     if (isPipelineStage(query.stage)) {
         where.push(`pipeline_stage = $${idx}`);
@@ -91,18 +86,24 @@ export function buildWhereClause(query) {
         idx++;
     }
     if (query.source) {
-        where.push(`LOWER(source) = LOWER($${idx})`);
-        params.push(query.source);
-        idx++;
+        if (query.source.toLowerCase() === 'workdrive') {
+            where.push(`LOWER(source) IN ('form', 'workdrive')`);
+        }
+        else {
+            where.push(`LOWER(source) = LOWER($${idx})`);
+            params.push(query.source);
+            idx++;
+        }
     }
     if (query.position) {
         where.push(`${POSITION_EXPR} = $${idx}`);
         params.push(query.position);
         idx++;
     }
-    if (query.city) {
-        where.push(`city = $${idx}`);
-        params.push(query.city);
+    const cityFilters = parseMultiValue(query.city);
+    if (cityFilters.length) {
+        where.push(`city = ANY($${idx})`);
+        params.push(cityFilters);
         idx++;
     }
     if (query.internship_completed === 'true') {
@@ -111,27 +112,29 @@ export function buildWhereClause(query) {
     else if (query.internship_completed === 'false') {
         where.push('internship_completed = false');
     }
-    if (query.passout_year) {
-        const year = parseInt(query.passout_year, 10);
-        if (!isNaN(year)) {
-            where.push(`passout_year = $${idx}`);
-            params.push(year);
-            idx++;
-        }
-    }
-    if (query.college) {
-        where.push(`college = $${idx}`);
-        params.push(query.college);
+    const passoutYearFilters = parseMultiValue(query.passout_year)
+        .map((y) => parseInt(y, 10))
+        .filter((y) => !isNaN(y));
+    if (passoutYearFilters.length) {
+        where.push(`passout_year = ANY($${idx})`);
+        params.push(passoutYearFilters);
         idx++;
     }
-    if (query.degree) {
-        where.push(`degree = $${idx}`);
-        params.push(query.degree);
+    const collegeFilters = parseMultiValue(query.college);
+    if (collegeFilters.length) {
+        where.push(`college = ANY($${idx})`);
+        params.push(collegeFilters);
         idx++;
     }
-    const minScore = parseFloat(query.min_score);
-    if (minScore !== null) {
-        where.push(`total_score >= $${idx}`);
+    const degreeFilters = parseMultiValue(query.degree);
+    if (degreeFilters.length) {
+        where.push(`degree = ANY($${idx})`);
+        params.push(degreeFilters);
+        idx++;
+    }
+    const minScore = parseFloat(query.min_score || '');
+    if (minScore !== null && !isNaN(minScore)) {
+        where.push(`EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= $${idx})`);
         params.push(minScore);
         idx++;
     }
@@ -146,6 +149,18 @@ export function buildWhereClause(query) {
     if (query.date_to) {
         where.push(`DATE(${dateField}) <= $${idx}`);
         params.push(query.date_to);
+        idx++;
+    }
+    if (query.jd_id) {
+        const jdIdList = query.jd_id
+            .split(',')
+            .map((id) => parseInt(id.trim(), 10))
+            .filter(Number.isInteger);
+        if (jdIdList.length > 0) {
+            where.push(`id IN (SELECT candidate_id FROM candidate_job_matches WHERE jd_id = ANY($${idx}))`);
+            params.push(jdIdList);
+            idx++;
+        }
     }
     return {
         whereClause: where.length ? `WHERE ${where.join(' AND ')}` : '',
@@ -191,13 +206,80 @@ export function collectUniqueSkills(rows) {
 export async function findCandidates(query, pageNum, limitNum, sortCol, sortOrder) {
     const { whereClause, params } = buildWhereClause(query);
     const offset = (pageNum - 1) * limitNum;
+    const jdIdList = query.jd_id
+        ? query.jd_id.split(',').map((id) => parseInt(id.trim(), 10)).filter(Number.isInteger)
+        : [];
+    let jdSelect = '';
+    let jdJoin = '';
+    let sortExpression = sortCol;
+    const dataParams = [...params];
+    if (jdIdList.length > 0) {
+        const paramIndex = params.findIndex((p) => Array.isArray(p) && p.every((val) => jdIdList.includes(val)));
+        const placeholderIdx = paramIndex !== -1 ? paramIndex + 1 : dataParams.length + 1;
+        if (paramIndex === -1) {
+            dataParams.push(jdIdList);
+        }
+        jdSelect = `, cjs.jd_matches, cjs.max_jd_score`;
+        jdJoin = `LEFT JOIN LATERAL (
+      SELECT 
+        json_object_agg(cjm.jd_id, json_build_object(
+          'overall_score', cjm.overall_score,
+          'technical_score', cjm.technical_score,
+          'experience_score', cjm.experience_score,
+          'education_score', cjm.education_score,
+          'communication_score', cjm.communication_score,
+          'project_score', cjm.project_score,
+          'recommendation', cjm.recommendation,
+          'grade', cjm.grade,
+          'matched_skills', cjm.matched_skills,
+          'missing_skills', cjm.missing_skills,
+          'strengths', cjm.strengths,
+          'weaknesses', cjm.weaknesses,
+          'summary', cjm.summary,
+          'status', cjm.status
+        )) AS jd_matches,
+        MAX(cjm.overall_score) AS max_jd_score
+      FROM candidate_job_matches cjm
+      WHERE cjm.candidate_id = candidates.id 
+        AND cjm.jd_id = ANY($${placeholderIdx})
+    ) cjs ON TRUE`;
+        if (sortCol === 'total_score') {
+            sortExpression = 'COALESCE(cjs.max_jd_score, candidates.total_score)';
+        }
+    }
+    else {
+        jdSelect = `, cjs.jd_matches, cjs.max_jd_score`;
+        jdJoin = `LEFT JOIN LATERAL (
+      SELECT 
+        json_object_agg(cjm.jd_id, json_build_object(
+          'overall_score', cjm.overall_score,
+          'technical_score', cjm.technical_score,
+          'experience_score', cjm.experience_score,
+          'education_score', cjm.education_score,
+          'communication_score', cjm.communication_score,
+          'project_score', cjm.project_score,
+          'recommendation', cjm.recommendation,
+          'grade', cjm.grade,
+          'matched_skills', cjm.matched_skills,
+          'missing_skills', cjm.missing_skills,
+          'strengths', cjm.strengths,
+          'weaknesses', cjm.weaknesses,
+          'summary', cjm.summary,
+          'status', cjm.status
+        )) AS jd_matches,
+        MAX(cjm.overall_score) AS max_jd_score
+      FROM candidate_job_matches cjm
+      WHERE cjm.candidate_id = candidates.id
+    ) cjs ON TRUE`;
+    }
     const [countRes, dataRes] = await Promise.all([
         pool.query(`SELECT COUNT(*) FROM candidates ${whereClause}`, params),
-        pool.query(`SELECT ${SELECT_COLUMNS}
+        pool.query(`SELECT ${SELECT_COLUMNS} ${jdSelect}
        FROM candidates
+       ${jdJoin}
        ${whereClause}
-       ORDER BY ${sortCol} ${sortOrder}, id DESC
-       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`, [...params, limitNum, offset]),
+       ORDER BY ${sortExpression} ${sortOrder}, id DESC
+       LIMIT $${dataParams.length + 1} OFFSET $${dataParams.length + 2}`, [...dataParams, limitNum, offset]),
     ]);
     return {
         rows: dataRes.rows,
@@ -205,7 +287,28 @@ export async function findCandidates(query, pageNum, limitNum, sortCol, sortOrde
     };
 }
 export async function findCandidateById(db, id) {
-    const result = await db.query(`SELECT ${SELECT_COLUMNS} FROM candidates WHERE id = $1`, [id]);
+    const result = await db.query(`SELECT ${SELECT_COLUMNS},
+            (
+              SELECT json_object_agg(cjm.jd_id, json_build_object(
+                'overall_score', cjm.overall_score,
+                'technical_score', cjm.technical_score,
+                'experience_score', cjm.experience_score,
+                'education_score', cjm.education_score,
+                'communication_score', cjm.communication_score,
+                'project_score', cjm.project_score,
+                'recommendation', cjm.recommendation,
+                'grade', cjm.grade,
+                'matched_skills', cjm.matched_skills,
+                'missing_skills', cjm.missing_skills,
+                'strengths', cjm.strengths,
+                'weaknesses', cjm.weaknesses,
+                'summary', cjm.summary,
+                'status', cjm.status
+              ))
+              FROM candidate_job_matches cjm
+              WHERE cjm.candidate_id = candidates.id
+            ) AS jd_matches
+     FROM candidates WHERE id = $1`, [id]);
     return result.rows[0] ?? null;
 }
 export async function findCandidateMeta() {

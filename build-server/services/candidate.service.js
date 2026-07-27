@@ -43,7 +43,7 @@ export async function getCandidateMeta() {
     return {
         ...meta,
         stages: PIPELINE_STAGES,
-        sources: ['form', 'email'],
+        sources: ['workdrive', 'email'],
     };
 }
 export async function getCandidateHistory(id) {

@@ -4,13 +4,13 @@ export async function fetchStatsSummary() {
     const res = await pool.query(`
     SELECT
       COUNT(*)::text AS total,
-      COUNT(*) FILTER (WHERE is_qualified = true)::text AS qualified,
-      COUNT(*) FILTER (WHERE is_qualified = true AND DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE)::text AS qualified_today,
-      COUNT(*) FILTER (WHERE is_qualified = true AND DATE_TRUNC('month', COALESCE(submitted_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE))::text AS qualified_this_month,
-      ROUND(AVG(total_score)::numeric, 1)::text AS avg_score,
-      COALESCE(MAX(total_score), 0)::text AS top_score,
-      COALESCE(MAX(total_score) FILTER (WHERE DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE), 0)::text AS top_score_today,
-      COALESCE(MAX(total_score) FILTER (WHERE DATE_TRUNC('month', COALESCE(submitted_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE)), 0)::text AS top_score_this_month,
+      COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= 50))::text AS qualified,
+      COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= 50) AND DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE)::text AS qualified_today,
+      COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= 50) AND DATE_TRUNC('month', COALESCE(submitted_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE))::text AS qualified_this_month,
+      COALESCE((SELECT ROUND(AVG(overall_score)::numeric, 1)::text FROM candidate_job_matches), '0.0') AS avg_score,
+      COALESCE((SELECT MAX(overall_score)::text FROM candidate_job_matches), '0') AS top_score,
+      COALESCE((SELECT MAX(m.overall_score)::text FROM candidate_job_matches m JOIN candidates c ON c.id = m.candidate_id WHERE DATE(COALESCE(c.submitted_at, c.processed_at, NOW())) = CURRENT_DATE), '0') AS top_score_today,
+      COALESCE((SELECT MAX(m.overall_score)::text FROM candidate_job_matches m JOIN candidates c ON c.id = m.candidate_id WHERE DATE_TRUNC('month', COALESCE(c.submitted_at, c.processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE)), '0') AS top_score_this_month,
       COUNT(*) FILTER (WHERE pipeline_stage NOT IN ('hired', 'rejected'))::text AS open_pipeline,
       COUNT(*) FILTER (WHERE pipeline_stage NOT IN ('hired', 'rejected') AND DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE)::text AS open_today,
       COUNT(*) FILTER (WHERE pipeline_stage NOT IN ('hired', 'rejected') AND DATE_TRUNC('month', COALESCE(submitted_at, processed_at, NOW())) = DATE_TRUNC('month', CURRENT_DATE))::text AS open_this_month,
@@ -24,7 +24,7 @@ export async function fetchStatsSummary() {
       COUNT(*) FILTER (WHERE DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE - INTERVAL '1 day')::text AS candidates_yesterday,
       COUNT(*) FILTER (WHERE COALESCE(submitted_at, processed_at, NOW()) >= CURRENT_DATE - INTERVAL '7 days')::text AS candidates_last_7_days,
       COUNT(*) FILTER (WHERE COALESCE(submitted_at, processed_at, NOW()) >= CURRENT_DATE - INTERVAL '30 days')::text AS candidates_last_30_days,
-      COUNT(*) FILTER (WHERE LOWER(source) IN ('form', 'workdrive'))::text AS from_form,
+      COUNT(*) FILTER (WHERE LOWER(source) IN ('form', 'workdrive'))::text AS from_workdrive,
       COUNT(*) FILTER (WHERE LOWER(source) = 'email')::text AS from_email,
       COUNT(*) FILTER (WHERE pipeline_stage = 'screening')::text AS stage_screening,
       COUNT(*) FILTER (WHERE pipeline_stage = 'shortlisted')::text AS stage_shortlisted,
@@ -32,10 +32,10 @@ export async function fetchStatsSummary() {
       COUNT(*) FILTER (WHERE pipeline_stage = 'in_person_interview')::text AS stage_in_person_interview,
       COUNT(*) FILTER (WHERE pipeline_stage = 'hired')::text AS stage_hired,
       COUNT(*) FILTER (WHERE pipeline_stage = 'rejected')::text AS stage_rejected,
-      COUNT(*) FILTER (WHERE recommendation = 'Strong Hire')::text AS strong_hire,
-      COUNT(*) FILTER (WHERE recommendation = 'Hire')::text AS hire,
-      COUNT(*) FILTER (WHERE recommendation = 'Consider')::text AS consider,
-      COUNT(*) FILTER (WHERE recommendation = 'Reject')::text AS reject
+      COUNT(*) FILTER (WHERE (SELECT recommendation FROM candidate_job_matches WHERE candidate_id = candidates.id ORDER BY overall_score DESC LIMIT 1) = 'Strong Hire')::text AS strong_hire,
+      COUNT(*) FILTER (WHERE (SELECT recommendation FROM candidate_job_matches WHERE candidate_id = candidates.id ORDER BY overall_score DESC LIMIT 1) = 'Hire')::text AS hire,
+      COUNT(*) FILTER (WHERE (SELECT recommendation FROM candidate_job_matches WHERE candidate_id = candidates.id ORDER BY overall_score DESC LIMIT 1) = 'Consider')::text AS consider,
+      COUNT(*) FILTER (WHERE (SELECT recommendation FROM candidate_job_matches WHERE candidate_id = candidates.id ORDER BY overall_score DESC LIMIT 1) = 'Reject')::text AS reject
     FROM candidates
   `);
     return res.rows[0];

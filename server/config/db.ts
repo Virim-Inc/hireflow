@@ -1,4 +1,4 @@
-﻿import { Pool } from 'pg';
+import { Pool } from 'pg';
 import { config } from './env.js';
 
 /**
@@ -12,6 +12,9 @@ export const pool = new Pool({
   user: config.pg.user,
   password: config.pg.password,
   ssl: config.pg.ssl,
+  options: "-c timezone=UTC",
+  max: 3, // limit maximum connections per process in development
+  idleTimeoutMillis: 10000, // close idle connections after 10 seconds
 });
 
 pool.on('error', (err: Error) => {

@@ -289,6 +289,110 @@ function FilterDropdown({
   );
 }
 
+interface MultiSelectFilterProps {
+  label: string;
+  placeholder: string;
+  options: string[];
+  selectedValues: string[];
+  inputValue: string;
+  onInputValueChange: (value: string) => void;
+  onValueChange: (values: string[]) => void;
+  onRemoveValue: (value: string) => void;
+}
+
+function MultiSelectFilter({
+  label,
+  placeholder,
+  options,
+  selectedValues,
+  inputValue,
+  onInputValueChange,
+  onValueChange,
+  onRemoveValue,
+}: MultiSelectFilterProps) {
+  const anchor = useComboboxAnchor();
+  const pluralLabel = label.toLowerCase() === 'city' ? 'cities' : `${label.toLowerCase()}s`;
+
+  return (
+    <div className="hf-select-field hf-skill-select">
+      <span>{label}</span>
+      <Combobox
+        multiple
+        autoHighlight
+        items={options}
+        value={selectedValues}
+        inputValue={inputValue}
+        onInputValueChange={onInputValueChange}
+        onValueChange={(val) => onValueChange(Array.isArray(val) ? val : [])}
+        className="hf-skill-combobox-root"
+      >
+        <ComboboxChips ref={anchor} className="hf-skill-combobox">
+          <ComboboxValue>
+            {(values) => (
+              <ComboboxTrigger className="hf-skill-combobox-input">
+                <div className="hf-skill-combobox-values">
+                  {values.length > 0 ? (
+                    <div className="hf-selected-skills-summary">
+                      {values.map((value) => (
+                        <button
+                          type="button"
+                          key={value}
+                          className="hf-selected-skill-item"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onRemoveValue(value);
+                          }}
+                          aria-label={`Remove ${value}`}
+                        >
+                          <span className="hf-selected-skill-text">{value}</span>
+                          <span className="hf-selected-skill-remove">
+                            <X size={12} />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="hf-skill-combobox-placeholder">{placeholder}</span>
+                  )}
+                </div>
+                <ComboboxToggle className="hf-skill-combobox-toggle hf-skill-combobox-toggle--field" aria-label={`Toggle ${label} dropdown`}>
+                  <ChevronDown size={14} />
+                </ComboboxToggle>
+              </ComboboxTrigger>
+            )}
+          </ComboboxValue>
+        </ComboboxChips>
+        <ComboboxContent anchor={anchor} className="hf-skill-combobox-menu">
+          <div className="hf-skill-dropdown-search">
+            <Search size={15} />
+            <ComboboxChipsInput
+              className="hf-skill-dropdown-search-input"
+              placeholder={`Search ${pluralLabel}`}
+              autoFocus
+              onKeyDown={(event) => {
+                if (event.key === 'Backspace' && !inputValue && selectedValues.length) {
+                  event.preventDefault();
+                  onRemoveValue(selectedValues[selectedValues.length - 1]);
+                }
+              }}
+            />
+          </div>
+          <ComboboxEmpty className="hf-skill-combobox-empty">No matching {pluralLabel}</ComboboxEmpty>
+          <ComboboxList className="hf-skill-combobox-list">
+            {(item) => (
+              <ComboboxItem key={item} value={item} className="hf-skill-combobox-option">
+                <span>{item}</span>
+                <Check size={14} />
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+    </div>
+  );
+}
+
 function ModernDatePicker({
   label,
   value,
@@ -478,6 +582,14 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     return raw.split(',').map(id => parseInt(id.trim(), 10)).filter(Number.isInteger);
   });
   const [jdInput, setJdInput] = useState('');
+  const [cityInput, setCityInput] = useState('');
+  const [cityFilters, setCityFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.city ?? ''));
+  const [passoutYearInput, setPassoutYearInput] = useState('');
+  const [passoutYearFilters, setPassoutYearFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.passout_year ?? ''));
+  const [collegeInput, setCollegeInput] = useState('');
+  const [collegeFilters, setCollegeFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.college ?? ''));
+  const [degreeInput, setDegreeInput] = useState('');
+  const [degreeFilters, setDegreeFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.degree ?? ''));
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [stats, setStats] = useState<CandidateStats | null>(null);
@@ -509,6 +621,42 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
   function removeJdFilter(jdIdToRemove: number) {
     syncJdFilter(selectedJdIds.filter((id) => id !== jdIdToRemove));
+  }
+
+  function syncCityFilter(nextCities: string[]) {
+    setCityFilters(nextCities);
+    updateFilter('city', nextCities.join(', '));
+  }
+
+  function removeCityFilter(cityToRemove: string) {
+    syncCityFilter(cityFilters.filter((city) => city !== cityToRemove));
+  }
+
+  function syncPassoutYearFilter(nextYears: string[]) {
+    setPassoutYearFilters(nextYears);
+    updateFilter('passout_year', nextYears.join(', '));
+  }
+
+  function removePassoutYearFilter(yearToRemove: string) {
+    syncPassoutYearFilter(passoutYearFilters.filter((year) => year !== yearToRemove));
+  }
+
+  function syncCollegeFilter(nextColleges: string[]) {
+    setCollegeFilters(nextColleges);
+    updateFilter('college', nextColleges.join(', '));
+  }
+
+  function removeCollegeFilter(collegeToRemove: string) {
+    syncCollegeFilter(collegeFilters.filter((college) => college !== collegeToRemove));
+  }
+
+  function syncDegreeFilter(nextDegrees: string[]) {
+    setDegreeFilters(nextDegrees);
+    updateFilter('degree', nextDegrees.join(', '));
+  }
+
+  function removeDegreeFilter(degreeToRemove: string) {
+    syncDegreeFilter(degreeFilters.filter((degree) => degree !== degreeToRemove));
   }
 
   useEffect(() => {
@@ -625,30 +773,10 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     ...(meta?.positions.map((position) => ({ label: position, value: position })) ?? []),
   ];
 
-  const cityOptions: FilterOption[] = [
-    { label: 'All cities', value: '' },
-    ...(meta?.cities.map((city) => ({ label: city, value: city })) ?? []),
-  ];
-
   const internshipOptions: FilterOption[] = [
     { label: 'All', value: '' },
     { label: 'Yes', value: 'true' },
     { label: 'No', value: 'false' },
-  ];
-
-  const passoutYearOptions: FilterOption[] = [
-    { label: 'All passout years', value: '' },
-    ...(meta?.passoutYears.map((year) => ({ label: String(year), value: String(year) })) ?? []),
-  ];
-
-  const collegeOptions: FilterOption[] = [
-    { label: 'All colleges', value: '' },
-    ...(meta?.colleges.map((college) => ({ label: college, value: college })) ?? []),
-  ];
-
-  const degreeOptions: FilterOption[] = [
-    { label: 'All degrees', value: '' },
-    ...(meta?.degrees.map((degree) => ({ label: degree, value: degree })) ?? []),
   ];
 
   const sourceOptions: FilterOption[] = [
@@ -745,7 +873,21 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
               {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
-            <button className="hf-ghost-btn" onClick={() => { setSearchInput(''); setSkillInput(''); setSkillFilters([]); setSelectedJdIds([]); setFilters(DEFAULT_FILTERS); }}>
+            <button className="hf-ghost-btn" onClick={() => {
+              setSearchInput('');
+              setSkillInput('');
+              setSkillFilters([]);
+              setSelectedJdIds([]);
+              setCityInput('');
+              setCityFilters([]);
+              setPassoutYearInput('');
+              setPassoutYearFilters([]);
+              setCollegeInput('');
+              setCollegeFilters([]);
+              setDegreeInput('');
+              setDegreeFilters([]);
+              setFilters(DEFAULT_FILTERS);
+            }}>
               <Filter size={14} />
               Clear Filters
             </button>
@@ -931,11 +1073,47 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
               </div>
 
               <FilterDropdown label="Position" value={filters.position} options={positionOptions} onChange={(value) => updateFilter('position', value)} />
-              <FilterDropdown label="City" value={filters.city} options={cityOptions} onChange={(value) => updateFilter('city', value)} />
+              <MultiSelectFilter
+                label="City"
+                placeholder="Select cities"
+                options={meta?.cities ?? []}
+                selectedValues={cityFilters}
+                inputValue={cityInput}
+                onInputValueChange={setCityInput}
+                onValueChange={syncCityFilter}
+                onRemoveValue={removeCityFilter}
+              />
               <FilterDropdown label="Internship" value={filters.internship_completed} options={internshipOptions} onChange={(value) => updateFilter('internship_completed', value)} />
-              <FilterDropdown label="Passout Year" value={filters.passout_year} options={passoutYearOptions} onChange={(value) => updateFilter('passout_year', value)} />
-              <FilterDropdown label="College" value={filters.college} options={collegeOptions} onChange={(value) => updateFilter('college', value)} />
-              <FilterDropdown label="Degree" value={filters.degree} options={degreeOptions} onChange={(value) => updateFilter('degree', value)} />
+              <MultiSelectFilter
+                label="Passout Year"
+                placeholder="Select years"
+                options={meta?.passoutYears.map(String) ?? []}
+                selectedValues={passoutYearFilters}
+                inputValue={passoutYearInput}
+                onInputValueChange={setPassoutYearInput}
+                onValueChange={syncPassoutYearFilter}
+                onRemoveValue={removePassoutYearFilter}
+              />
+              <MultiSelectFilter
+                label="College"
+                placeholder="Select colleges"
+                options={meta?.colleges ?? []}
+                selectedValues={collegeFilters}
+                inputValue={collegeInput}
+                onInputValueChange={setCollegeInput}
+                onValueChange={syncCollegeFilter}
+                onRemoveValue={removeCollegeFilter}
+              />
+              <MultiSelectFilter
+                label="Degree"
+                placeholder="Select degrees"
+                options={meta?.degrees ?? []}
+                selectedValues={degreeFilters}
+                inputValue={degreeInput}
+                onInputValueChange={setDegreeInput}
+                onValueChange={syncDegreeFilter}
+                onRemoveValue={removeDegreeFilter}
+              />
               <FilterDropdown label="Source" value={filters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
               <FilterDropdown label="Stage" value={filters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} direction="up" />
               <FilterDropdown label="Recommendation" value={filters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} direction="up" />

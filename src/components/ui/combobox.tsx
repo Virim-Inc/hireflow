@@ -185,7 +185,7 @@ export function Combobox({
 
   return (
     <ComboboxContext.Provider value={contextValue}>
-      <div ref={rootRef} className={cn(className)}>
+      <div ref={rootRef} className={cn(className, open && "is-open")}>
         {children}
       </div>
     </ComboboxContext.Provider>

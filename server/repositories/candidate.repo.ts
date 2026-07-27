@@ -126,9 +126,10 @@ export function buildWhereClause(query: CandidatesQuery): {
     idx++;
   }
 
-  if (query.city) {
-    where.push(`city = $${idx}`);
-    params.push(query.city);
+  const cityFilters = parseMultiValue(query.city);
+  if (cityFilters.length) {
+    where.push(`city = ANY($${idx})`);
+    params.push(cityFilters);
     idx++;
   }
 
@@ -138,24 +139,26 @@ export function buildWhereClause(query: CandidatesQuery): {
     where.push('internship_completed = false');
   }
 
-  if (query.passout_year) {
-    const year = parseInt(query.passout_year, 10);
-    if (!isNaN(year)) {
-      where.push(`passout_year = $${idx}`);
-      params.push(year);
-      idx++;
-    }
-  }
-
-  if (query.college) {
-    where.push(`college = $${idx}`);
-    params.push(query.college);
+  const passoutYearFilters = parseMultiValue(query.passout_year)
+    .map((y) => parseInt(y, 10))
+    .filter((y) => !isNaN(y));
+  if (passoutYearFilters.length) {
+    where.push(`passout_year = ANY($${idx})`);
+    params.push(passoutYearFilters);
     idx++;
   }
 
-  if (query.degree) {
-    where.push(`degree = $${idx}`);
-    params.push(query.degree);
+  const collegeFilters = parseMultiValue(query.college);
+  if (collegeFilters.length) {
+    where.push(`college = ANY($${idx})`);
+    params.push(collegeFilters);
+    idx++;
+  }
+
+  const degreeFilters = parseMultiValue(query.degree);
+  if (degreeFilters.length) {
+    where.push(`degree = ANY($${idx})`);
+    params.push(degreeFilters);
     idx++;
   }
 

@@ -12,6 +12,11 @@ export const pool = new Pool({
     password: config.pg.password,
     ssl: config.pg.ssl,
 });
+pool.on('connect', (client) => {
+    client.query("SET timezone TO 'UTC'").catch((err) => {
+        console.error('[DB] Failed to set timezone to UTC:', err.message);
+    });
+});
 pool.on('error', (err) => {
     console.error('[DB] Unexpected pool client error:', err.message);
 });
