@@ -11,11 +11,9 @@ export const pool = new Pool({
     user: config.pg.user,
     password: config.pg.password,
     ssl: config.pg.ssl,
-});
-pool.on('connect', (client) => {
-    client.query("SET timezone TO 'UTC'").catch((err) => {
-        console.error('[DB] Failed to set timezone to UTC:', err.message);
-    });
+    options: "-c timezone=UTC",
+    max: 3, // limit maximum connections per process in development
+    idleTimeoutMillis: 10000, // close idle connections after 10 seconds
 });
 pool.on('error', (err) => {
     console.error('[DB] Unexpected pool client error:', err.message);

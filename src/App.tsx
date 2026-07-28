@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LoginPage, ProfilePage } from './features/auth';
+import { LoginPage, ProfilePage, SsoCallbackPage } from './features/auth';
 import { CandidatesPage, JobDescriptionsPage } from './features/candidates';
 import { DashboardHome } from './features/dashboard';
 import { PipelinePage } from './features/pipeline';
@@ -7,23 +7,30 @@ import { Sidebar } from './components/shared/Sidebar';
 import type { CandidateFilters } from './features/candidates/types/candidate.types';
 import './app.css';
 
-export type Page = 'login' | 'dashboard' | 'candidates' | 'jds' | 'pipeline' | 'profile';
+export type Page = 'login' | 'dashboard' | 'candidates' | 'jds' | 'pipeline' | 'profile' | 'sso-callback';
 export type Theme = 'dark' | 'light';
 
 function App() {
-  const [page, setPage] = useState<Page>('login');
+  const [page, setPage] = useState<Page>(() => {
+    if (window.location.pathname === '/sso') return 'sso-callback';
+    return 'login';
+  });
   const [isValidating, setIsValidating] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState<Theme>('light');
   const [candidateFilters, setCandidateFilters] = useState<Partial<CandidateFilters> | null>(null);
-  const [user, setUser] = useState<{ id: number; email: string; name: string | null } | null>(null);
+  const [user, setUser] = useState<{ id: number; email: string; name: string | null; role: string } | null>(null);
 
   useEffect(() => {
+    if (window.location.pathname === '/sso') {
+      setIsValidating(false);
+      return;
+    }
+
     const verifyToken = async () => {
       const token = localStorage.getItem('hf_token');
       if (!token) {
-        setPage('login');
-        setIsValidating(false);
+        window.location.href = import.meta.env.VITE_PMS_LOGIN_URL;
         return;
       }
       try {
@@ -70,13 +77,13 @@ function App() {
       setCandidateFilters(null);
       setSidebarCollapsed(false);
       setTheme('light');
-      setPage('login');
+      window.location.href = import.meta.env.VITE_PMS_LOGIN_URL;
     };
     window.addEventListener('hf_unauthorized', handleUnauthorized);
     return () => window.removeEventListener('hf_unauthorized', handleUnauthorized);
   }, []);
 
-  const handleLogin = (userInfo: { id: number; email: string; name: string | null }) => {
+  const handleLogin = (userInfo: { id: number; email: string; name: string | null; role: string }) => {
     setUser(userInfo);
     setPage('dashboard');
   };
@@ -86,9 +93,10 @@ function App() {
     setCandidateFilters(null);
     setSidebarCollapsed(false);
     setTheme('light');
-    setPage('login');
+    window.location.href = import.meta.env.VITE_PMS_PORTAL_URL;
   };
-  const navigate = (p: Exclude<Page, 'login'>, nextFilters?: Partial<CandidateFilters>) => {
+  const navigate = (p: Page, nextFilters?: Partial<CandidateFilters>) => {
+    if (p === 'login' || p === 'sso-callback') return;
     setPage(p);
     if (p === 'candidates') {
       setCandidateFilters(nextFilters ?? null);
@@ -114,6 +122,10 @@ function App() {
     );
   }
 
+  if (page === 'sso-callback') {
+    return <SsoCallbackPage onLogin={handleLogin} />;
+  }
+
   if (page === 'login') {
     return <LoginPage onLogin={handleLogin} />;
   }
@@ -121,7 +133,7 @@ function App() {
   return (
     <div className={`hf-app hf-app--${theme}`} data-theme={theme}>
       <Sidebar
-        currentPage={page as Exclude<Page, 'login'>}
+        currentPage={page as Exclude<Page, 'login' | 'sso-callback'>}
         onNavigate={navigate}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(p => !p)}

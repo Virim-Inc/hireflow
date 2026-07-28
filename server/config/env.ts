@@ -36,6 +36,11 @@ export const config = Object.freeze({
         : ({ rejectUnauthorized: false } as const),
   }),
   jwtSecret: required('JWT_SECRET'),
+  sso: Object.freeze({
+    pmsSsoSecret: required('PMS_SSO_SECRET'),
+    pmsSsoIssuer: optional('PMS_SSO_ISSUER', 'PMS-Virim'),
+    pmsSsoAudience: optional('PMS_SSO_AUDIENCE', 'HireFlow'),
+  }),
   zoho: Object.freeze({
     clientId: optional('ZOHO_CLIENT_ID', ''),
     clientSecret: optional('ZOHO_CLIENT_SECRET', ''),
