@@ -288,14 +288,11 @@ export function PipelinePage() {
 
         <label className="hf-select-field">
           <span>Source</span>
-          <div className="pl-select-wrapper">
-            <select value={source} onChange={(event) => setSource(event.target.value)}>
-              <option value="">All sources</option>
-              <option value="workdrive">Workdrive</option>
-              <option value="email">Email</option>
-            </select>
-            <span className="pl-select-chevron"><ChevronDown size={13} /></span>
-          </div>
+          <select value={source} onChange={(event) => setSource(event.target.value)}>
+            <option value="">All sources</option>
+            <option value="form">Form</option>
+            <option value="email">Email</option>
+          </select>
         </label>
 
         <label className="hf-select-field">
