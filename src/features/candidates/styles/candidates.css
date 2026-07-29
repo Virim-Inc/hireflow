@@ -1172,9 +1172,9 @@
   color: var(--hf-text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .hf-skill-chip--more {
@@ -2316,16 +2316,16 @@
 /* ── Scrollable Skills Overview Tags ── */
 .hf-skill-section-tags-scrollable {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
+  max-height: 100px;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 4px 0 6px;
 }
 
 .hf-skill-section-tags-scrollable::-webkit-scrollbar {
-  height: 4px;
+  width: 4px;
 }
 
 .hf-skill-section-tags-scrollable::-webkit-scrollbar-thumb {

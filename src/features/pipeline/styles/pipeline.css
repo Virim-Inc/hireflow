@@ -18,6 +18,8 @@
    Filter Toolbar — Premium card with icons
 ═══════════════════════════════════════════ */
 .pl-toolbar {
+  position: relative;
+  z-index: 100;
   padding: 18px 22px;
   border-radius: 20px;
   display: flex;
@@ -44,12 +46,14 @@
 
 .pl-toolbar .hf-search-field {
   flex: 1.6;
-  min-width: 240px;
+  min-width: 200px;
+  max-width: 320px;
 }
 
 .pl-toolbar .hf-select-field {
   flex: 1;
-  min-width: 148px;
+  min-width: 135px;
+  max-width: 220px;
 }
 
 /* Label micro-text */

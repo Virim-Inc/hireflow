@@ -218,10 +218,12 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                     type="text"
                     placeholder="e.g. Senior Backend Engineer"
                     value={title}
-                    onChange={e => setTitle(e.target.value)}
+                    onChange={e => setTitle(e.target.value.slice(0, 100))}
+                    maxLength={100}
                     required
                     disabled={isSubmitting}
                   />
+                  <span style={{ fontSize: '11px', color: title.length > 85 ? '#ef4444' : 'var(--hf-text-muted)', textAlign: 'right', display: 'block', marginTop: '2px' }}>{title.length}/100</span>
                 </div>
 
                 <div className="hf-modal-field">
@@ -230,7 +232,8 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                     type="text"
                     placeholder="e.g. Engineering"
                     value={department}
-                    onChange={e => setDepartment(e.target.value)}
+                    onChange={e => setDepartment(e.target.value.slice(0, 80))}
+                    maxLength={80}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -298,7 +301,8 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                     type="text"
                     placeholder="e.g. Noida Office / Indore Office"
                     value={location}
-                    onChange={e => setLocation(e.target.value)}
+                    onChange={e => setLocation(e.target.value.slice(0, 120))}
+                    maxLength={120}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -342,7 +346,8 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                     type="text"
                     placeholder="e.g. B.Tech, MCA, B.Sc"
                     value={education}
-                    onChange={e => setEducation(e.target.value)}
+                    onChange={e => setEducation(e.target.value.slice(0, 100))}
+                    maxLength={100}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -353,7 +358,8 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                     type="text"
                     placeholder="e.g. Computer Science, Information Technology"
                     value={specialization}
-                    onChange={e => setSpecialization(e.target.value)}
+                    onChange={e => setSpecialization(e.target.value.slice(0, 100))}
+                    maxLength={100}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -366,7 +372,8 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                       type="text"
                       placeholder="Type a skill and press Enter"
                       value={reqSkillInput}
-                      onChange={e => setReqSkillInput(e.target.value)}
+                      onChange={e => setReqSkillInput(e.target.value.slice(0, 60))}
+                      maxLength={60}
                       onKeyDown={e => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -413,7 +420,8 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                       type="text"
                       placeholder="Type a preferred skill and press Enter"
                       value={prefSkillInput}
-                      onChange={e => setPrefSkillInput(e.target.value)}
+                      onChange={e => setPrefSkillInput(e.target.value.slice(0, 60))}
+                      maxLength={60}
                       onKeyDown={e => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -466,9 +474,11 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                     rows={4}
                     placeholder="Describe the day-to-day duties..."
                     value={responsibilities}
-                    onChange={e => setResponsibilities(e.target.value)}
+                    onChange={e => setResponsibilities(e.target.value.slice(0, 2000))}
+                    maxLength={2000}
                     disabled={isSubmitting}
                   />
+                  <span style={{ fontSize: '11px', color: responsibilities.length > 1800 ? '#ef4444' : 'var(--hf-text-muted)', textAlign: 'right', display: 'block', marginTop: '2px' }}>{responsibilities.length}/2000</span>
                 </div>
 
                 <div className="hf-modal-field hf-modal-field--full">
@@ -477,9 +487,11 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                     rows={4}
                     placeholder="Describe essential background, qualifications, or experience..."
                     value={requirements}
-                    onChange={e => setRequirements(e.target.value)}
+                    onChange={e => setRequirements(e.target.value.slice(0, 2000))}
+                    maxLength={2000}
                     disabled={isSubmitting}
                   />
+                  <span style={{ fontSize: '11px', color: requirements.length > 1800 ? '#ef4444' : 'var(--hf-text-muted)', textAlign: 'right', display: 'block', marginTop: '2px' }}>{requirements.length}/2000</span>
                 </div>
 
                 <div className="hf-modal-field hf-modal-field--full">
@@ -488,9 +500,11 @@ export function JdModalForm({ isOpen, onClose, onSaved, initialJd = null }: JdMo
                     rows={3}
                     placeholder="Describe bonus skills or preferred attributes..."
                     value={niceToHave}
-                    onChange={e => setNiceToHave(e.target.value)}
+                    onChange={e => setNiceToHave(e.target.value.slice(0, 2000))}
+                    maxLength={2000}
                     disabled={isSubmitting}
                   />
+                  <span style={{ fontSize: '11px', color: niceToHave.length > 1800 ? '#ef4444' : 'var(--hf-text-muted)', textAlign: 'right', display: 'block', marginTop: '2px' }}>{niceToHave.length}/2000</span>
                 </div>
               </div>
             </div>

@@ -36,6 +36,7 @@ export function SsoCallbackPage({ onLogin }: SsoCallbackPageProps) {
         }
         const data = await res.json();
         localStorage.setItem('hf_token', data.token);
+        window.history.replaceState({}, document.title, '/');
         onLogin(data.user);
       } catch (err: any) {
         setError(err.message || 'SSO verification failed. Please try again.');

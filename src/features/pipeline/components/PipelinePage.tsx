@@ -3,7 +3,6 @@ import {
   ArrowRight,
   Award,
   Calendar,
-  ChevronDown,
   RefreshCw,
   Search,
   Sparkles,
@@ -17,6 +16,8 @@ import {
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import { CandidateDetailDrawer } from '../../candidates/components/CandidateDetailDrawer';
+import { FilterDropdown, ModernDatePicker } from '../../candidates/components/CandidatesPage';
+import type { FilterOption } from '../../candidates/components/CandidatesPage';
 import {
   bulkUpdateCandidateStage,
   fetchCandidateHistory,
@@ -48,6 +49,7 @@ export function PipelinePage() {
   const [history, setHistory] = useState<CandidateStageHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [position, setPosition] = useState('');
   const [source, setSource] = useState('');
@@ -62,9 +64,32 @@ export function PipelinePage() {
   const [bulkTargetStage, setBulkTargetStage] = useState<PipelineStage>('shortlisted');
   const [bulkNote, setBulkNote] = useState('');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const hasLoadedMeta = useRef(false);
 
-  const loadBoard = useCallback(async (includeMeta = false) => {
+  const positionOptions = useMemo<FilterOption[]>(() => {
+    const list: FilterOption[] = [{ label: 'All positions', value: '' }];
+    if (meta?.positions) {
+      meta.positions.forEach((pos) => {
+        list.push({ label: pos || 'Not Specified', value: pos });
+      });
+    }
+    return list;
+  }, [meta?.positions]);
+
+  const sourceOptions: FilterOption[] = [
+    { label: 'All sources', value: '' },
+    { label: 'Form', value: 'form' },
+    { label: 'Email', value: 'email' },
+    { label: 'Workdrive', value: 'workdrive' },
+  ];
+
+  const loadBoard = useCallback(async () => {
     setLoading(true);
+    const shouldFetchMeta = !hasLoadedMeta.current;
+    if (shouldFetchMeta) {
+      hasLoadedMeta.current = true;
+    }
+
     try {
       const [candidateRes, metaRes] = await Promise.all([
         fetchCandidates({
@@ -78,15 +103,19 @@ export function PipelinePage() {
           page: 1,
           limit: 200,
         }),
-        includeMeta || !meta ? fetchCandidateMeta() : Promise.resolve(null),
+        shouldFetchMeta ? fetchCandidateMeta() : Promise.resolve(null),
       ]);
 
       setCandidates(candidateRes.data);
       if (metaRes) setMeta(metaRes);
+    } catch (err) {
+      if (shouldFetchMeta) {
+        hasLoadedMeta.current = false;
+      }
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, meta, position, search, source]);
+  }, [dateFrom, dateTo, position, search, source]);
 
   const loadHistory = useCallback(async (candidateId: number) => {
     setHistoryLoading(true);
@@ -98,11 +127,18 @@ export function PipelinePage() {
   }, []);
 
   useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setSearch(searchInput);
+    }, 350);
+    return () => window.clearTimeout(timeout);
+  }, [searchInput]);
+
+  useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      void loadBoard(!meta);
+      void loadBoard();
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [loadBoard, meta]);
+  }, [loadBoard]);
 
   useEffect(() => {
     if (!boardRef.current || loading) return;
@@ -199,7 +235,7 @@ export function PipelinePage() {
         setSelected((current) => (current?.id === updated.id ? updated : current));
       });
       setCandidates((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-      await Promise.all([loadBoard(false), loadHistory(candidate.id)]);
+      await Promise.all([loadBoard(), loadHistory(candidate.id)]);
     } finally {
       setUpdatingId(null);
       setDraggedId(null);
@@ -229,11 +265,11 @@ export function PipelinePage() {
 
     try {
       await bulkUpdateCandidateStage(selectedIds, { stage: targetStage, note: noteText });
-      await loadBoard(false);
+      await loadBoard();
       clearSelection();
     } catch (err) {
       console.error('Bulk stage update error:', err);
-      await loadBoard(false);
+      await loadBoard();
     } finally {
       setIsBulkUpdating(false);
     }
@@ -271,53 +307,43 @@ export function PipelinePage() {
           <span>Search</span>
           <div className="hf-search-box">
             <Search size={15} />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search candidates by name, position, or skills..." />
+            <input value={searchInput} onChange={(event) => setSearchInput(event.target.value.slice(0, 150))} maxLength={150} placeholder="Search candidates by name, position, or skills..." />
           </div>
         </label>
 
-        <label className="hf-select-field">
-          <span>Position</span>
-          <div className="pl-select-wrapper">
-            <select value={position} onChange={(event) => setPosition(event.target.value)}>
-              <option value="">All positions</option>
-              {meta?.positions.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
-            <span className="pl-select-chevron"><ChevronDown size={13} /></span>
-          </div>
-        </label>
+        <FilterDropdown
+          label="Position"
+          value={position}
+          options={positionOptions}
+          onChange={setPosition}
+        />
 
-        <label className="hf-select-field">
-          <span>Source</span>
-          <select value={source} onChange={(event) => setSource(event.target.value)}>
-            <option value="">All sources</option>
-            <option value="form">Form</option>
-            <option value="email">Email</option>
-          </select>
-        </label>
+        <FilterDropdown
+          label="Source"
+          value={source}
+          options={sourceOptions}
+          onChange={setSource}
+        />
 
-        <label className="hf-select-field">
-          <span>Date from</span>
-          <div className="pl-date-field-wrapper">
-            <span className="pl-date-field-icon"><Calendar size={13} /></span>
-            <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
-          </div>
-        </label>
+        <ModernDatePicker
+          label="Date from"
+          value={dateFrom}
+          onChange={setDateFrom}
+        />
 
-        <label className="hf-select-field">
-          <span>Date to</span>
-          <div className="pl-date-field-wrapper">
-            <span className="pl-date-field-icon"><Calendar size={13} /></span>
-            <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
-          </div>
-        </label>
+        <ModernDatePicker
+          label="Date to"
+          value={dateTo}
+          onChange={setDateTo}
+        />
 
         <div className="pl-toolbar-actions">
-          <button className="hf-ghost-btn" onClick={() => { setSearch(''); setPosition(''); setSource(''); setDateFrom(''); setDateTo(''); clearSelection(); }}>
+          <button className="hf-ghost-btn" onClick={() => { setSearchInput(''); setSearch(''); setPosition(''); setSource(''); setDateFrom(''); setDateTo(''); clearSelection(); }}>
             <TimerReset size={14} />
             Reset
           </button>
 
-          <button className="hf-primary-btn" onClick={() => void loadBoard(true)}>
+          <button className="hf-primary-btn" onClick={() => void loadBoard()}>
             <RefreshCw size={15} />
             Refresh
           </button>
@@ -353,7 +379,7 @@ export function PipelinePage() {
                   onClick={() => toggleSelectColumn(column.id, column.candidates.map((c) => c.id))}
                 >
                   {column.candidates.every((c) => selectedIds.includes(c.id)) ? 'Deselect' : 'Select'}
-                  <ChevronDown size={11} />
+                  {/* <ChevronDown size={11} /> */}
                 </button>
               )}
             </header>

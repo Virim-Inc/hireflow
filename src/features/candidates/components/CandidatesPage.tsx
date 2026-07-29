@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useState, useRef } from 'react';
 import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, RefreshCw, Search, Users, X } from 'lucide-react';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
@@ -159,12 +159,12 @@ function buildInitialFilters(initialFilters?: Partial<CandidateFilters> | null):
   };
 }
 
-interface FilterOption {
+export interface FilterOption {
   label: string;
   value: string;
 }
 
-function FilterDropdown({
+export function FilterDropdown({
   label,
   value,
   options,
@@ -257,7 +257,8 @@ function FilterDropdown({
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value.slice(0, 50))}
+                maxLength={50}
                 className="hf-modern-select-search-input"
                 autoFocus
               />
@@ -393,14 +394,16 @@ function MultiSelectFilter({
   );
 }
 
-function ModernDatePicker({
+export function ModernDatePicker({
   label,
   value,
   onChange,
+  direction = 'down',
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  direction?: 'down' | 'up';
 }) {
   const [open, setOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(() => {
@@ -523,7 +526,18 @@ function ModernDatePicker({
       </button>
 
       {open && (
-        <div className="hf-date-picker-menu" style={{ position: 'absolute', bottom: '100%', left: 0, marginBottom: '8px', zIndex: 1000 }}>
+        <div 
+          className="hf-date-picker-menu" 
+          style={{ 
+            position: 'absolute', 
+            ...(direction === 'up' 
+              ? { bottom: '100%', marginBottom: '8px' } 
+              : { top: '100%', marginTop: '8px' }
+            ),
+            left: 0, 
+            zIndex: 1000 
+          }}
+        >
           <div className="hf-date-picker-header">
             <button type="button" onClick={handlePrevMonth} className="hf-date-picker-nav-btn">
               <ChevronLeft size={14} />
@@ -604,6 +618,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   const [totalPages, setTotalPages] = useState(1);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(true);
+  const hasLoadedMeta = useRef(false);
 
   function syncSkillFilter(nextSkills: string[]) {
     setSkillFilters(nextSkills);
@@ -667,8 +682,11 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      setFilters((current) => ({ ...current, search: searchInput, page: 1 }));
-    }, 250);
+      setFilters((current) => {
+        if (current.search === searchInput) return current;
+        return { ...current, search: searchInput, page: 1 };
+      });
+    }, 350);
 
     return () => window.clearTimeout(timeout);
   }, [searchInput]);
@@ -692,15 +710,20 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     );
   }, [loading, candidates]);
 
-  const loadPage = useCallback(async (includeMeta = false) => {
+  const loadPage = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const shouldFetchMeta = !hasLoadedMeta.current;
+    if (shouldFetchMeta) {
+      hasLoadedMeta.current = true;
+    }
 
     try {
       const requests: [Promise<Awaited<ReturnType<typeof fetchCandidates>>>, Promise<CandidateStats>, Promise<CandidateMeta | null>] = [
         fetchCandidates(filters),
         fetchStats(),
-        includeMeta || !meta ? fetchCandidateMeta() : Promise.resolve(null),
+        shouldFetchMeta ? fetchCandidateMeta() : Promise.resolve(null),
       ];
 
       const [candidateRes, statsRes, metaRes] = await Promise.all(requests);
@@ -710,11 +733,14 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
       setStats(statsRes);
       if (metaRes) setMeta(metaRes);
     } catch (err) {
+      if (shouldFetchMeta) {
+        hasLoadedMeta.current = false;
+      }
       setError(err instanceof Error ? err.message : 'Failed to load candidates');
     } finally {
       setLoading(false);
     }
-  }, [filters, meta]);
+  }, [filters]);
 
   const loadHistory = useCallback(async (candidateId: number) => {
     setHistoryLoading(true);
@@ -736,10 +762,10 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      void loadPage(!meta);
+      void loadPage();
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [loadPage, meta]);
+  }, [loadPage]);
 
   useEffect(() => {
     if (!selected) return;
@@ -756,7 +782,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
       startTransition(() => {
         setSelected((current) => (current?.id === updated.id ? updated : current));
       });
-      await Promise.all([loadPage(false), loadHistory(candidate.id)]);
+      await Promise.all([loadPage(), loadHistory(candidate.id)]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update candidate stage');
     } finally {
@@ -825,7 +851,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
         <div className="hf-hero-copy">
           <div className="hf-hero-title-row">
             <h1 className="hf-animate-text">Candidates</h1>
-            <button className="hf-primary-btn" onClick={() => void loadPage(true)}>
+            <button className="hf-primary-btn" onClick={() => void loadPage()}>
               <RefreshCw size={15} />
               Refresh Data
             </button>
@@ -903,7 +929,8 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   <Search size={15} />
                   <input
                     value={searchInput}
-                    onChange={(event) => setSearchInput(event.target.value)}
+                    onChange={(event) => setSearchInput(event.target.value.slice(0, 150))}
+                    maxLength={150}
                     placeholder="Search candidate"
                   />
                 </div>
@@ -1257,14 +1284,17 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                     </div>
                   </div>
 
-                  <div className="hf-inline-meta">
-                    <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`}>
+                  <div className="hf-inline-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', alignItems: 'center' }}>
+                    <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`} title="Current hiring stage">
+                      <span style={{ fontSize: '10px', opacity: 0.65, marginRight: '2px' }}>Stage:</span>
                       {getStageLabel(candidate.pipeline_stage)}
                     </span>
-                    <span className={`hf-rec-badge ${recommendationClass(candidate.best_recommendation ?? '')}`}>
-                      {candidate.best_recommendation || 'Pending review'}
+                    <span className={`hf-rec-badge ${recommendationClass(candidate.best_recommendation ?? '')}`} title="AI-generated hiring recommendation">
+                      <span style={{ fontSize: '10px', opacity: 0.65, marginRight: '2px' }}>AI Match:</span>
+                      {candidate.best_recommendation || 'Pending'}
                     </span>
-                    <span className={`hf-source-badge ${sourceClass(candidate.source)}`}>
+                    <span className={`hf-source-badge ${sourceClass(candidate.source)}`} title="Where this application came from">
+                      <span style={{ fontSize: '10px', opacity: 0.65, marginRight: '2px' }}>Source:</span>
                       {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 
                        (candidate.source ?? '').toLowerCase().includes('workdrive') ? 'Workdrive' : 
                        (candidate.source ? candidate.source.charAt(0).toUpperCase() + candidate.source.slice(1) : 'Form')}
