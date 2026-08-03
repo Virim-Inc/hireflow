@@ -5,6 +5,7 @@ import { DashboardHome } from './features/dashboard';
 import { PipelinePage } from './features/pipeline';
 import { Sidebar } from './components/shared/Sidebar';
 import type { CandidateFilters } from './features/candidates/types/candidate.types';
+import { useBreakpoint } from './lib/useMediaQuery';
 import './app.css';
 
 export type Page = 'login' | 'dashboard' | 'candidates' | 'jds' | 'pipeline' | 'profile' | 'sso-callback';
@@ -20,6 +21,7 @@ function App() {
   const [theme, setTheme] = useState<Theme>('light');
   const [candidateFilters, setCandidateFilters] = useState<Partial<CandidateFilters> | null>(null);
   const [user, setUser] = useState<{ id: number; email: string; name: string | null; role: string } | null>(null);
+  const { isXl, isMobile } = useBreakpoint();
 
   useEffect(() => {
     if (window.location.pathname === '/sso') {
@@ -135,7 +137,7 @@ function App() {
       <Sidebar
         currentPage={page as Exclude<Page, 'login' | 'sso-callback'>}
         onNavigate={navigate}
-        collapsed={sidebarCollapsed}
+        collapsed={isMobile ? false : (isXl ? sidebarCollapsed : true)}
         onToggle={() => setSidebarCollapsed(p => !p)}
         theme={theme}
         onToggleTheme={toggleTheme}

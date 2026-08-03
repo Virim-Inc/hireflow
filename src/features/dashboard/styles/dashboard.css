@@ -731,3 +731,41 @@
   }
 }
 
+/* ═══════════════════════════════════════════
+   Dashboard Page Responsive Overrides
+═══════════════════════════════════════════ */
+@media (max-width: 760px) {
+  .daily-stats-picker {
+    display: flex !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    max-width: 100% !important;
+    scrollbar-width: none; /* Hide scrollbars for cleaner premium look */
+  }
+  .daily-stats-picker::-webkit-scrollbar {
+    display: none;
+  }
+  .daily-stats-picker-btn {
+    flex-shrink: 0 !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .dash-controls-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .dash-toggle-switch {
+    width: 100% !important;
+    justify-content: space-around !important;
+    display: flex !important;
+  }
+  .dash-toggle-btn {
+    flex: 1 !important;
+    text-align: center !important;
+  }
+}
+
+

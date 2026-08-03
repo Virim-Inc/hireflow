@@ -1839,10 +1839,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 12px 20px;
   border-radius: 16px;
   background: color-mix(in oklab, var(--hf-card-bg) 80%, transparent);
   border: 1px solid var(--hf-border);
+  min-width: 0;
 }
 
 .hf-resume-topbar-info {
@@ -1851,6 +1853,15 @@
   gap: 10px;
   font-weight: 500;
   color: var(--hf-text-primary);
+  min-width: 0;
+  flex: 1;
+}
+
+.hf-resume-topbar-info span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .hf-resume-preview-frame {
@@ -2507,3 +2518,196 @@
   background: radial-gradient(circle, color-mix(in oklab, var(--hf-danger) 14%, transparent) 0%, color-mix(in oklab, var(--hf-danger) 4%, transparent) 100%) !important;
   box-shadow: 0 8px 24px color-mix(in oklab, var(--hf-danger) 22%, transparent) !important;
 }
+
+/* ═══════════════════════════════════════════
+   Candidates Page Responsive Overrides
+═══════════════════════════════════════════ */
+
+/* Card text wrapping/truncation to handle long values (stress proofing) */
+.hf-card-person h4 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hf-card-person p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hf-contact-line a,
+.hf-contact-line span {
+  word-break: break-all;
+  white-space: normal;
+}
+
+/* Base resets for card elements to prevent blowout */
+.hf-candidate-grid > * {
+  min-width: 0;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  /* Stack Hero section */
+  .hf-hero {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+  
+  .hf-hero-aside {
+    margin-top: 0;
+    width: 100%;
+  }
+
+  /* Adjust mini stats row */
+  .hf-mini-stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+
+  /* Filters layout grid */
+  .hf-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px;
+  }
+
+  /* Candidate main layout split grid */
+  .hf-dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hf-page {
+    padding: 16px 12px 30px;
+    gap: 16px;
+  }
+
+  /* Full Screen Mobile Takeover for Candidate Detail Drawer */
+  .hf-drawer-shell {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    z-index: 210 !important;
+    overflow-y: auto !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hf-drawer-topbar {
+    padding: 12px 16px !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 220 !important;
+    box-shadow: 0 4px 16px var(--hf-shadow) !important;
+  }
+
+  .hf-drawer-body {
+    padding: 16px 12px 30px !important;
+    flex: 1;
+    overflow-y: auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* Stack drawer hero */
+  .hf-drawer-hero {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+    justify-items: center;
+    gap: 16px;
+    padding: 18px !important;
+    border-radius: 20px !important;
+  }
+
+  .hf-drawer-hero-copy {
+    text-align: center !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hf-drawer-avatar {
+    width: 64px !important;
+    height: 64px !important;
+    font-size: 1.4rem !important;
+    border-radius: 18px !important;
+  }
+
+  /* Stats row stacking */
+  .hf-detail-stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+
+  /* Stacking interior grids in drawer */
+  .hf-drawer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .hf-contact-line {
+    justify-content: center !important;
+    gap: 8px 12px !important;
+  }
+
+  /* Filter grid single column */
+  .hf-filter-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Compact candidate cards */
+  .hf-candidate-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+    gap: 12px;
+  }
+
+  .hf-card-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hf-card-footer select {
+    width: 100%;
+    flex: none;
+  }
+
+  /* Pagination stacking */
+  .hf-pagination {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px;
+    padding-top: 10px;
+  }
+
+  .hf-pagination > div {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Smaller viewports mini stats */
+  .hf-mini-stats-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Detail drawer stats stacking */
+  .hf-detail-stats-row {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .hf-card-stats {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+}

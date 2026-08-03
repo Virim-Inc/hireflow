@@ -306,7 +306,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 14px 16px 12px;
+  padding: 14px 12px 12px;
   border-bottom: 1px solid var(--hf-border);
   flex-shrink: 0;
 }
@@ -955,7 +955,83 @@
 }
 
 @media (max-width: 720px) {
+  /* Option A: Stacked stages for mobile */
   .pl-board {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 20px;
+    overflow-x: visible;
+  }
+
+  .pl-column {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    box-shadow: 0 4px 16px var(--hf-shadow) !important;
+  }
+
+  .pl-column-body {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  /* Toolbar styling for small screens */
+  .pl-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 16px !important;
+    gap: 12px !important;
+  }
+
+  .pl-toolbar .hf-search-field,
+  .pl-toolbar .hf-select-field {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none !important;
+  }
+
+  .pl-toolbar-actions {
+    width: 100% !important;
+    margin-left: 0 !important;
+    justify-content: stretch !important;
+  }
+
+  .pl-toolbar-actions button {
+    flex: 1 !important;
+  }
+
+  /* Bulk action bar mobile takeover */
+  .pl-bulk-action-bar {
+    left: 12px !important;
+    right: 12px !important;
+    transform: none !important;
+    width: auto !important;
+    border-radius: 20px !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+
+  .pl-bulk-controls {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 6px;
+  }
+
+  .pl-bulk-select,
+  .pl-bulk-note-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 36px;
+  }
+
+  .pl-bulk-btn {
+    width: 100% !important;
   }
 }
+
+@media (max-width: 480px) {
+  .pl-page {
+    padding: 16px 12px 36px !important;
+  }
+}

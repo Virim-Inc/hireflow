@@ -678,3 +678,80 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ═══════════════════════════════════════════
+   Mobile Sidebar & Backdrop Overrides
+   (≤768px viewport responsive styles)
+═══════════════════════════════════════════ */
+
+/* Mobile hamburger button */
+.hf-mobile-hamburger {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--hf-surface-2);
+  border: 1px solid var(--hf-border);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--hf-text-primary);
+  z-index: 110;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px var(--hf-shadow);
+}
+
+.hf-mobile-hamburger:hover {
+  background: var(--hf-surface-3);
+  border-color: var(--hf-border-glow);
+}
+
+/* Backdrop for mobile sidebar */
+.hf-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 150;
+  animation: hf-fade-in 0.25s ease forwards;
+}
+
+@keyframes hf-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .hf-mobile-hamburger {
+    display: flex;
+  }
+
+  /* Force mobile sidebar layout */
+  .hf-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100dvh;
+    z-index: 200;
+    width: 240px !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .hf-sidebar--mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  /* Since sidebar is fixed overlay, main content has no sibling width constraint */
+  .hf-main-content {
+    width: 100%;
+    padding-top: 60px !important; /* Space for fixed mobile header/toggle */
+  }
+}
+

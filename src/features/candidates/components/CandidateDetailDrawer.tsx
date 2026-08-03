@@ -59,6 +59,14 @@ export function CandidateDetailDrawer({
   const [showJdDetails, setShowJdDetails] = useState(false);
 
   useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
     if (activeTab !== 'resume' || !candidate.workdrive_file_id) {
       return;
     }

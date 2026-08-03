@@ -553,3 +553,80 @@
   border: 1px solid oklch(0.72 0.18 150 / 0.3);
   box-shadow: none;
 }
+
+/* ═══════════════════════════════════════════
+   JD Scout Page Responsive Overrides
+═══════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .jd-panel {
+    position: static !important; /* Disable sticky so it scrolls naturally */
+  }
+}
+
+@media (max-width: 768px) {
+  .jd-scout-page {
+    padding: 16px 12px 30px !important;
+  }
+
+  .jd-scout-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+
+  .jd-scout-header-left {
+    width: 100%;
+  }
+
+  .jd-reset-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Form row stacks */
+  .jd-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .jd-field--grow {
+    width: 100% !important;
+  }
+
+  /* Compact Scout Results */
+  .scout-card {
+    padding: 16px !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .scout-card-left {
+    width: 100% !important;
+  }
+
+  .scout-card-right {
+    width: 100% !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+
+  .scout-card-actions {
+    width: 100% !important;
+    margin-left: 0 !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap;
+  }
+
+  .scout-action-link,
+  .scout-action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .jd-dropzone {
+    padding: 24px 12px !important;
+  }
+}
+
