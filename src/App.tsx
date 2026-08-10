@@ -18,7 +18,43 @@ function App() {
   });
   const [isValidating, setIsValidating] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const themeParam = params.get('theme') || params.get('mode');
+    if (themeParam === 'dark' || themeParam === 'light') {
+      localStorage.setItem('hf_theme', themeParam);
+      return themeParam;
+    }
+    const saved = localStorage.getItem('hf_theme');
+    if (saved === 'dark' || saved === 'light') {
+      return saved;
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('hf_theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+
+  useEffect(() => {
+    // Only clean up theme/mode from URL if we are not on the SSO page,
+    // to avoid racing with SsoCallbackPage token extraction.
+    if (window.location.pathname !== '/sso') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('theme') || params.has('mode')) {
+        params.delete('theme');
+        params.delete('mode');
+        const newSearch = params.toString();
+        const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '');
+        window.history.replaceState({}, document.title, newPath);
+      }
+    }
+  }, []);
+
   const [candidateFilters, setCandidateFilters] = useState<Partial<CandidateFilters> | null>(null);
   const [user, setUser] = useState<{ id: number; email: string; name: string | null; role: string } | null>(null);
   const { isXl, isMobile } = useBreakpoint();

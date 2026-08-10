@@ -755,3 +755,57 @@
   }
 }
 
+/* ── Overrides to match PMS Dark Mode theme exactly ── */
+.dark .hf-app,
+.hf-app--dark {
+  /* Use PMS colors */
+  --hf-bg:              var(--background);
+  --hf-surface:         var(--card);
+  --hf-surface-2:       var(--secondary);
+  --hf-surface-3:       var(--accent);
+
+  --hf-border:          var(--border);
+  --hf-border-glow:     color-mix(in oklab, var(--primary) 30%, transparent);
+
+  --hf-text-primary:    var(--foreground);
+  --hf-text-secondary:  var(--muted-foreground);
+  --hf-text-muted:      color-mix(in oklab, var(--foreground) 40%, transparent);
+
+  --hf-card-bg:         var(--secondary);
+  --hf-card-hover-bg:   var(--accent);
+  --hf-shadow:          rgba(0, 0, 0, 0.4);
+  --hf-toolbar-bg:      var(--background);
+
+  --hf-accent:          var(--primary);
+  --hf-accent-dim:      color-mix(in oklab, var(--primary) 80%, black);
+  --hf-accent-glow:     color-mix(in oklab, var(--primary) 15%, transparent);
+  --hf-accent-text:     var(--primary);
+
+  /* Flat gradients to override the glowing blue/purple panels */
+  --hf-panel-bg-gradient: linear-gradient(180deg, var(--card), var(--card));
+  --hf-drawer-shell-gradient: linear-gradient(180deg, var(--background), var(--background));
+  --hf-app-bg-gradient: linear-gradient(180deg, var(--background), var(--background));
+}
+
+/* Style primary button to match PMS primary color in dark mode */
+.dark .hf-primary-btn {
+  background: var(--primary) !important;
+  border-color: color-mix(in oklab, var(--primary) 20%, white) !important;
+  color: var(--primary-foreground) !important;
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--primary) 30%, transparent) !important;
+}
+.dark .hf-primary-btn:hover {
+  background: color-mix(in oklab, var(--primary) 85%, white) !important;
+  box-shadow: 0 6px 20px color-mix(in oklab, var(--primary) 40%, transparent) !important;
+}
+
+/* Hide ambient glow orbs in dark mode for flat, clean PMS look */
+.dark .hf-app::before,
+.dark .hf-app::after {
+  display: none !important;
+  content: none !important;
+}
+.dark .hf-app {
+  background: var(--background) !important;
+}
+

@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  Sun,
   Moon,
   KanbanSquare,
   LogOut,
@@ -207,10 +206,10 @@ export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, o
             title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle theme"
           >
-            {isDark ? <Sun size={14} /> : <Moon size={14} />}
-            {(!collapsed || isMobile) && <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
+            <Moon size={14} />
+            {(!collapsed || isMobile) && <span>Dark Mode</span>}
             {(!collapsed || isMobile) && (
-              <span className={`sidebar-toggle-switch ${isDark ? '' : 'sidebar-toggle-switch--on'}`}>
+              <span className={`sidebar-toggle-switch ${isDark ? 'sidebar-toggle-switch--on' : ''}`}>
                 <span className="sidebar-toggle-thumb" />
               </span>
             )}
