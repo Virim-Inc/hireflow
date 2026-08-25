@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useState, useRef } from 'react';
+import { startTransition, useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, RefreshCw, Search, Users, X } from 'lucide-react';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
@@ -585,30 +585,71 @@ export function ModernDatePicker({
   );
 }
 
+const getInitialState = (initialFilters: Partial<CandidateFilters> | null | undefined) => {
+  const hasInitialFilters = initialFilters && Object.keys(initialFilters).length > 0;
+
+  if (!hasInitialFilters) {
+    const saved = sessionStorage.getItem('hf_candidate_filters');
+    if (saved) {
+      try {
+        const loadedFilters = JSON.parse(saved);
+        return {
+          activeFilters: loadedFilters,
+          search: loadedFilters.search || '',
+          skill: parseSkillFilters(loadedFilters.skill || ''),
+          jdIds: (loadedFilters.jd_id || '').split(',').map((id: string) => parseInt(id.trim(), 10)).filter(Number.isInteger),
+          city: parseSkillFilters(loadedFilters.city || ''),
+          passoutYear: parseSkillFilters(loadedFilters.passout_year || ''),
+          college: parseSkillFilters(loadedFilters.college || ''),
+          degree: parseSkillFilters(loadedFilters.degree || ''),
+        };
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  const activeFilters = buildInitialFilters(initialFilters);
+  return {
+    activeFilters,
+    search: activeFilters.search || '',
+    skill: parseSkillFilters(activeFilters.skill || ''),
+    jdIds: (activeFilters.jd_id || '').split(',').map((id: string) => parseInt(id.trim(), 10)).filter(Number.isInteger),
+    city: parseSkillFilters(activeFilters.city || ''),
+    passoutYear: parseSkillFilters(activeFilters.passout_year || ''),
+    college: parseSkillFilters(activeFilters.college || ''),
+    degree: parseSkillFilters(activeFilters.degree || ''),
+  };
+};
+
 export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<CandidateFilters> | null }) {
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const skillAnchor = useComboboxAnchor();
   const jdAnchor = useComboboxAnchor();
-  const [pendingFilters, setPendingFilters] = useState<CandidateFilters>(() => buildInitialFilters(initialFilters));
-  const [filters, setFilters] = useState<CandidateFilters>(() => buildInitialFilters(initialFilters));
-  const [searchInput, setSearchInput] = useState(() => initialFilters?.search ?? '');
+
+  const initialState = useMemo(() => getInitialState(initialFilters), [initialFilters]);
+
+  const [pendingFilters, setPendingFilters] = useState<CandidateFilters>(initialState.activeFilters);
+  const [filters, setFilters] = useState<CandidateFilters>(initialState.activeFilters);
+  const [searchInput, setSearchInput] = useState(initialState.search);
   const [skillInput, setSkillInput] = useState('');
-  const [skillFilters, setSkillFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.skill ?? ''));
+  const [skillFilters, setSkillFilters] = useState<string[]>(initialState.skill);
   const [jds, setJds] = useState<JobDescription[]>([]);
-  const [selectedJdIds, setSelectedJdIds] = useState<number[]>(() => {
-    const raw = initialFilters?.jd_id ?? '';
-    return raw.split(',').map(id => parseInt(id.trim(), 10)).filter(Number.isInteger);
-  });
+  const [selectedJdIds, setSelectedJdIds] = useState<number[]>(initialState.jdIds);
   const [jdInput, setJdInput] = useState('');
   const [cityInput, setCityInput] = useState('');
-  const [cityFilters, setCityFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.city ?? ''));
+  const [cityFilters, setCityFilters] = useState<string[]>(initialState.city);
   const [passoutYearInput, setPassoutYearInput] = useState('');
-  const [passoutYearFilters, setPassoutYearFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.passout_year ?? ''));
+  const [passoutYearFilters, setPassoutYearFilters] = useState<string[]>(initialState.passoutYear);
   const [collegeInput, setCollegeInput] = useState('');
-  const [collegeFilters, setCollegeFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.college ?? ''));
+  const [collegeFilters, setCollegeFilters] = useState<string[]>(initialState.college);
   const [degreeInput, setDegreeInput] = useState('');
-  const [degreeFilters, setDegreeFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.degree ?? ''));
+  const [degreeFilters, setDegreeFilters] = useState<string[]>(initialState.degree);
+
+  useEffect(() => {
+    sessionStorage.setItem('hf_candidate_filters', JSON.stringify(filters));
+  }, [filters]);
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [stats, setStats] = useState<CandidateStats | null>(null);
