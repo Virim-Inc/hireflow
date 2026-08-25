@@ -79,13 +79,19 @@ export async function ssoVerify(token) {
         });
     }
     catch (err) {
-        throw new HttpError(401, 'Authentication failed: Invalid or expired token.');
+        throw new HttpError(401, `Authentication failed: Invalid or expired token. (${err.message})`);
     }
     // Extract claims and handle fallbacks for XMLSoap/Microsoft schemas
     const sub = decodedRaw.sub || decodedRaw['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
     const email = decodedRaw.email || decodedRaw['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'];
     const name = decodedRaw.name || decodedRaw['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
-    const permissions = decodedRaw.permissions || [];
+    // const permissions = decodedRaw.permissions || [];
+    const permissionsRaw = decodedRaw.permissions;
+    const permissions = Array.isArray(permissionsRaw)
+        ? permissionsRaw
+        : typeof permissionsRaw === "string"
+            ? [permissionsRaw]
+            : [];
     const hireflow_role = decodedRaw.hireflow_role || decodedRaw['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
     const jti = decodedRaw.jti;
     const exp = decodedRaw.exp;

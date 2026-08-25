@@ -161,12 +161,9 @@ export function CandidateDetailDrawer({
     };
 
     document.addEventListener('keydown', onKeyDown);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
 
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = previous;
     };
   }, [onClose]);
 
