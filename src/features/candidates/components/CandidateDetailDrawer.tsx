@@ -572,17 +572,41 @@ export function CandidateDetailDrawer({
                     </button>
                   </div>
                   <label className="hf-textarea-field">
-                    <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      Recruiter note
-                      <span style={{ fontSize: '11px', color: note.length > 450 ? '#ef4444' : 'var(--hf-text-muted)', fontWeight: 400 }}>
-                        {note.length}/500
+                    <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        Recruiter note
+                        <button
+                          type="button"
+                          className="hf-ghost-btn"
+                          style={{
+                            padding: '2px 8px',
+                            fontSize: '11px',
+                            minHeight: '22px',
+                            lineHeight: '1.2',
+                            borderRadius: '6px',
+                            background: 'color-mix(in oklab, var(--hf-accent) 10%, var(--hf-surface-2))',
+                            color: 'var(--hf-accent-text)',
+                            border: '1px solid color-mix(in oklab, var(--hf-accent) 20%, var(--hf-border))',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => {
+                            const template = `Hometown: \n10th Passout Year: \n12th Passout Year: \nUG / PG Year: \nInternship: \nProject: \nFamily Background: `;
+                            setNote((prev) => (prev ? `${prev}\n\n${template}` : template).slice(0, 1000));
+                          }}
+                        >
+                          Use Template
+                        </button>
+                      </span>
+                      <span style={{ fontSize: '11px', color: note.length > 900 ? '#ef4444' : 'var(--hf-text-muted)', fontWeight: 400 }}>
+                        {note.length}/1000
                       </span>
                     </span>
                     <textarea
                       value={note}
-                      maxLength={500}
-                      onChange={(event) => setNote(event.target.value.slice(0, 500))}
+                      maxLength={1000}
+                      onChange={(event) => setNote(event.target.value.slice(0, 1000))}
                       placeholder="Add context for the next interview stage, rejection reason, or hiring note"
+                      rows={6}
                     />
                   </label>
                   {candidate.latest_stage_note && (

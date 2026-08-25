@@ -846,6 +846,107 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     setFilters(nextFilters);
   }
 
+  const handleExportToCSV = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const firstPageFilters = { ...filters, page: 1, limit: 200 };
+      const res = await fetchCandidates(firstPageFilters);
+      
+      let allCandidates = [...res.data];
+      const totalCount = res.total;
+      const totalPagesToFetch = Math.ceil(totalCount / 200);
+      
+      if (totalPagesToFetch > 1) {
+        const fetchPromises = [];
+        for (let p = 2; p <= totalPagesToFetch; p++) {
+          fetchPromises.push(fetchCandidates({ ...filters, page: p, limit: 200 }));
+        }
+        const results = await Promise.all(fetchPromises);
+        results.forEach((r) => {
+          allCandidates = allCandidates.concat(r.data);
+        });
+      }
+      
+      const headers = [
+        'ID',
+        'Name',
+        'Email',
+        'Phone',
+        'Stage',
+        'Score',
+        'Grade',
+        'Recommendation',
+        'Experience (Years)',
+        'Job Title',
+        'Highest Degree',
+        'College',
+        'Degree',
+        'Graduation Year',
+        'City',
+        'Position',
+        'Programming Languages',
+        'LinkedIn',
+        'Source',
+        'Recruiter Note'
+      ];
+      
+      const csvRows = [
+        headers.join(','),
+        ...allCandidates.map((c) => {
+          const rowValues = [
+            c.id,
+            c.candidate_name || '',
+            c.email || '',
+            c.phone || '',
+            c.pipeline_stage || '',
+            c.best_score !== null && c.best_score !== undefined ? c.best_score : '',
+            c.best_grade || '',
+            c.best_recommendation || '',
+            c.years_of_exp !== null && c.years_of_exp !== undefined ? c.years_of_exp : '',
+            c.current_job_title || '',
+            c.highest_degree || '',
+            c.college || '',
+            c.degree || '',
+            c.passout_year !== null && c.passout_year !== undefined ? c.passout_year : '',
+            c.city || '',
+            c.position_label || '',
+            c.programming_langs || '',
+            c.linkedin || '',
+            c.source || '',
+            c.latest_stage_note || ''
+          ];
+          
+          return rowValues
+            .map((val) => {
+              const strVal = String(val).replace(/"/g, '""');
+              return `"${strVal}"`;
+            })
+            .join(',');
+        })
+      ];
+      
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().slice(0, 10);
+      link.setAttribute('download', `candidates_export_${timestamp}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export CSV');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const positionOptions: FilterOption[] = [
     { label: 'All positions', value: '' },
     ...(meta?.positions.map((position) => ({ label: position, value: position })) ?? []),
@@ -1264,11 +1365,20 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
         )}
       </section>
 
-      <section className="hf-results-head">
+      <section className="hf-results-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h3>Applicants</h3>
           <p>{total} matched</p>
         </div>
+        <button
+          onClick={handleExportToCSV}
+          className="hf-primary-btn"
+          disabled={loading || total === 0}
+          title="Export matching candidates to CSV"
+          style={{ height: '36px', padding: '0 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          {loading ? 'Exporting...' : 'Export CSV'}
+        </button>
       </section>
 
       {loading ? (
