@@ -492,10 +492,11 @@
   left: 0;
   right: 0;
   z-index: 40;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-  max-height: 260px;
-  overflow-y: auto;
+  max-height: 280px;
+  overflow-y: hidden;
   padding: 8px;
   border-radius: 18px;
   border: 1px solid color-mix(in oklab, var(--hf-accent) 20%, var(--hf-border));
@@ -503,6 +504,31 @@
   box-shadow: 0 22px 48px color-mix(in oklab, var(--hf-shadow) 86%, transparent);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+}
+
+.hf-skill-combobox-list {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hf-skill-combobox-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hf-skill-combobox-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hf-skill-combobox-list::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--hf-border) 40%, transparent);
+  border-radius: 3px;
+}
+
+.hf-skill-combobox-list::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--hf-border) 60%, transparent);
 }
 
 .hf-skill-dropdown-search {

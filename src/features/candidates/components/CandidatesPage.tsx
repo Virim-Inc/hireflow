@@ -365,7 +365,11 @@ function MultiSelectFilter({
           </ComboboxValue>
         </ComboboxChips>
         <ComboboxContent anchor={anchor} className="hf-skill-combobox-menu">
-          <div className="hf-skill-dropdown-search">
+          <div
+            className="hf-skill-dropdown-search"
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
             <Search size={15} />
             <ComboboxChipsInput
               className="hf-skill-dropdown-search-input"
@@ -586,6 +590,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   const gridRef = useRef<HTMLDivElement>(null);
   const skillAnchor = useComboboxAnchor();
   const jdAnchor = useComboboxAnchor();
+  const [pendingFilters, setPendingFilters] = useState<CandidateFilters>(() => buildInitialFilters(initialFilters));
   const [filters, setFilters] = useState<CandidateFilters>(() => buildInitialFilters(initialFilters));
   const [searchInput, setSearchInput] = useState(() => initialFilters?.search ?? '');
   const [skillInput, setSkillInput] = useState('');
@@ -680,16 +685,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
       .catch(console.error);
   }, []);
 
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setFilters((current) => {
-        if (current.search === searchInput) return current;
-        return { ...current, search: searchInput, page: 1 };
-      });
-    }, 350);
 
-    return () => window.clearTimeout(timeout);
-  }, [searchInput]);
 
   useEffect(() => {
     if (!heroRef.current) return;
@@ -791,7 +787,22 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   }
 
   function updateFilter<K extends keyof CandidateFilters>(key: K, value: CandidateFilters[K]) {
+    setPendingFilters((current) => ({ ...current, [key]: value, page: key === 'page' ? value as number : 1 }));
+  }
+
+  function handleNavigateOrSort<K extends keyof CandidateFilters>(key: K, value: CandidateFilters[K]) {
+    setPendingFilters((current) => ({ ...current, [key]: value, page: key === 'page' ? value as number : 1 }));
     setFilters((current) => ({ ...current, [key]: value, page: key === 'page' ? value as number : 1 }));
+  }
+
+  function handleApplyFilters() {
+    const nextFilters = {
+      ...pendingFilters,
+      search: searchInput,
+      page: 1,
+    };
+    setPendingFilters(nextFilters);
+    setFilters(nextFilters);
   }
 
   const positionOptions: FilterOption[] = [
@@ -895,25 +906,39 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
             <h2>Filters</h2>
           </div>
           <div className="hf-inline-meta">
+            <button
+              className="hf-primary-btn"
+              onClick={handleApplyFilters}
+              disabled={loading}
+              title={loading ? "Loading candidates..." : "Apply current filters"}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Search size={14} />
+              Apply Filters
+            </button>
             <button className="hf-ghost-btn" onClick={() => setShowFilters((current) => !current)}>
               {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
-            <button className="hf-ghost-btn" onClick={() => {
-              setSearchInput('');
-              setSkillInput('');
-              setSkillFilters([]);
-              setSelectedJdIds([]);
-              setCityInput('');
-              setCityFilters([]);
-              setPassoutYearInput('');
-              setPassoutYearFilters([]);
-              setCollegeInput('');
-              setCollegeFilters([]);
-              setDegreeInput('');
-              setDegreeFilters([]);
-              setFilters(DEFAULT_FILTERS);
-            }}>
+            <button
+              className="hf-ghost-btn"
+              onClick={() => {
+                setSearchInput('');
+                setSkillInput('');
+                setSkillFilters([]);
+                setSelectedJdIds([]);
+                setCityInput('');
+                setCityFilters([]);
+                setPassoutYearInput('');
+                setPassoutYearFilters([]);
+                setCollegeInput('');
+                setCollegeFilters([]);
+                setDegreeInput('');
+                setDegreeFilters([]);
+                setPendingFilters(DEFAULT_FILTERS);
+                setFilters(DEFAULT_FILTERS);
+              }}
+            >
               <Filter size={14} />
               Clear Filters
             </button>
@@ -932,8 +957,12 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                     onChange={(event) => setSearchInput(event.target.value.slice(0, 150))}
                     maxLength={150}
                     placeholder="Search candidate"
-                  />
-                </div>
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        handleApplyFilters();
+                      }
+                    }}
+                  />                </div>
               </label>
 
               <div className="hf-select-field hf-skill-select" style={{ minWidth: '220px' }}>
@@ -992,7 +1021,11 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                     </ComboboxValue>
                   </ComboboxChips>
                   <ComboboxContent anchor={jdAnchor} className="hf-skill-combobox-menu">
-                    <div className="hf-skill-dropdown-search">
+                    <div
+                      className="hf-skill-dropdown-search"
+                      onClick={(event) => event.stopPropagation()}
+                      onPointerDown={(event) => event.stopPropagation()}
+                    >
                       <Search size={15} />
                       <ComboboxChipsInput
                         className="hf-skill-dropdown-search-input"
@@ -1072,7 +1105,11 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                     </ComboboxValue>
                   </ComboboxChips>
                   <ComboboxContent anchor={skillAnchor} className="hf-skill-combobox-menu">
-                    <div className="hf-skill-dropdown-search">
+                    <div
+                      className="hf-skill-dropdown-search"
+                      onClick={(event) => event.stopPropagation()}
+                      onPointerDown={(event) => event.stopPropagation()}
+                    >
                       <Search size={15} />
                       <ComboboxChipsInput
                         className="hf-skill-dropdown-search-input"
@@ -1110,7 +1147,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                 onValueChange={syncCityFilter}
                 onRemoveValue={removeCityFilter}
               />
-              <FilterDropdown label="Internship" value={filters.internship_completed} options={internshipOptions} onChange={(value) => updateFilter('internship_completed', value)} />
+              <FilterDropdown label="Internship" value={pendingFilters.internship_completed} options={internshipOptions} onChange={(value) => updateFilter('internship_completed', value)} />
               <MultiSelectFilter
                 label="Passout Year"
                 placeholder="Select years"
@@ -1141,10 +1178,10 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                 onValueChange={syncDegreeFilter}
                 onRemoveValue={removeDegreeFilter}
               />
-              <FilterDropdown label="Source" value={filters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
-              <FilterDropdown label="Stage" value={filters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} direction="up" />
-              <FilterDropdown label="Recommendation" value={filters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} direction="up" />
-              <FilterDropdown label="Qualified" value={filters.qualified} options={qualifiedOptions} onChange={(value) => updateFilter('qualified', value)} direction="up" />
+              <FilterDropdown label="Source" value={pendingFilters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
+              <FilterDropdown label="Stage" value={pendingFilters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} direction="up" />
+              <FilterDropdown label="Recommendation" value={pendingFilters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} direction="up" />
+              <FilterDropdown label="Qualified" value={pendingFilters.qualified} options={qualifiedOptions} onChange={(value) => updateFilter('qualified', value)} direction="up" />
 
               <label className="hf-select-field">
                 <span>Minimum score</span>
@@ -1152,7 +1189,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   type="number"
                   min="0"
                   max="100"
-                  value={filters.min_score}
+                  value={pendingFilters.min_score}
                   onChange={(event) => updateFilter('min_score', event.target.value)}
                   placeholder="0"
                 />
@@ -1160,26 +1197,27 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
               <ModernDatePicker
                 label="Date from"
-                value={filters.date_from}
+                value={pendingFilters.date_from}
                 onChange={(value) => updateFilter('date_from', value)}
               />
 
               <ModernDatePicker
                 label="Date to"
-                value={filters.date_to}
+                value={pendingFilters.date_to}
                 onChange={(value) => updateFilter('date_to', value)}
               />
 
               <FilterDropdown
                 label="Sort by"
-                value={filters.sort}
+                value={pendingFilters.sort}
                 options={sortOptions}
-                onChange={(value) => updateFilter('sort', value)}
+                onChange={(value) => handleNavigateOrSort('sort', value)}
                 leadingIcon={<ArrowUpDown size={14} />}
                 direction="up"
               />
 
-              <FilterDropdown label="Order" value={filters.order} options={orderOptions} onChange={(value) => updateFilter('order', value as 'asc' | 'desc')} direction="up" />
+              <FilterDropdown label="Order" value={pendingFilters.order} options={orderOptions} onChange={(value) => handleNavigateOrSort('order', value as 'asc' | 'desc')} direction="up" />
+
             </div>
           </>
         )}
@@ -1400,10 +1438,9 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
         <div className="hf-pagination">
           <span>Page {filters.page} of {totalPages}</span>
           <div>
-            <button className="hf-ghost-btn" disabled={filters.page <= 1} onClick={() => updateFilter('page', filters.page - 1)}>Previous</button>
-            <button className="hf-ghost-btn" disabled={filters.page >= totalPages} onClick={() => updateFilter('page', filters.page + 1)}>Next</button>
-          </div>
-        </div>
+            <button className="hf-ghost-btn" disabled={filters.page <= 1} onClick={() => handleNavigateOrSort('page', filters.page - 1)}>Previous</button>
+            <button className="hf-ghost-btn" disabled={filters.page >= totalPages} onClick={() => handleNavigateOrSort('page', filters.page + 1)}>Next</button>
+          </div>        </div>
       )}
 
       {selected && (
