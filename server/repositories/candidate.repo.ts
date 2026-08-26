@@ -104,10 +104,18 @@ export function buildWhereClause(query: CandidatesQuery): {
     where.push(`NOT EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= 50)`);
   }
 
-  if (isPipelineStage(query.stage)) {
-    where.push(`pipeline_stage = $${idx}`);
-    params.push(query.stage);
-    idx++;
+  if (query.stage) {
+    const rawStages = typeof query.stage === 'string' ? query.stage.split(',') : Array.isArray(query.stage) ? query.stage : [query.stage];
+    const validStages = rawStages.map((s: string) => s.trim()).filter(isPipelineStage);
+    if (validStages.length === 1) {
+      where.push(`pipeline_stage = $${idx}`);
+      params.push(validStages[0]);
+      idx++;
+    } else if (validStages.length > 1) {
+      where.push(`pipeline_stage = ANY($${idx})`);
+      params.push(validStages);
+      idx++;
+    }
   }
 
   if (query.source) {

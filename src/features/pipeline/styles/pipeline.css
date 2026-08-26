@@ -1034,4 +1034,41 @@
   .pl-page {
     padding: 16px 12px 36px !important;
   }
+}
+
+/* ═══════════════════════════════════════════
+   Table View Styles
+   ═══════════════════════════════════════════ */
+.pl-table-container {
+  background: var(--hf-surface);
+  border: 1px solid var(--hf-border);
+  border-radius: 20px;
+  box-shadow:
+    0 1px 3px var(--hf-shadow),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.pl-table-container tr {
+  transition: background-color 0.18s ease;
+}
+
+.pl-table-container tr:hover {
+  background-color: var(--hf-surface-2) !important;
+}
+
+.pl-table-container th {
+  color: var(--hf-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid var(--hf-border);
+}
+
+.pl-table-container td {
+  color: var(--hf-text-secondary);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--hf-border);
+  padding: 14px 16px;
 }

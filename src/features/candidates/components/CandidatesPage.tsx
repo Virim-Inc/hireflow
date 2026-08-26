@@ -1,5 +1,13 @@
 import { startTransition, useCallback, useEffect, useState, useRef, useMemo } from 'react';
-import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, RefreshCw, Search, Users, X } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, RefreshCw, Search, Users, X, LayoutGrid, TableProperties } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import {
@@ -585,6 +593,57 @@ export function ModernDatePicker({
   );
 }
 
+interface ExtractedNoteFields {
+  hometown: string;
+  tenth: string;
+  twelfth: string;
+  ugPg: string;
+  familyBackground: string;
+  otherNote: string;
+}
+
+function cleanNoteValue(val: string): string {
+  const clean = val.trim();
+  if (!clean) return '-';
+  const lower = clean.toLowerCase();
+  if (['----', '-', 'not specified', 'none', 'null', 'undefined', 'n/a'].includes(lower)) return '-';
+  return clean;
+}
+
+function parseRecruiterNote(noteText: string | null | undefined): ExtractedNoteFields {
+  const result: ExtractedNoteFields = {
+    hometown: '-', tenth: '-', twelfth: '-', ugPg: '-', familyBackground: '-', otherNote: '',
+  };
+  if (!noteText) return result;
+  const otherLines: string[] = [];
+  noteText.split('\n').forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    const colonIdx = trimmed.indexOf(':');
+    if (colonIdx > 0) {
+      const key = trimmed.slice(0, colonIdx).trim().toLowerCase();
+      const val = cleanNoteValue(trimmed.slice(colonIdx + 1));
+      if (key.includes('hometown')) { result.hometown = val; }
+      else if (key.includes('10th')) { result.tenth = val; }
+      else if (key.includes('12th')) { result.twelfth = val; }
+      else if (key.includes('ug') || key.includes('pg') || key.includes('passout')) { result.ugPg = val; }
+      else if (key.includes('family')) { result.familyBackground = val; }
+      else if (key.includes('internship') || key.includes('project')) { if (val !== '-') otherLines.push(trimmed); }
+      else { otherLines.push(trimmed); }
+    } else { otherLines.push(trimmed); }
+  });
+  result.otherNote = otherLines.join('\n');
+  return result;
+}
+
+function splitCandidateName(name: string | null | undefined): { firstName: string; lastName: string } {
+  if (!name) return { firstName: '-', lastName: '-' };
+  const parts = name.trim().split(/\s+/);
+  return parts.length === 1
+    ? { firstName: parts[0], lastName: '-' }
+    : { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+}
+
 const getInitialState = (initialFilters: Partial<CandidateFilters> | null | undefined) => {
   const hasInitialFilters = initialFilters && Object.keys(initialFilters).length > 0;
 
@@ -619,6 +678,7 @@ const getInitialState = (initialFilters: Partial<CandidateFilters> | null | unde
     passoutYear: parseSkillFilters(activeFilters.passout_year || ''),
     college: parseSkillFilters(activeFilters.college || ''),
     degree: parseSkillFilters(activeFilters.degree || ''),
+    stage: parseSkillFilters(activeFilters.stage || ''),
   };
 };
 
@@ -646,6 +706,16 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   const [collegeFilters, setCollegeFilters] = useState<string[]>(initialState.college);
   const [degreeInput, setDegreeInput] = useState('');
   const [degreeFilters, setDegreeFilters] = useState<string[]>(initialState.degree);
+  const [stageInput, setStageInput] = useState('');
+  const [stageFilters, setStageFilters] = useState<string[]>(initialState.stage || []);
+
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>(
+    () => (sessionStorage.getItem('hf_candidate_view_mode') as 'grid' | 'table') || 'grid'
+  );
+
+  useEffect(() => {
+    sessionStorage.setItem('hf_candidate_view_mode', viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     sessionStorage.setItem('hf_candidate_filters', JSON.stringify(filters));
@@ -718,6 +788,15 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
   function removeDegreeFilter(degreeToRemove: string) {
     syncDegreeFilter(degreeFilters.filter((degree) => degree !== degreeToRemove));
+  }
+
+  function syncStageFilter(nextStages: string[]) {
+    setStageFilters(nextStages);
+    updateFilter('stage', nextStages.join(',') as any);
+  }
+
+  function removeStageFilter(stageToRemove: string) {
+    syncStageFilter(stageFilters.filter((stage) => stage !== stageToRemove));
   }
 
   useEffect(() => {
@@ -964,11 +1043,6 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     { label: 'Email', value: 'email' },
   ];
 
-  const stageOptions: FilterOption[] = [
-    { label: 'All stages', value: '' },
-    ...STAGE_META.map((stage) => ({ label: getStageLabel(stage.id), value: stage.id })),
-  ];
-
   const recommendationOptions: FilterOption[] = [
     { label: 'All recommendations', value: '' },
     { label: 'Strong Hire', value: 'Strong Hire' },
@@ -1077,6 +1151,8 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                 setCollegeFilters([]);
                 setDegreeInput('');
                 setDegreeFilters([]);
+                setStageInput('');
+                setStageFilters([]);
                 setPendingFilters(DEFAULT_FILTERS);
                 setFilters(DEFAULT_FILTERS);
               }}
@@ -1321,7 +1397,26 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                 onRemoveValue={removeDegreeFilter}
               />
               <FilterDropdown label="Source" value={pendingFilters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
-              <FilterDropdown label="Stage" value={pendingFilters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} direction="up" />
+              <MultiSelectFilter
+                label="Stage"
+                placeholder="Select stages"
+                options={STAGE_META.map((s) => s.label)}
+                selectedValues={stageFilters.map((id) => STAGE_META.find((s) => s.id === id)?.label || id)}
+                inputValue={stageInput}
+                onInputValueChange={setStageInput}
+                onValueChange={(selectedLabels) => {
+                  const selectedIds = selectedLabels.map((lbl) => {
+                    const found = STAGE_META.find((s) => s.label.toLowerCase() === lbl.toLowerCase() || s.id.toLowerCase() === lbl.toLowerCase());
+                    return found ? found.id : lbl;
+                  });
+                  syncStageFilter(selectedIds);
+                }}
+                onRemoveValue={(labelToRemove) => {
+                  const found = STAGE_META.find((s) => s.label.toLowerCase() === labelToRemove.toLowerCase() || s.id.toLowerCase() === labelToRemove.toLowerCase());
+                  const idToRemove = found ? found.id : labelToRemove;
+                  removeStageFilter(idToRemove);
+                }}
+              />
               <FilterDropdown label="Recommendation" value={pendingFilters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} direction="up" />
               <FilterDropdown label="Qualified" value={pendingFilters.qualified} options={qualifiedOptions} onChange={(value) => updateFilter('qualified', value)} direction="up" />
 
@@ -1370,15 +1465,47 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
           <h3>Applicants</h3>
           <p>{total} matched</p>
         </div>
-        <button
-          onClick={handleExportToCSV}
-          className="hf-primary-btn"
-          disabled={loading || total === 0}
-          title="Export matching candidates to CSV"
-          style={{ height: '36px', padding: '0 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
-        >
-          {loading ? 'Exporting...' : 'Export CSV'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Grid / Table toggle */}
+          <div style={{ display: 'flex', background: 'var(--hf-surface-2)', border: '1px solid var(--hf-border)', borderRadius: '8px', padding: '2px', gap: '2px' }}>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              title="Card Grid"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 11px',
+                borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+                background: viewMode === 'grid' ? 'var(--hf-accent)' : 'transparent',
+                color: viewMode === 'grid' ? '#fff' : 'var(--hf-text-muted)',
+              }}
+            >
+              <LayoutGrid size={13} /> Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              title="Data Table"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 11px',
+                borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+                background: viewMode === 'table' ? 'var(--hf-accent)' : 'transparent',
+                color: viewMode === 'table' ? '#fff' : 'var(--hf-text-muted)',
+              }}
+            >
+              <TableProperties size={13} /> Table
+            </button>
+          </div>
+
+          <button
+            onClick={handleExportToCSV}
+            className="hf-primary-btn"
+            disabled={loading || total === 0}
+            title="Export matching candidates to CSV"
+            style={{ height: '36px', padding: '0 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            {loading ? 'Exporting...' : 'Export CSV'}
+          </button>
+        </div>
       </section>
 
       {loading ? (
@@ -1440,6 +1567,50 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
         <div className="glass-card hf-empty-state">
           <Users size={36} />
           <p>No candidates match these filters yet.</p>
+        </div>
+      ) : viewMode === 'table' ? (
+        <div className="pl-table-container glass-card" style={{ padding: '20px', overflowX: 'auto', marginTop: '16px' }}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>First Name</TableHead>
+                <TableHead>Last Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Hometown</TableHead>
+                <TableHead style={{ textAlign: 'center' }}>10th</TableHead>
+                <TableHead style={{ textAlign: 'center' }}>12th</TableHead>
+                <TableHead style={{ textAlign: 'center' }}>UG/PG Year</TableHead>
+                <TableHead>Family Background</TableHead>
+                <TableHead>Recruiter Note</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {candidates.map((c) => {
+                const { firstName, lastName } = splitCandidateName(c.candidate_name);
+                const parsed = parseRecruiterNote(c.latest_stage_note);
+                return (
+                  <TableRow key={c.id} onClick={() => setSelected(c)} style={{ cursor: 'pointer' }}>
+                    <TableCell style={{ fontWeight: 500 }}>{firstName}</TableCell>
+                    <TableCell style={{ fontWeight: 500 }}>{lastName}</TableCell>
+                    <TableCell>{c.email || '-'}</TableCell>
+                    <TableCell>{c.phone || '-'}</TableCell>
+                    <TableCell>{parsed.hometown}</TableCell>
+                    <TableCell style={{ textAlign: 'center' }}>{parsed.tenth}</TableCell>
+                    <TableCell style={{ textAlign: 'center' }}>{parsed.twelfth}</TableCell>
+                    <TableCell style={{ textAlign: 'center' }}>{parsed.ugPg}</TableCell>
+                    <TableCell>{parsed.familyBackground}</TableCell>
+                    <TableCell
+                      style={{ maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      title={parsed.otherNote || c.latest_stage_note || undefined}
+                    >
+                      {parsed.otherNote || c.latest_stage_note || '-'}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       ) : (
         <div ref={gridRef} className="hf-candidate-grid">

@@ -591,20 +591,20 @@ export function CandidateDetailDrawer({
                           }}
                           onClick={() => {
                             const template = `Hometown: \n10th Passout Year: \n12th Passout Year: \nUG / PG Year: \nInternship: \nProject: \nFamily Background: `;
-                            setNote((prev) => (prev ? `${prev}\n\n${template}` : template).slice(0, 1000));
+                            setNote((prev) => (prev ? `${prev}\n\n${template}` : template).slice(0, 10000));
                           }}
                         >
                           Use Template
                         </button>
                       </span>
-                      <span style={{ fontSize: '11px', color: note.length > 900 ? '#ef4444' : 'var(--hf-text-muted)', fontWeight: 400 }}>
-                        {note.length}/1000
+                      <span style={{ fontSize: '11px', color: note.length > 9000 ? '#ef4444' : 'var(--hf-text-muted)', fontWeight: 400 }}>
+                        {note.length}/10000
                       </span>
                     </span>
                     <textarea
                       value={note}
-                      maxLength={1000}
-                      onChange={(event) => setNote(event.target.value.slice(0, 1000))}
+                      maxLength={10000}
+                      onChange={(event) => setNote(event.target.value.slice(0, 10000))}
                       placeholder="Add context for the next interview stage, rejection reason, or hiring note"
                       rows={6}
                     />

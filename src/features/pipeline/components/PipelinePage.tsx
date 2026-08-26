@@ -1,8 +1,10 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   Award,
   Calendar,
+  Download,
   RefreshCw,
   Search,
   Sparkles,
@@ -12,7 +14,16 @@ import {
   UserX,
   Users,
   X,
+  TableProperties,
 } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import { CandidateDetailDrawer } from '../../candidates/components/CandidateDetailDrawer';
@@ -38,13 +49,96 @@ import {
   scoreClass,
   splitValues,
 } from '../../candidates/lib/pipeline';
-import '../../candidates/styles/candidates.css';
 import '../styles/pipeline.css';
+
+interface ExtractedNoteFields {
+  hometown: string;
+  tenth: string;
+  twelfth: string;
+  ugPg: string;
+  familyBackground: string;
+  otherNote: string;
+}
+
+function cleanValue(val: string): string {
+  const clean = val.trim();
+  if (!clean) return '-';
+  const lower = clean.toLowerCase();
+  if (lower === '----' || lower === '-' || lower === 'not specified' || lower === 'none' || lower === 'null' || lower === 'undefined') {
+    return '-';
+  }
+  return clean;
+}
+
+function parseRecruiterNote(noteText: string | null | undefined): ExtractedNoteFields {
+  const result: ExtractedNoteFields = {
+    hometown: '-',
+    tenth: '-',
+    twelfth: '-',
+    ugPg: '-',
+    familyBackground: '-',
+    otherNote: '',
+  };
+
+  if (!noteText) return result;
+
+  const lines = noteText.split('\n');
+  const otherLines: string[] = [];
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    const parts = trimmed.split(/:(.+)/);
+    if (parts.length >= 2) {
+      const key = parts[0].trim().toLowerCase();
+      const val = cleanValue(parts[1]);
+
+      if (key.includes('hometown')) {
+        result.hometown = val;
+      } else if (key.includes('10th')) {
+        result.tenth = val;
+      } else if (key.includes('12th')) {
+        result.twelfth = val;
+      } else if (key.includes('ug') || key.includes('pg')) {
+        result.ugPg = val;
+      } else if (key.includes('family')) {
+        result.familyBackground = val;
+      } else if (key.includes('internship') || key.includes('project')) {
+        if (val !== '-') {
+          otherLines.push(trimmed);
+        }
+      } else {
+        otherLines.push(trimmed);
+      }
+    } else {
+      otherLines.push(trimmed);
+    }
+  });
+
+  result.otherNote = otherLines.join('\n');
+  return result;
+}
+
+function splitName(name: string | null | undefined): { firstName: string; lastName: string } {
+  if (!name) return { firstName: '-', lastName: '-' };
+  const trimmed = name.trim();
+  const parts = trimmed.split(/\s+/);
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: '-' };
+  }
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(' '),
+  };
+}
 
 export function PipelinePage() {
   const boardRef = useRef<HTMLDivElement>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [meta, setMeta] = useState<CandidateMeta | null>(null);
+  const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
+  const [tableStage, setTableStage] = useState<PipelineStage | 'all'>('all');
   const [selected, setSelected] = useState<Candidate | null>(null);
   const [history, setHistory] = useState<CandidateStageHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -282,6 +376,37 @@ export function PipelinePage() {
     void handleStageMove(candidate, targetStage);
   }
 
+  function handleExportTableCSV() {
+    const listToExport = tableStage === 'all'
+      ? candidates
+      : candidates.filter((c) => c.pipeline_stage === tableStage);
+
+    if (listToExport.length === 0) return;
+
+    const headers = ['First name', 'Last name', 'Email id', 'Phone number'];
+    const rows = listToExport.map((c) => {
+      const { firstName, lastName } = splitName(c.candidate_name);
+      return [
+        `"${(firstName || '-').replace(/"/g, '""')}"`,
+        `"${(lastName || '-').replace(/"/g, '""')}"`,
+        `"${(c.email || '-').replace(/"/g, '""')}"`,
+        `"${(c.phone || '-').replace(/"/g, '""')}"`,
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const stageSuffix = tableStage === 'all' ? 'all_stages' : tableStage;
+    link.setAttribute('download', `candidates_${stageSuffix}_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   function getStageIcon(stageId: PipelineStage) {
     switch (stageId) {
       case 'screening':
@@ -338,6 +463,55 @@ export function PipelinePage() {
         />
 
         <div className="pl-toolbar-actions">
+          {/* <div style={{ display: 'flex', gap: '4px', background: 'var(--hf-surface-2)', padding: '2px', borderRadius: '8px', border: '1px solid var(--hf-border)' }}>
+            <button
+              type="button"
+              className={`hf-ghost-btn ${viewMode === 'board' ? 'active' : ''}`}
+              style={{
+                padding: '6px 12px',
+                minHeight: '30px',
+                borderRadius: '6px',
+                background: viewMode === 'board' ? 'var(--hf-accent)' : 'transparent',
+                color: viewMode === 'board' ? '#ffffff' : 'var(--hf-text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer'
+              }}
+              onClick={() => setViewMode('board')}
+              title="View as Kanban Board"
+            >
+              <LayoutGrid size={13} />
+              Board
+            </button>
+            <button
+              type="button"
+              className={`hf-ghost-btn ${viewMode === 'table' ? 'active' : ''}`}
+              style={{
+                padding: '6px 12px',
+                minHeight: '30px',
+                borderRadius: '6px',
+                background: viewMode === 'table' ? 'var(--hf-accent)' : 'transparent',
+                color: viewMode === 'table' ? '#ffffff' : 'var(--hf-text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer'
+              }}
+              onClick={() => setViewMode('table')}
+              title="View as Data Table"
+            >
+              <TableProperties size={13} />
+              Table
+            </button>
+          </div> */}
+
           <button className="hf-ghost-btn" onClick={() => { setSearchInput(''); setSearch(''); setPosition(''); setSource(''); setDateFrom(''); setDateTo(''); clearSelection(); }}>
             <TimerReset size={14} />
             Reset
@@ -350,124 +524,280 @@ export function PipelinePage() {
         </div>
       </section>
 
-      {/* ── Kanban Board ── */}
-      <div ref={boardRef} className="pl-board">
-        {grouped.map((column) => (
-          <section
-            key={column.id}
-            className={`pl-column pl-column--${column.id} ${dropStage === column.id ? 'is-drop-target' : ''}`}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setDropStage(column.id);
-            }}
-            onDragLeave={() => setDropStage((current) => (current === column.id ? null : current))}
-            onDrop={(event) => {
-              event.preventDefault();
-              handleDrop(column.id);
-            }}
-          >
-            <header className="pl-column-head">
-              <div className="pl-column-head-info">
-                {getStageIcon(column.id)}
-                <h2 className="pl-animate-text">{column.label}</h2>
-                <span className="pl-column-count"><AnimatedCount value={column.candidates.length} /></span>
-              </div>
-              {column.candidates.length > 0 && (
-                <button
-                  type="button"
-                  className="pl-column-select-btn"
-                  onClick={() => toggleSelectColumn(column.id, column.candidates.map((c) => c.id))}
-                >
-                  {column.candidates.every((c) => selectedIds.includes(c.id)) ? 'Deselect' : 'Select'}
-                  {/* <ChevronDown size={11} /> */}
-                </button>
-              )}
-            </header>
-
-            <div className="pl-column-body">
-              {loading ? (
-                <div className="pl-empty">Loading candidates...</div>
-              ) : column.candidates.length === 0 ? (
-                <div className="pl-empty">Drop candidate here</div>
-              ) : (
-                column.candidates.map((candidate) => {
-                  const allSkills = [
-                    ...splitValues(candidate.frontend_skills),
-                    ...splitValues(candidate.backend_skills),
-                    ...splitValues(candidate.database_skills),
-                    ...splitValues(candidate.ai_ml_skills),
-                    ...splitValues(candidate.cloud_devops),
-                    ...splitValues(candidate.programming_langs),
-                  ].filter((s, idx, arr) => Boolean(s) && arr.indexOf(s) === idx);
-
-                  const visibleSkills = allSkills.slice(0, 3);
-                  const extraCount = allSkills.length - 3;
-
-                  return (
-                    <article
-                      key={candidate.id}
-                      className={`pl-card glass-card ${draggedId === candidate.id ? 'is-dragging' : ''} ${selectedIds.includes(candidate.id) ? 'is-selected' : ''}`}
-                      draggable={updatingId !== candidate.id}
-                      onDragStart={() => setDraggedId(candidate.id)}
-                      onDragEnd={() => {
-                        setDraggedId(null);
-                        setDropStage(null);
-                      }}
-                    >
-                      <button className="pl-card-main" onClick={() => setSelected(candidate)}>
-                        <div className="pl-card-top-row">
-                          <div className="pl-card-identity">
-                            <span
-                              className="pl-card-checkbox-wrap"
-                              onClick={(e) => toggleSelectCandidate(candidate, e)}
-                            >
-                              <input
-                                type="checkbox"
-                                className="pl-card-checkbox"
-                                checked={selectedIds.includes(candidate.id)}
-                                onChange={() => {}}
-                                onClick={(e) => toggleSelectCandidate(candidate, e)}
-                              />
-                            </span>
-                            <div className="hf-avatar">{initials(candidate.candidate_name)}</div>
-                            <div className="pl-card-copy">
-                              <strong>{candidate.candidate_name}</strong>
-                              <span>{candidate.position_label || 'Candidate'}</span>
-                            </div>
-                          </div>
-
-                          <span className={`hf-score-pill ${scoreClass(candidate.best_score ?? 0)}`}>
-                            <span className="hf-score-dot" />
-                            {candidate.best_score ?? 0}
-                          </span>
-                        </div>
-
-                        <div className="pl-card-meta-row">
-                          <span className="pl-card-date">
-                            <Calendar size={12} />
-                            {formatDate(candidate.submitted_at)}
-                          </span>
-                        </div>
-
-                        {visibleSkills.length > 0 && (
-                          <div className="pl-card-skills">
-                            {visibleSkills.map((skill) => (
-                              <span key={skill} className="pl-card-skill-tag">{skill}</span>
-                            ))}
-                            {extraCount > 0 && (
-                              <span className="pl-card-skill-more">+{extraCount}</span>
-                            )}
-                          </div>
-                        )}
-                      </button>
-                    </article>
-                  );
-                })
-              )}
+      {/* ── Pipeline Content (Table / Board) ── */}
+      {viewMode === 'table' ? (
+        <div className="pl-table-container glass-card" style={{ padding: '20px', maxHeight: 'calc(100vh - 170px)', overflowY: 'auto', overflowX: 'auto', position: 'relative' }}>
+          {/* Stage filter tabs & Action buttons */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px', position: 'sticky', top: '-20px', zIndex: 10, background: 'var(--hf-surface)', padding: '6px 0', borderBottom: '1px solid var(--hf-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setViewMode('board')}
+                className="hf-ghost-btn"
+                title="Back to Kanban Board"
+                style={{ height: '32px', padding: '0 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid var(--hf-border)', background: 'var(--hf-surface-2)' }}
+              >
+                <ArrowLeft size={14} />
+                Back
+              </button>
+              <span style={{ fontSize: '12px', color: 'var(--hf-text-muted)', fontWeight: 500, marginLeft: '4px', marginRight: '2px' }}>Stage:</span>
+              <button
+                type="button"
+                onClick={() => setTableStage('all')}
+                style={{
+                  padding: '4px 12px', borderRadius: '20px', border: '1.5px solid',
+                  borderColor: tableStage === 'all' ? 'var(--hf-accent)' : 'var(--hf-border)',
+                  background: tableStage === 'all' ? 'var(--hf-accent)' : 'var(--hf-surface-2)',
+                  color: tableStage === 'all' ? '#fff' : 'var(--hf-text-muted)',
+                  cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+                }}
+              >All</button>
+              {STAGE_META.map((s) => {
+                const count = candidates.filter((c) => c.pipeline_stage === s.id).length;
+                const isActive = tableStage === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setTableStage(s.id)}
+                    style={{
+                      padding: '4px 12px', borderRadius: '20px', border: '1.5px solid',
+                      borderColor: isActive ? 'var(--hf-accent)' : 'var(--hf-border)',
+                      background: isActive ? 'var(--hf-accent)' : 'var(--hf-surface-2)',
+                      color: isActive ? '#fff' : 'var(--hf-text-muted)',
+                      cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                    }}
+                  >
+                    {s.label}
+                    <span style={{
+                      background: isActive ? 'rgba(255,255,255,0.25)' : 'var(--hf-border)',
+                      color: isActive ? '#fff' : 'var(--hf-text-muted)',
+                      borderRadius: '10px', padding: '1px 7px', fontSize: '11px', fontWeight: 600,
+                    }}>{count}</span>
+                  </button>
+                );
+              })}
             </div>
-          </section>
-        ))}
-      </div>
+
+            <button
+              type="button"
+              onClick={handleExportTableCSV}
+              className="hf-primary-btn mb-2"
+              disabled={loading || (tableStage === 'all' ? candidates.length === 0 : candidates.filter(c => c.pipeline_stage === tableStage).length === 0)}
+              title="Export current table view to CSV"
+              style={{ height: '32px', padding: '0 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Download size={13} />
+              Export CSV
+            </button>
+          </div>
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>First Name</TableHead>
+                <TableHead>Last Name</TableHead>
+                <TableHead>Email ID</TableHead>
+                <TableHead>Phone Number</TableHead>
+                <TableHead>Stage</TableHead>
+                <TableHead>Hometown</TableHead>
+                <TableHead style={{ textAlign: 'center' }}>10th</TableHead>
+                <TableHead style={{ textAlign: 'center' }}>12th</TableHead>
+                <TableHead style={{ textAlign: 'center' }}>UG/PG Year</TableHead>
+                <TableHead>Family Background</TableHead>
+                <TableHead>Recruiter Note</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={11} style={{ textAlign: 'center', color: 'var(--hf-text-muted)', padding: '30px' }}>
+                    Loading candidates...
+                  </TableCell>
+                </TableRow>
+              ) : (() => {
+                const filteredCandidates = tableStage === 'all'
+                  ? candidates
+                  : candidates.filter((c) => c.pipeline_stage === tableStage);
+                if (filteredCandidates.length === 0) {
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={11} style={{ textAlign: 'center', color: 'var(--hf-text-muted)', padding: '30px' }}>
+                        No candidates in this stage.
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
+                return filteredCandidates.map((c) => {
+                  const { firstName, lastName } = splitName(c.candidate_name);
+                  const parsed = parseRecruiterNote(c.latest_stage_note);
+                  const stageLabel = STAGE_META.find((s) => s.id === c.pipeline_stage)?.label ?? c.pipeline_stage;
+                  return (
+                    <TableRow key={c.id} onClick={() => setSelected(c)} style={{ cursor: 'pointer' }}>
+                      <TableCell style={{ fontWeight: 500 }}>{firstName}</TableCell>
+                      <TableCell style={{ fontWeight: 500 }}>{lastName}</TableCell>
+                      <TableCell>{c.email || '-'}</TableCell>
+                      <TableCell>{c.phone || '-'}</TableCell>
+                      <TableCell>
+                        <span className={`hf-stage-badge hf-stage-badge--${c.pipeline_stage}`} style={{ fontSize: '11px' }}>{stageLabel}</span>
+                      </TableCell>
+                      <TableCell>{parsed.hometown}</TableCell>
+                      <TableCell style={{ textAlign: 'center' }}>{parsed.tenth}</TableCell>
+                      <TableCell style={{ textAlign: 'center' }}>{parsed.twelfth}</TableCell>
+                      <TableCell style={{ textAlign: 'center' }}>{parsed.ugPg}</TableCell>
+                      <TableCell>{parsed.familyBackground}</TableCell>
+                      <TableCell
+                        style={{ maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        title={parsed.otherNote || c.latest_stage_note || undefined}
+                      >
+                        {parsed.otherNote || c.latest_stage_note || '-'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                });
+              })()}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        /* ── Kanban Board ── */
+        <div ref={boardRef} className="pl-board">
+          {grouped.map((column) => (
+            <section
+              key={column.id}
+              className={`pl-column pl-column--${column.id} ${dropStage === column.id ? 'is-drop-target' : ''}`}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDropStage(column.id);
+              }}
+              onDragLeave={() => setDropStage((current) => (current === column.id ? null : current))}
+              onDrop={(event) => {
+                event.preventDefault();
+                handleDrop(column.id);
+              }}
+            >
+              <header className="pl-column-head">
+                <div className="pl-column-head-info">
+                  {getStageIcon(column.id)}
+                  <h2 className="pl-animate-text">{column.label}</h2>
+                  <span className="pl-column-count"><AnimatedCount value={column.candidates.length} /></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {/* Per-stage "View in Table" button */}
+                  <button
+                    type="button"
+                    title={`View ${column.label} as table`}
+                    onClick={() => { setTableStage(column.id); setViewMode('table'); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '4px',
+                      padding: '4px 9px', borderRadius: '6px', border: '1px solid var(--hf-border)',
+                      background: 'var(--hf-surface-2)', color: 'var(--hf-text-muted)',
+                      cursor: 'pointer', fontSize: '11px', fontWeight: 500,
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--hf-accent)'; (e.currentTarget as HTMLButtonElement).style.color = '#fff'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--hf-accent)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--hf-surface-2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--hf-text-muted)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--hf-border)'; }}
+                  >
+                    <TableProperties size={11} /> Table
+                  </button>
+                  {column.candidates.length > 0 && (
+                    <button
+                      type="button"
+                      className="pl-column-select-btn"
+                      onClick={() => toggleSelectColumn(column.id, column.candidates.map((c) => c.id))}
+                    >
+                      {column.candidates.every((c) => selectedIds.includes(c.id)) ? 'Deselect' : 'Select'}
+                    </button>
+                  )}
+                </div>
+              </header>
+
+              <div className="pl-column-body">
+                {loading ? (
+                  <div className="pl-empty">Loading candidates...</div>
+                ) : column.candidates.length === 0 ? (
+                  <div className="pl-empty">Drop candidate here</div>
+                ) : (
+                  column.candidates.map((candidate) => {
+                    const allSkills = [
+                      ...splitValues(candidate.frontend_skills),
+                      ...splitValues(candidate.backend_skills),
+                      ...splitValues(candidate.database_skills),
+                      ...splitValues(candidate.ai_ml_skills),
+                      ...splitValues(candidate.cloud_devops),
+                      ...splitValues(candidate.programming_langs),
+                    ].filter((s, idx, arr) => Boolean(s) && arr.indexOf(s) === idx);
+
+                    const visibleSkills = allSkills.slice(0, 3);
+                    const extraCount = allSkills.length - 3;
+
+                    return (
+                      <article
+                        key={candidate.id}
+                        className={`pl-card glass-card ${draggedId === candidate.id ? 'is-dragging' : ''} ${selectedIds.includes(candidate.id) ? 'is-selected' : ''}`}
+                        draggable={updatingId !== candidate.id}
+                        onDragStart={() => setDraggedId(candidate.id)}
+                        onDragEnd={() => {
+                          setDraggedId(null);
+                          setDropStage(null);
+                        }}
+                      >
+                        <button className="pl-card-main" onClick={() => setSelected(candidate)}>
+                          <div className="pl-card-top-row">
+                            <div className="pl-card-identity">
+                              <span
+                                className="pl-card-checkbox-wrap"
+                                onClick={(e) => toggleSelectCandidate(candidate, e)}
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="pl-card-checkbox"
+                                  checked={selectedIds.includes(candidate.id)}
+                                  onChange={() => {}}
+                                  onClick={(e) => toggleSelectCandidate(candidate, e)}
+                                />
+                              </span>
+                              <div className="hf-avatar">{initials(candidate.candidate_name)}</div>
+                              <div className="pl-card-copy">
+                                <strong>{candidate.candidate_name}</strong>
+                                <span>{candidate.position_label || 'Candidate'}</span>
+                              </div>
+                            </div>
+
+                            <span className={`hf-score-pill ${scoreClass(candidate.best_score ?? 0)}`}>
+                              <span className="hf-score-dot" />
+                              {candidate.best_score ?? 0}
+                            </span>
+                          </div>
+
+                          <div className="pl-card-meta-row">
+                            <span className="pl-card-date">
+                              <Calendar size={12} />
+                              {formatDate(candidate.submitted_at)}
+                            </span>
+                          </div>
+
+                          {visibleSkills.length > 0 && (
+                            <div className="pl-card-skills">
+                              {visibleSkills.map((skill) => (
+                                <span key={skill} className="pl-card-skill-tag">{skill}</span>
+                              ))}
+                              {extraCount > 0 && (
+                                <span className="pl-card-skill-more">+{extraCount}</span>
+                              )}
+                            </div>
+                          )}
+                        </button>
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
 
       {/* ── Floating Bulk Action Bar ── */}
       {selectedIds.length > 0 && !selected && (
