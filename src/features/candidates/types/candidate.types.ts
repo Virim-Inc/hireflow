@@ -51,6 +51,14 @@ export interface Candidate {
   college?: string | null;
   degree?: string | null;
 
+  // Test Scheduling
+  scheduled_test_date?: string | null;
+  scheduled_test_time?: string | null;
+  scheduled_test_at?: string | null;
+  scheduled_test_duration?: number | null;
+  scheduled_test_notes?: string | null;
+  scheduled_test_sent_at?: string | null;
+
   jd_matches?: Record<string, {
     overall_score: number;
     technical_score: number;

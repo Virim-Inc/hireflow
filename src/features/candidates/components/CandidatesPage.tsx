@@ -1767,7 +1767,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
       {selected && (
         <CandidateDetailDrawer
-          key={`${selected.id}-${selected.pipeline_stage}-${selected.pipeline_stage_updated_at}-${selected.latest_stage_note ?? ''}`}
+          key={`${selected.id}-${selected.pipeline_stage}-${selected.pipeline_stage_updated_at}-${selected.latest_stage_note ?? ''}-${selected.scheduled_test_date ?? ''}`}
           candidate={selected}
           history={history}
           historyLoading={historyLoading}

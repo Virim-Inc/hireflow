@@ -22,6 +22,8 @@ function optional(key: string, fallback: string): string {
 }
 
 export const config = Object.freeze({
+  nodeEnv: optional('NODE_ENV', 'development'),
+  isProduction: optional('NODE_ENV', 'development') === 'production',
   port: Number(optional('API_PORT', '3001')),
   host: optional('API_HOST', '0.0.0.0'),
   pg: Object.freeze({
@@ -46,5 +48,18 @@ export const config = Object.freeze({
     clientSecret: optional('ZOHO_CLIENT_SECRET', ''),
     refreshToken: optional('ZOHO_REFRESH_TOKEN', ''),
     dc: optional('ZOHO_DC', 'in'),
+  }),
+  flowmingo: Object.freeze({
+    apiKey: optional('FLOWMINGO_API_KEY', ''),
+    baseUrl: optional('FLOWMINGO_BASE_URL', 'https://apis.flowmingo.ai'),
+    webhookSecret: optional('FLOWMINGO_WEBHOOK_SECRET', ''),
+  }),
+  smtp: Object.freeze({
+    host: optional('SMTP_HOST', ''),
+    port: Number(optional('SMTP_PORT', '465')),
+    user: optional('SMTP_USER', ''),
+    pass: optional('SMTP_PASS', ''),
+    from: optional('SMTP_FROM', 'Virim Infotech Hiring Team <hiring@viriminfotech.com>'),
+    secure: optional('SMTP_SECURE', 'true') === 'true',
   }),
 });

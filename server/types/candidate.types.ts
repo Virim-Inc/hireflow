@@ -61,6 +61,14 @@ export interface CandidateRow {
   passout_year: number | null;
   college: string | null;
   degree: string | null;
+
+  // Test Scheduling fields
+  scheduled_test_date?: string | null;
+  scheduled_test_time?: string | null;
+  scheduled_test_at?: string | null;
+  scheduled_test_duration?: number | null;
+  scheduled_test_notes?: string | null;
+  scheduled_test_sent_at?: string | null;
   
   // Dynamic matched job description scores
   jd_matches?: Record<string, {

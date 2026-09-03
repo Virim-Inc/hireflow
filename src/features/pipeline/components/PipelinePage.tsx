@@ -133,9 +133,29 @@ function splitName(name: string | null | undefined): { firstName: string; lastNa
   };
 }
 
+interface StageState {
+  candidates: Candidate[];
+  total: number;
+  page: number;
+  hasMore: boolean;
+  loading: boolean;
+  loadingMore: boolean;
+}
+
+const INITIAL_STAGES_STATE: Record<PipelineStage, StageState> = {
+  screening: { candidates: [], total: 0, page: 1, hasMore: false, loading: true, loadingMore: false },
+  shortlisted: { candidates: [], total: 0, page: 1, hasMore: false, loading: true, loadingMore: false },
+  ai_interview: { candidates: [], total: 0, page: 1, hasMore: false, loading: true, loadingMore: false },
+  in_person_interview: { candidates: [], total: 0, page: 1, hasMore: false, loading: true, loadingMore: false },
+  hired: { candidates: [], total: 0, page: 1, hasMore: false, loading: true, loadingMore: false },
+  rejected: { candidates: [], total: 0, page: 1, hasMore: false, loading: true, loadingMore: false },
+};
+
+const PAGE_SIZE = 50;
+
 export function PipelinePage() {
   const boardRef = useRef<HTMLDivElement>(null);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [stagesData, setStagesData] = useState<Record<PipelineStage, StageState>>(INITIAL_STAGES_STATE);
   const [meta, setMeta] = useState<CandidateMeta | null>(null);
   const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
   const [tableStage, setTableStage] = useState<PipelineStage | 'all'>('all');
@@ -177,6 +197,12 @@ export function PipelinePage() {
     { label: 'Workdrive', value: 'workdrive' },
   ];
 
+  // Flattened candidate array across all loaded stages
+  const allCandidates = useMemo(() => {
+    return STAGE_META.flatMap((stage) => stagesData[stage.id]?.candidates || []);
+  }, [stagesData]);
+
+  // Load initial page (50 items) for all stages concurrently
   const loadBoard = useCallback(async () => {
     setLoading(true);
     const shouldFetchMeta = !hasLoadedMeta.current;
@@ -185,24 +211,41 @@ export function PipelinePage() {
     }
 
     try {
-      const [candidateRes, metaRes] = await Promise.all([
-        fetchCandidates({
-          search,
-          position,
-          source,
-          date_from: dateFrom,
-          date_to: dateTo,
-          sort: 'pipeline_stage_updated_at',
-          order: 'desc',
-          page: 1,
-          limit: 200,
-        }),
+      const [metaRes, ...stageResults] = await Promise.all([
         shouldFetchMeta ? fetchCandidateMeta() : Promise.resolve(null),
+        ...STAGE_META.map((stage) =>
+          fetchCandidates({
+            stage: stage.id,
+            search,
+            position,
+            source,
+            date_from: dateFrom,
+            date_to: dateTo,
+            sort: 'pipeline_stage_updated_at',
+            order: 'desc',
+            page: 1,
+            limit: PAGE_SIZE,
+          }).then((res) => ({ stageId: stage.id, res })),
+        ),
       ]);
 
-      setCandidates(candidateRes.data);
       if (metaRes) setMeta(metaRes);
+
+      const nextStagesData = { ...INITIAL_STAGES_STATE };
+      stageResults.forEach(({ stageId, res }) => {
+        nextStagesData[stageId] = {
+          candidates: res.data,
+          total: res.total,
+          page: 1,
+          hasMore: res.data.length < res.total,
+          loading: false,
+          loadingMore: false,
+        };
+      });
+
+      setStagesData(nextStagesData);
     } catch (err) {
+      console.error('Error loading pipeline board:', err);
       if (shouldFetchMeta) {
         hasLoadedMeta.current = false;
       }
@@ -210,6 +253,68 @@ export function PipelinePage() {
       setLoading(false);
     }
   }, [dateFrom, dateTo, position, search, source]);
+
+  // Fetch next page of 50 candidates for a specific stage column
+  const loadMoreForStage = useCallback(
+    async (stageId: PipelineStage) => {
+      const stageState = stagesData[stageId];
+      if (!stageState || stageState.loadingMore || !stageState.hasMore) return;
+
+      setStagesData((prev) => ({
+        ...prev,
+        [stageId]: { ...prev[stageId], loadingMore: true },
+      }));
+
+      try {
+        const nextPage = stageState.page + 1;
+        const res = await fetchCandidates({
+          stage: stageId,
+          search,
+          position,
+          source,
+          date_from: dateFrom,
+          date_to: dateTo,
+          sort: 'pipeline_stage_updated_at',
+          order: 'desc',
+          page: nextPage,
+          limit: PAGE_SIZE,
+        });
+
+        setStagesData((prev) => {
+          const currentStage = prev[stageId];
+          const existingIds = new Set(currentStage.candidates.map((c) => c.id));
+          const newCandidates = res.data.filter((c) => !existingIds.has(c.id));
+          const updatedList = [...currentStage.candidates, ...newCandidates];
+
+          return {
+            ...prev,
+            [stageId]: {
+              ...currentStage,
+              candidates: updatedList,
+              total: res.total,
+              page: nextPage,
+              hasMore: updatedList.length < res.total,
+              loadingMore: false,
+            },
+          };
+        });
+      } catch (err) {
+        console.error(`Error loading page for stage ${stageId}:`, err);
+        setStagesData((prev) => ({
+          ...prev,
+          [stageId]: { ...prev[stageId], loadingMore: false },
+        }));
+      }
+    },
+    [dateFrom, dateTo, position, search, source, stagesData],
+  );
+
+  function handleColumnScroll(stageId: PipelineStage, e: React.UIEvent<HTMLDivElement>) {
+    const target = e.currentTarget;
+    if (target.scrollTop + target.clientHeight >= target.scrollHeight - 80) {
+      void loadMoreForStage(stageId);
+    }
+  }
 
   const loadHistory = useCallback(async (candidateId: number) => {
     setHistoryLoading(true);
@@ -240,7 +345,7 @@ export function PipelinePage() {
     const texts = boardRef.current.querySelectorAll('.pl-animate-text');
     gsap.fromTo(texts, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, stagger: 0.05, ease: 'power2.out' });
     gsap.fromTo(columns, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out', stagger: 0.05 });
-  }, [loading, candidates]);
+  }, [loading, stagesData]);
 
   useEffect(() => {
     if (!selected) return;
@@ -253,16 +358,19 @@ export function PipelinePage() {
   const grouped = useMemo(() => (
     STAGE_META.map((stage) => ({
       ...stage,
-      candidates: candidates.filter((candidate) => candidate.pipeline_stage === stage.id),
+      candidates: stagesData[stage.id]?.candidates || [],
+      total: stagesData[stage.id]?.total || 0,
+      hasMore: stagesData[stage.id]?.hasMore || false,
+      loadingMore: stagesData[stage.id]?.loadingMore || false,
     }))
-  ), [candidates]);
+  ), [stagesData]);
 
   // ── Stage-Restricted Multi-Select Logic ──
   const currentSelectedStage = useMemo(() => {
     if (!selectedIds.length) return null;
-    const first = candidates.find((c) => selectedIds.includes(c.id));
+    const first = allCandidates.find((c) => selectedIds.includes(c.id));
     return first ? first.pipeline_stage : null;
-  }, [candidates, selectedIds]);
+  }, [allCandidates, selectedIds]);
 
   const availableTargetStages = useMemo(() => {
     if (!currentSelectedStage) return STAGE_META;
@@ -310,26 +418,44 @@ export function PipelinePage() {
     if (candidate.pipeline_stage === stage) return;
 
     setUpdatingId(candidate.id);
-    setCandidates((current) =>
-      current.map((item) => (
-        item.id === candidate.id
-          ? {
-              ...item,
-              pipeline_stage: stage,
-              pipeline_stage_updated_at: new Date().toISOString(),
-              latest_stage_note: note ?? item.latest_stage_note,
-            }
-          : item
-      )),
-    );
+    const oldStage = candidate.pipeline_stage;
+    const updatedCandidate: Candidate = {
+      ...candidate,
+      pipeline_stage: stage,
+      pipeline_stage_updated_at: new Date().toISOString(),
+      latest_stage_note: note ?? candidate.latest_stage_note,
+    };
+
+    setStagesData((current) => {
+      const sourceState = current[oldStage];
+      const targetState = current[stage];
+
+      if (!sourceState || !targetState) return current;
+
+      return {
+        ...current,
+        [oldStage]: {
+          ...sourceState,
+          candidates: sourceState.candidates.filter((item) => item.id !== candidate.id),
+          total: Math.max(0, sourceState.total - 1),
+        },
+        [stage]: {
+          ...targetState,
+          candidates: [updatedCandidate, ...targetState.candidates.filter((item) => item.id !== candidate.id)],
+          total: targetState.total + 1,
+        },
+      };
+    });
 
     try {
       const updated = await updateCandidateStage(candidate.id, { stage, note });
       startTransition(() => {
         setSelected((current) => (current?.id === updated.id ? updated : current));
       });
-      setCandidates((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-      await Promise.all([loadBoard(), loadHistory(candidate.id)]);
+      await Promise.all([loadHistory(candidate.id)]);
+    } catch (err) {
+      console.error('Error moving stage:', err);
+      await loadBoard();
     } finally {
       setUpdatingId(null);
       setDraggedId(null);
@@ -344,22 +470,47 @@ export function PipelinePage() {
     const targetStage = bulkTargetStage;
     const noteText = bulkNote.trim() || undefined;
 
-    setCandidates((current) =>
-      current.map((item) =>
-        selectedIds.includes(item.id)
-          ? {
-              ...item,
+    setStagesData((current) => {
+      const next = { ...current };
+      const selectedSet = new Set(selectedIds);
+
+      const movedCandidates: Candidate[] = [];
+      if (currentSelectedStage && next[currentSelectedStage]) {
+        const sourceState = next[currentSelectedStage];
+        sourceState.candidates.forEach((c) => {
+          if (selectedSet.has(c.id)) {
+            movedCandidates.push({
+              ...c,
               pipeline_stage: targetStage,
               pipeline_stage_updated_at: new Date().toISOString(),
-              latest_stage_note: noteText ?? item.latest_stage_note,
-            }
-          : item
-      )
-    );
+              latest_stage_note: noteText ?? c.latest_stage_note,
+            });
+          }
+        });
+
+        next[currentSelectedStage] = {
+          ...sourceState,
+          candidates: sourceState.candidates.filter((c) => !selectedSet.has(c.id)),
+          total: Math.max(0, sourceState.total - movedCandidates.length),
+        };
+      }
+
+      if (movedCandidates.length > 0 && next[targetStage]) {
+        const destState = next[targetStage];
+        const existingDestIds = new Set(destState.candidates.map((c) => c.id));
+        const cleanMoved = movedCandidates.filter((c) => !existingDestIds.has(c.id));
+        next[targetStage] = {
+          ...destState,
+          candidates: [...cleanMoved, ...destState.candidates],
+          total: destState.total + movedCandidates.length,
+        };
+      }
+
+      return next;
+    });
 
     try {
       await bulkUpdateCandidateStage(selectedIds, { stage: targetStage, note: noteText });
-      await loadBoard();
       clearSelection();
     } catch (err) {
       console.error('Bulk stage update error:', err);
@@ -371,15 +522,15 @@ export function PipelinePage() {
 
   function handleDrop(targetStage: PipelineStage) {
     if (draggedId === null) return;
-    const candidate = candidates.find((item) => item.id === draggedId);
+    const candidate = allCandidates.find((item) => item.id === draggedId);
     if (!candidate) return;
     void handleStageMove(candidate, targetStage);
   }
 
   function handleExportTableCSV() {
     const listToExport = tableStage === 'all'
-      ? candidates
-      : candidates.filter((c) => c.pipeline_stage === tableStage);
+      ? allCandidates
+      : stagesData[tableStage]?.candidates || [];
 
     if (listToExport.length === 0) return;
 
@@ -553,7 +704,7 @@ export function PipelinePage() {
                 }}
               >All</button>
               {STAGE_META.map((s) => {
-                const count = candidates.filter((c) => c.pipeline_stage === s.id).length;
+                const count = stagesData[s.id]?.total || 0;
                 const isActive = tableStage === s.id;
                 return (
                   <button
@@ -584,7 +735,7 @@ export function PipelinePage() {
               type="button"
               onClick={handleExportTableCSV}
               className="hf-primary-btn mb-2"
-              disabled={loading || (tableStage === 'all' ? candidates.length === 0 : candidates.filter(c => c.pipeline_stage === tableStage).length === 0)}
+              disabled={loading || (tableStage === 'all' ? allCandidates.length === 0 : (stagesData[tableStage]?.candidates.length || 0) === 0)}
               title="Export current table view to CSV"
               style={{ height: '32px', padding: '0 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
@@ -618,8 +769,8 @@ export function PipelinePage() {
                 </TableRow>
               ) : (() => {
                 const filteredCandidates = tableStage === 'all'
-                  ? candidates
-                  : candidates.filter((c) => c.pipeline_stage === tableStage);
+                  ? allCandidates
+                  : (stagesData[tableStage]?.candidates || []);
                 if (filteredCandidates.length === 0) {
                   return (
                     <TableRow>
@@ -629,33 +780,54 @@ export function PipelinePage() {
                     </TableRow>
                   );
                 }
-                return filteredCandidates.map((c) => {
-                  const { firstName, lastName } = splitName(c.candidate_name);
-                  const parsed = parseRecruiterNote(c.latest_stage_note);
-                  const stageLabel = STAGE_META.find((s) => s.id === c.pipeline_stage)?.label ?? c.pipeline_stage;
-                  return (
-                    <TableRow key={c.id} onClick={() => setSelected(c)} style={{ cursor: 'pointer' }}>
-                      <TableCell style={{ fontWeight: 500 }}>{firstName}</TableCell>
-                      <TableCell style={{ fontWeight: 500 }}>{lastName}</TableCell>
-                      <TableCell>{c.email || '-'}</TableCell>
-                      <TableCell>{c.phone || '-'}</TableCell>
-                      <TableCell>
-                        <span className={`hf-stage-badge hf-stage-badge--${c.pipeline_stage}`} style={{ fontSize: '11px' }}>{stageLabel}</span>
-                      </TableCell>
-                      <TableCell>{parsed.hometown}</TableCell>
-                      <TableCell style={{ textAlign: 'center' }}>{parsed.tenth}</TableCell>
-                      <TableCell style={{ textAlign: 'center' }}>{parsed.twelfth}</TableCell>
-                      <TableCell style={{ textAlign: 'center' }}>{parsed.ugPg}</TableCell>
-                      <TableCell>{parsed.familyBackground}</TableCell>
-                      <TableCell
-                        style={{ maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                        title={parsed.otherNote || c.latest_stage_note || undefined}
-                      >
-                        {parsed.otherNote || c.latest_stage_note || '-'}
-                      </TableCell>
-                    </TableRow>
-                  );
-                });
+                return (
+                  <>
+                    {filteredCandidates.map((c) => {
+                      const { firstName, lastName } = splitName(c.candidate_name);
+                      const parsed = parseRecruiterNote(c.latest_stage_note);
+                      const stageLabel = STAGE_META.find((s) => s.id === c.pipeline_stage)?.label ?? c.pipeline_stage;
+                      return (
+                        <TableRow key={c.id} onClick={() => setSelected(c)} style={{ cursor: 'pointer' }}>
+                          <TableCell style={{ fontWeight: 500 }}>{firstName}</TableCell>
+                          <TableCell style={{ fontWeight: 500 }}>{lastName}</TableCell>
+                          <TableCell>{c.email || '-'}</TableCell>
+                          <TableCell>{c.phone || '-'}</TableCell>
+                          <TableCell>
+                            <span className={`hf-stage-badge hf-stage-badge--${c.pipeline_stage}`} style={{ fontSize: '11px' }}>{stageLabel}</span>
+                          </TableCell>
+                          <TableCell>{parsed.hometown}</TableCell>
+                          <TableCell style={{ textAlign: 'center' }}>{parsed.tenth}</TableCell>
+                          <TableCell style={{ textAlign: 'center' }}>{parsed.twelfth}</TableCell>
+                          <TableCell style={{ textAlign: 'center' }}>{parsed.ugPg}</TableCell>
+                          <TableCell>{parsed.familyBackground}</TableCell>
+                          <TableCell
+                            style={{ maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                            title={parsed.otherNote || c.latest_stage_note || undefined}
+                          >
+                            {parsed.otherNote || c.latest_stage_note || '-'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {tableStage !== 'all' && stagesData[tableStage]?.hasMore && (
+                      <TableRow>
+                        <TableCell colSpan={11} style={{ textAlign: 'center', padding: '16px' }}>
+                          <button
+                            type="button"
+                            className="hf-ghost-btn"
+                            onClick={() => void loadMoreForStage(tableStage)}
+                            disabled={stagesData[tableStage]?.loadingMore}
+                            style={{ fontSize: '12px', padding: '6px 16px' }}
+                          >
+                            {stagesData[tableStage]?.loadingMore
+                              ? 'Loading more...'
+                              : `Load More Candidates (${stagesData[tableStage].total - stagesData[tableStage].candidates.length} remaining)`}
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+                );
               })()}
             </TableBody>
           </Table>
@@ -681,7 +853,7 @@ export function PipelinePage() {
                 <div className="pl-column-head-info">
                   {getStageIcon(column.id)}
                   <h2 className="pl-animate-text">{column.label}</h2>
-                  <span className="pl-column-count"><AnimatedCount value={column.candidates.length} /></span>
+                  <span className="pl-column-count"><AnimatedCount value={column.total} /></span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {/* Per-stage "View in Table" button */}
@@ -713,85 +885,109 @@ export function PipelinePage() {
                 </div>
               </header>
 
-              <div className="pl-column-body">
+              <div className="pl-column-body" onScroll={(e) => handleColumnScroll(column.id, e)}>
                 {loading ? (
                   <div className="pl-empty">Loading candidates...</div>
                 ) : column.candidates.length === 0 ? (
                   <div className="pl-empty">Drop candidate here</div>
                 ) : (
-                  column.candidates.map((candidate) => {
-                    const allSkills = [
-                      ...splitValues(candidate.frontend_skills),
-                      ...splitValues(candidate.backend_skills),
-                      ...splitValues(candidate.database_skills),
-                      ...splitValues(candidate.ai_ml_skills),
-                      ...splitValues(candidate.cloud_devops),
-                      ...splitValues(candidate.programming_langs),
-                    ].filter((s, idx, arr) => Boolean(s) && arr.indexOf(s) === idx);
+                  <>
+                    {column.candidates.map((candidate) => {
+                      const allSkills = [
+                        ...splitValues(candidate.frontend_skills),
+                        ...splitValues(candidate.backend_skills),
+                        ...splitValues(candidate.database_skills),
+                        ...splitValues(candidate.ai_ml_skills),
+                        ...splitValues(candidate.cloud_devops),
+                        ...splitValues(candidate.programming_langs),
+                      ].filter((s, idx, arr) => Boolean(s) && arr.indexOf(s) === idx);
 
-                    const visibleSkills = allSkills.slice(0, 3);
-                    const extraCount = allSkills.length - 3;
+                      const visibleSkills = allSkills.slice(0, 3);
+                      const extraCount = allSkills.length - 3;
 
-                    return (
-                      <article
-                        key={candidate.id}
-                        className={`pl-card glass-card ${draggedId === candidate.id ? 'is-dragging' : ''} ${selectedIds.includes(candidate.id) ? 'is-selected' : ''}`}
-                        draggable={updatingId !== candidate.id}
-                        onDragStart={() => setDraggedId(candidate.id)}
-                        onDragEnd={() => {
-                          setDraggedId(null);
-                          setDropStage(null);
-                        }}
-                      >
-                        <button className="pl-card-main" onClick={() => setSelected(candidate)}>
-                          <div className="pl-card-top-row">
-                            <div className="pl-card-identity">
-                              <span
-                                className="pl-card-checkbox-wrap"
-                                onClick={(e) => toggleSelectCandidate(candidate, e)}
-                              >
-                                <input
-                                  type="checkbox"
-                                  className="pl-card-checkbox"
-                                  checked={selectedIds.includes(candidate.id)}
-                                  onChange={() => {}}
+                      return (
+                        <article
+                          key={candidate.id}
+                          className={`pl-card glass-card ${draggedId === candidate.id ? 'is-dragging' : ''} ${selectedIds.includes(candidate.id) ? 'is-selected' : ''}`}
+                          draggable={updatingId !== candidate.id}
+                          onDragStart={() => setDraggedId(candidate.id)}
+                          onDragEnd={() => {
+                            setDraggedId(null);
+                            setDropStage(null);
+                          }}
+                        >
+                          <button className="pl-card-main" onClick={() => setSelected(candidate)}>
+                            <div className="pl-card-top-row">
+                              <div className="pl-card-identity">
+                                <span
+                                  className="pl-card-checkbox-wrap"
                                   onClick={(e) => toggleSelectCandidate(candidate, e)}
-                                />
-                              </span>
-                              <div className="hf-avatar">{initials(candidate.candidate_name)}</div>
-                              <div className="pl-card-copy">
-                                <strong>{candidate.candidate_name}</strong>
-                                <span>{candidate.position_label || 'Candidate'}</span>
+                                >
+                                  <input
+                                    type="checkbox"
+                                    className="pl-card-checkbox"
+                                    checked={selectedIds.includes(candidate.id)}
+                                    onChange={() => {}}
+                                    onClick={(e) => toggleSelectCandidate(candidate, e)}
+                                  />
+                                </span>
+                                <div className="hf-avatar">{initials(candidate.candidate_name)}</div>
+                                <div className="pl-card-copy">
+                                  <strong>{candidate.candidate_name}</strong>
+                                  <span>{candidate.position_label || 'Candidate'}</span>
+                                </div>
                               </div>
+
+                              <span className={`hf-score-pill ${scoreClass(candidate.best_score ?? 0)}`}>
+                                <span className="hf-score-dot" />
+                                {candidate.best_score ?? 0}
+                              </span>
                             </div>
 
-                            <span className={`hf-score-pill ${scoreClass(candidate.best_score ?? 0)}`}>
-                              <span className="hf-score-dot" />
-                              {candidate.best_score ?? 0}
-                            </span>
-                          </div>
-
-                          <div className="pl-card-meta-row">
-                            <span className="pl-card-date">
-                              <Calendar size={12} />
-                              {formatDate(candidate.submitted_at)}
-                            </span>
-                          </div>
-
-                          {visibleSkills.length > 0 && (
-                            <div className="pl-card-skills">
-                              {visibleSkills.map((skill) => (
-                                <span key={skill} className="pl-card-skill-tag">{skill}</span>
-                              ))}
-                              {extraCount > 0 && (
-                                <span className="pl-card-skill-more">+{extraCount}</span>
-                              )}
+                            <div className="pl-card-meta-row">
+                              <span className="pl-card-date">
+                                <Calendar size={12} />
+                                {formatDate(candidate.submitted_at)}
+                              </span>
                             </div>
-                          )}
+
+                            {visibleSkills.length > 0 && (
+                              <div className="pl-card-skills">
+                                {visibleSkills.map((skill) => (
+                                  <span key={skill} className="pl-card-skill-tag">{skill}</span>
+                                ))}
+                                {extraCount > 0 && (
+                                  <span className="pl-card-skill-more">+{extraCount}</span>
+                                )}
+                              </div>
+                            )}
+                          </button>
+                        </article>
+                      );
+                    })}
+                    {column.hasMore && (
+                      <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
+                        <button
+                          type="button"
+                          className="hf-ghost-btn"
+                          onClick={() => void loadMoreForStage(column.id)}
+                          disabled={column.loadingMore}
+                          style={{
+                            fontSize: '11px',
+                            padding: '4px 10px',
+                            width: '100%',
+                            background: 'var(--hf-surface-2)',
+                            border: '1px dashed var(--hf-border)',
+                            borderRadius: '8px',
+                          }}
+                        >
+                          {column.loadingMore
+                            ? 'Loading more...'
+                            : `Load more (${column.total - column.candidates.length} remaining)`}
                         </button>
-                      </article>
-                    );
-                  })
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </section>
@@ -866,7 +1062,7 @@ export function PipelinePage() {
 
       {selected && (
         <CandidateDetailDrawer
-          key={selected.id}
+          key={`${selected.id}-${selected.scheduled_test_date ?? ''}-${selected.pipeline_stage ?? ''}`}
           candidate={selected}
           history={history}
           historyLoading={historyLoading}

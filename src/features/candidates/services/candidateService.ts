@@ -128,3 +128,29 @@ export async function toggleJdActive(id: number, active: boolean): Promise<JobDe
   });
   return readJson<JobDescription>(res);
 }
+
+export async function scheduleCandidateTest(
+  id: number,
+  data: {
+    candidateName?: string;
+    candidateEmail?: string;
+    scheduledDate: string;
+    scheduledTime: string;
+    durationMinutes?: number;
+    notes?: string;
+  },
+): Promise<{
+  candidate: Candidate;
+  emailStatus: { sent: boolean; messageId?: string; simulated?: boolean };
+}> {
+  const res = await fetch(`${BASE}/candidates/${id}/schedule-test`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return readJson<{
+    candidate: Candidate;
+    emailStatus: { sent: boolean; messageId?: string; simulated?: boolean };
+  }>(res);
+}
+

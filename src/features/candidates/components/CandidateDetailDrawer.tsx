@@ -2,21 +2,36 @@ import { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
+  Award,
   Briefcase,
+  Calendar,
   CalendarDays,
+  CheckCircle,
   CheckCircle2,
   ChevronRight,
   Download,
   ExternalLink,
   FileText,
+  Folder,
+  Hourglass,
   Inbox,
   Mail,
   Phone,
+  RotateCw,
+  Share2,
   Sparkles,
+  Star,
   Trophy,
   Users,
+  Video,
+  Send,
 } from 'lucide-react';
 import type { Candidate, CandidateStageHistoryItem, PipelineStage, JobDescription } from '../types/candidate.types';
+import { getCandidateFlowmingoDetails, type CandidateFlowmingoDetailsResponse } from '../../flowmingo/services/flowmingo.service';
+import { InviteCandidateModal } from '../../flowmingo/components/InviteCandidateModal';
+import { FlowmingoReportModal } from '../../flowmingo/components/FlowmingoReportModal';
+import { ScheduleTestModal } from './ScheduleTestModal';
+import { ReferCandidateModal, extractCandidateSkills } from '../../referrals';
 import {
   STAGE_META,
   formatDate,
@@ -57,6 +72,34 @@ export function CandidateDetailDrawer({
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [showJdDetails, setShowJdDetails] = useState(false);
+
+  const [flowmingoDetails, setFlowmingoDetails] = useState<CandidateFlowmingoDetailsResponse | null>(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isReferModalOpen, setIsReferModalOpen] = useState(false);
+  const [currentCandidate, setCurrentCandidate] = useState<Candidate>(candidate);
+  const [reportModalData, setReportModalData] = useState<{ url: string; score?: number | null }>({ url: '', score: null });
+
+  useEffect(() => {
+    setCurrentCandidate(candidate);
+  }, [candidate]);
+
+  const reloadFlowmingo = async () => {
+    try {
+      const data = await getCandidateFlowmingoDetails(candidate.id);
+      setFlowmingoDetails(data);
+    } catch {
+      // Ignore if not configured or network error
+    }
+  };
+
+  useEffect(() => {
+    reloadFlowmingo();
+    // 15-second polling while Candidate Detail Drawer is open
+    const interval = setInterval(reloadFlowmingo, 15000);
+    return () => clearInterval(interval);
+  }, [candidate.id]);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -245,47 +288,229 @@ export function CandidateDetailDrawer({
       </div>
 
       <div className="hf-drawer-body">
-        <section className="hf-drawer-hero glass-card">
-          <div className="hf-drawer-avatar">{initials(candidate.candidate_name)}</div>
-          <div className="hf-drawer-hero-copy">
-            <h2>{candidate.candidate_name}</h2>
-            <p>{candidate.position_label}</p>
-            <div className="hf-inline-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-              {/* Source badge with label */}
-              <span className={`hf-source-badge ${sourceClass(candidate.source)}`} title="Where this application came from">
-                {(candidate.source ?? '').toLowerCase().includes('email') ? <Inbox size={11} /> : <FileText size={11} />}
-                <span style={{ fontSize: '10px', opacity: 0.7, marginRight: '2px' }}>Source:</span>
-                {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' :
-                  (candidate.source ?? '').toLowerCase().includes('workdrive') ? 'Workdrive' :
-                    (candidate.source ? candidate.source.charAt(0).toUpperCase() + candidate.source.slice(1) : 'Form')}
-              </span>
-              {/* Pipeline stage badge with label */}
-              <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`} title="Current hiring stage">
-                <span style={{ fontSize: '10px', opacity: 0.7, marginRight: '2px' }}>Stage:</span>
-                {getStageLabel(candidate.pipeline_stage)}
-              </span>
-              {/* AI recommendation badge with label */}
-              <span className={`hf-rec-badge ${recommendationClass(displayRecommendation)}`} title="AI-generated hiring recommendation based on JD match">
-                <span style={{ fontSize: '10px', opacity: 0.7, marginRight: '2px' }}>AI Match:</span>
-                {displayRecommendation || 'Pending review'}
-              </span>
-            </div>
-            <div className="hf-contact-line">
-              <span><Mail size={13} />{candidate.email}</span>
-              {candidate.phone && <span><Phone size={13} />{candidate.phone}</span>}
-              {candidate.linkedin && (
-                <a href={candidate.linkedin.startsWith('http') ? candidate.linkedin : `https://${candidate.linkedin}`} target="_blank" rel="noreferrer">
-                  <ExternalLink size={13} />
-                  LinkedIn
-                </a>
+        {/* Unified Candidate Profile & Flowmingo Assessment Card */}
+        {(() => {
+          const inv = flowmingoDetails?.latestInvitation;
+          const evaluations = flowmingoDetails?.evaluations || [];
+          const hasEvaluations = evaluations.length > 0;
+          const isCompleted = inv?.interview_status === 'completed' || hasEvaluations;
+          const isStarted = inv?.interview_status === 'started' || inv?.interview_status === 'in_progress';
+          
+          const reportUrl = inv?.submission_url || evaluations[0]?.submission_url || '';
+          const primaryScore = evaluations[0]?.evaluation_score != null ? Number(evaluations[0].evaluation_score) : null;
+
+          return (
+            <div className="glass-card mb-5 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm flex flex-col gap-5">
+              {/* Top Row: Candidate Profile Info & Right AI Match Score */}
+              <div className="flex justify-between items-start flex-wrap gap-4">
+                <div className="flex items-start gap-4">
+                  {/* Left Avatar */}
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white text-xl font-bold shrink-0 shadow-md shadow-indigo-500/20">
+                    {initials(candidate.candidate_name)}
+                  </div>
+
+                  {/* Name, Role & Badges */}
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <h2 className="m-0 text-xl font-bold text-slate-900 dark:text-slate-100">
+                        {candidate.candidate_name}
+                      </h2>
+                      <p className="m-0 mt-0.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        {candidate.position_label || 'Candidate'}
+                      </p>
+                    </div>
+
+                    {/* Badges Row */}
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {/* Source Badge */}
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50">
+                        <Folder size={12} className="text-emerald-600 dark:text-emerald-400" />
+                        <span>Source: {(candidate.source ?? '').toLowerCase().includes('workdrive') ? 'Workdrive' : (candidate.source ?? 'Workdrive')}</span>
+                      </span>
+
+                      {/* Stage Badge */}
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/70 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/50">
+                        <Hourglass size={12} className="text-indigo-600 dark:text-indigo-400" />
+                        <span>Stage: {getStageLabel(candidate.pipeline_stage)}</span>
+                      </span>
+
+                      {/* AI Match Badge */}
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50">
+                        <Star size={12} className="text-emerald-600 dark:text-emerald-400 fill-emerald-600 dark:fill-emerald-400" />
+                        <span>AI Match: {displayRecommendation || 'Strong Hire'}</span>
+                      </span>
+                    </div>
+
+                    {/* Contact Line */}
+                    <div className="flex items-center flex-wrap gap-3.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Mail size={14} />
+                        {candidate.email}
+                      </span>
+                      {candidate.phone && (
+                        <>
+                          <span className="text-slate-300 dark:text-slate-700">|</span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <Phone size={14} />
+                            {candidate.phone}
+                          </span>
+                        </>
+                      )}
+                      {candidate.linkedin && (
+                        <>
+                          <span className="text-slate-300 dark:text-slate-700">|</span>
+                          <a
+                            href={candidate.linkedin.startsWith('http') ? candidate.linkedin : `https://${candidate.linkedin}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-600 no-underline font-medium"
+                          >
+                            <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-[#0A66C2] text-white text-[10px] font-bold">in</span>
+                            LinkedIn
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Circular AI Match Gauge */}
+                <div className="flex flex-col items-center gap-1 self-center">
+                  <div className="w-[74px] h-[74px] rounded-full border-2  border-emerald-500 dark:border-emerald-400 flex flex-col items-center justify-center bg-emerald-50/40 dark:bg-emerald-950/20">
+                    <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 leading-none">
+                      {displayScore}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                      /100
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    AI Match
+                  </span>
+                </div>
+              </div>
+
+              {/* Scheduled Test Notification Banner */}
+              {currentCandidate.scheduled_test_date && (
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800/60 text-xs">
+                  <div className="flex items-center gap-2.5 text-sky-950 dark:text-sky-200">
+                    <div className="w-7 h-7 rounded-lg bg-sky-100 dark:bg-sky-900/60 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
+                      <Calendar size={14} />
+                    </div>
+                    <div>
+                      <span className="font-bold">Assessment Scheduled:</span> {currentCandidate.scheduled_test_date} at {currentCandidate.scheduled_test_time} ({currentCandidate.scheduled_test_duration || 45} mins)
+                      {currentCandidate.scheduled_test_notes && (
+                        <span className="block text-[11px] text-sky-700 dark:text-sky-400 mt-0.5">
+                          Note: {currentCandidate.scheduled_test_notes}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsScheduleModalOpen(true)}
+                    className="px-2.5 py-1 text-xs font-bold text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 rounded-lg transition-colors cursor-pointer shrink-0"
+                  >
+                    Edit Schedule
+                  </button>
+                </div>
               )}
+
+              {/* Subtle Horizontal Divider */}
+              <div className="w-full h-px bg-slate-100 dark:bg-slate-800" />
+
+              {/* Bottom Row: Flowmingo Interview Section */}
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3.5 flex-wrap">
+                  {/* Purple Sparkle Icon */}
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/25 shrink-0">
+                    <Sparkles size={20} />
+                  </div>
+
+                  {/* Flowmingo Title */}
+                  <span className="text-base font-bold text-slate-900 dark:text-slate-100">
+                    Flowmingo Interview
+                  </span>
+
+                  {/* Status Badge */}
+                  {isCompleted ? (
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50">
+                      <CheckCircle size={14} className="text-emerald-600 dark:text-emerald-400" />
+                      Completed
+                    </span>
+                  ) : isStarted ? (
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/70 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/50">
+                      <Hourglass size={13} className="text-amber-600 dark:text-amber-400" />
+                      In Progress
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize bg-indigo-50 text-indigo-700 border border-indigo-200/70 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/50">
+                      {inv?.invitation_status ? inv.invitation_status.replace(/_/g, ' ') : 'Not Invited'}
+                    </span>
+                  )}
+
+                  {/* Prominent & Sized Flowmingo Score Circle */}
+                  {primaryScore != null && (
+                    <div className="w-[58px] h-[58px] rounded-full border-2  border-indigo-400 dark:border-indigo-500 flex flex-col items-center justify-center bg-indigo-50/50 dark:bg-indigo-950/30 ml-1 shadow-sm">
+                      <span className="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none">
+                        {primaryScore.toFixed(1)}
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+                        /10
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Action Buttons */}
+                <div className="flex items-center gap-2.5">
+                  {/* Schedule Test Email Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsScheduleModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl border border-sky-200 dark:border-sky-800/80 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 cursor-pointer shadow-xs transition-all duration-200 active:scale-95"
+                  >
+                    <Calendar size={14} className="text-sky-600 dark:text-sky-400 shrink-0" />
+                    {currentCandidate.scheduled_test_date ? 'Reschedule Test' : 'Schedule Test'}
+                  </button>
+
+                  {/* Open Report Button (Opens submission_url in new tab) */}
+                  {reportUrl && (
+                    <a
+                      href={reportUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-xl border-none bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white no-underline cursor-pointer shadow-md shadow-indigo-500/25 transition-all duration-200 active:scale-95"
+                    >
+                      <Send size={15} className="text-white shrink-0" />
+                      Open Report
+                    </a>
+                  )}
+
+                  {/* Refer Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsReferModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-indigo-600 dark:text-indigo-400 cursor-pointer shadow-sm transition-all duration-200 active:scale-95"
+                  >
+                    <Share2 size={14} className="shrink-0" />
+                    Refer
+                  </button>
+
+                  {/* Re-invite Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-indigo-600 dark:text-indigo-400 cursor-pointer shadow-sm transition-all duration-200 active:scale-95"
+                  >
+                    <RotateCw size={14} className="shrink-0" />
+                    {inv ? 'Re-invite' : 'Invite'}
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className={`hf-score-pill hf-score-pill--xl ${scoreClass(displayScore)}`}>
-            <strong>{displayScore}</strong>
-            <span>/100</span>
-          </div>
-        </section>
+          );
+        })()}
 
         {candidate.workdrive_file_id && (
           <div className="hf-tabs-container">
@@ -590,7 +815,7 @@ export function CandidateDetailDrawer({
                             cursor: 'pointer',
                           }}
                           onClick={() => {
-                            const template = `Hometown: \n10th Passout Year: \n12th Passout Year: \nUG / PG Year: \nInternship: \nProject: \nFamily Background: `;
+                            const template = `Hometown: \n10th Passout Year: \n12th Passout Year: \nUG / PG Year: \nInternship: \nProject: \nFamily Background: \nTechnologies: \nAI Tools: \nCollege: \nAny Interview: `;
                             setNote((prev) => (prev ? `${prev}\n\n${template}` : template).slice(0, 10000));
                           }}
                         >
@@ -850,6 +1075,63 @@ export function CandidateDetailDrawer({
           </section>
         )}
       </div>
+
+      <InviteCandidateModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        candidates={[{
+          id: candidate.id,
+          name: candidate.candidate_name,
+          email: candidate.email,
+          resume_url: candidate.workdrive_file_id ? `/api/candidates/${candidate.id}/resume` : undefined,
+        }]}
+        jobDescriptionId={selectedJdId !== 'global' ? Number(selectedJdId) : undefined}
+        onSuccess={() => {
+          reloadFlowmingo();
+          if (candidate.pipeline_stage !== 'ai_interview') {
+            void onMoveStage('ai_interview', note || candidate.latest_stage_note || undefined);
+          }
+        }}
+      />
+
+      <FlowmingoReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        candidateName={candidate.candidate_name}
+        evaluationScore={reportModalData.score}
+        submissionUrl={reportModalData.url}
+      />
+
+      <ReferCandidateModal
+        isOpen={isReferModalOpen}
+        onClose={() => setIsReferModalOpen(false)}
+        candidate={{
+          id: candidate.id,
+          name: candidate.candidate_name,
+          email: candidate.email,
+          position_label: candidate.position_label,
+          overall_score: candidate.best_score,
+          flowmingo_score: flowmingoDetails?.evaluations?.[0]?.evaluation_score != null
+            ? Number(flowmingoDetails.evaluations[0].evaluation_score)
+            : null,
+          frontend_skills: candidate.frontend_skills,
+          backend_skills: candidate.backend_skills,
+          database_skills: candidate.database_skills,
+          ai_ml_skills: candidate.ai_ml_skills,
+          cloud_devops: candidate.cloud_devops,
+          programming_langs: candidate.programming_langs,
+          skills: extractCandidateSkills(candidate),
+        }}
+      />
+
+      <ScheduleTestModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        candidate={currentCandidate}
+        onSuccess={(updated) => {
+          setCurrentCandidate(updated);
+        }}
+      />
     </div>
   );
 }

@@ -56,8 +56,8 @@ export function LoginPage(_props: { onLogin?: (user: { id: number; email: string
         "-=0.3"
       );
 
-      const formElements = formRef.current?.querySelectorAll("[data-animate]");
-      if (formElements) {
+      const formElements = cardRef.current?.querySelectorAll("[data-animate]");
+      if (formElements && formElements.length > 0) {
         tl.fromTo(
           formElements,
           { opacity: 0, y: 20 },
@@ -134,6 +134,30 @@ export function LoginPage(_props: { onLogin?: (user: { id: number; email: string
       master.kill();
     };
   }, [animateLoginEntrance]);
+
+  const [devLoading, setDevLoading] = useState(false);
+
+  const handleDevLogin = async () => {
+    try {
+      setDevLoading(true);
+      const res = await fetch('/api/auth/dev-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) throw new Error('Dev login failed');
+      const data = await res.json();
+      localStorage.setItem('hf_token', data.token);
+      if (_props.onLogin) {
+        _props.onLogin(data.user);
+      } else {
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Local dev login error:', err);
+    } finally {
+      setDevLoading(false);
+    }
+  };
 
   const handlePmsLogin = () => {
     window.location.href = import.meta.env.VITE_PMS_LOGIN_URL;
@@ -219,10 +243,10 @@ export function LoginPage(_props: { onLogin?: (user: { id: number; email: string
                 <div
                   className="login-field"
                   data-animate
-                  style={{ opacity: 0, textAlign: "center", padding: "10px 0" }}
+                  style={{ textAlign: "center", padding: "10px 0" }}
                 >
-                  <p style={{ color: "#9ca3af", fontSize: "14px", lineHeight: "1.6", marginBottom: "24px" }}>
-                    Direct password login is disabled. Please authenticate through the Project Management System (PMS) Portal.
+                  <p style={{ color: "#9ca3af", fontSize: "14px", lineHeight: "1.6", marginBottom: "20px" }}>
+                    Production authentication is managed through the Project Management System (PMS) Portal.
                   </p>
                   <Button
                     type="button"
@@ -233,6 +257,27 @@ export function LoginPage(_props: { onLogin?: (user: { id: number; email: string
                   >
                     Login via PMS Portal
                   </Button>
+
+                  {import.meta.env.DEV && (
+                    <Button
+                      type="button"
+                      onClick={handleDevLogin}
+                      variant="outline"
+                      disabled={devLoading}
+                      size="lg"
+                      style={{
+                        width: "100%",
+                        marginTop: "12px",
+                        borderColor: "#6366f1",
+                        color: "#6366f1",
+                        fontWeight: 700,
+                        background: "rgba(99, 102, 241, 0.05)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {devLoading ? "Logging in..." : "⚡ 1-Click Local Dev Login (Bypass SSO)"}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

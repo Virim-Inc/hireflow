@@ -1,5 +1,6 @@
 import { pool } from '../config/db.js';
 import * as candidateRepo from '../repositories/candidate.repo.js';
+import * as emailService from './email.service.js';
 import { PIPELINE_STAGES, isPipelineStage } from '../types/candidate.types.js';
 import type {
   CandidateRow,
@@ -125,3 +126,66 @@ export async function moveStage(
     client.release();
   }
 }
+
+export async function scheduleCandidateTest(
+  id: number,
+  data: {
+    candidateName?: string;
+    candidateEmail?: string;
+    scheduledDate: string;
+    scheduledTime: string;
+    durationMinutes?: number;
+    notes?: string;
+  },
+): Promise<{
+  candidate: CandidateRow;
+  emailStatus: { sent: boolean; messageId?: string; simulated?: boolean };
+}> {
+  if (!data.scheduledDate || !data.scheduledTime) {
+    throw new HttpError(400, 'Scheduled date and time are required.');
+  }
+
+  const candidate = await getCandidateById(id);
+  const targetName = data.candidateName?.trim() || candidate.candidate_name;
+  const targetEmail = data.candidateEmail?.trim() || candidate.email;
+  const duration = data.durationMinutes || 60;
+
+  // Send email notification to candidate
+  const emailStatus = await emailService.sendTestScheduleEmail({
+    candidateName: targetName,
+    candidateEmail: targetEmail,
+    positionLabel: candidate.position_label,
+    scheduledDate: data.scheduledDate,
+    scheduledTime: data.scheduledTime,
+    durationMinutes: duration,
+    customNotes: data.notes,
+  });
+
+  // Calculate parsed date timestamp if possible
+  let scheduledAt: Date | null = null;
+  try {
+    const combined = new Date(`${data.scheduledDate} ${data.scheduledTime}`);
+    if (!isNaN(combined.getTime())) {
+      scheduledAt = combined;
+    }
+  } catch {
+    scheduledAt = null;
+  }
+
+  // Update candidate record
+  const updatedCandidate = await candidateRepo.updateCandidateTestSchedule(id, {
+    candidateName: data.candidateName?.trim() || undefined,
+    candidateEmail: data.candidateEmail?.trim() || undefined,
+    scheduledDate: data.scheduledDate,
+    scheduledTime: data.scheduledTime,
+    scheduledAt,
+    durationMinutes: duration,
+    notes: data.notes,
+  });
+
+  return {
+    candidate: updatedCandidate || candidate,
+    emailStatus,
+  };
+}
+

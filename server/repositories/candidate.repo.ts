@@ -31,7 +31,9 @@ export const SELECT_COLUMNS = `
   workdrive_file_id, workdrive_file_name,
   source_folder_id, processed_folder_id,
   pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
-  city, internship_completed, passout_year, college, degree
+  city, internship_completed, passout_year, college, degree,
+  scheduled_test_date, scheduled_test_time, scheduled_test_at,
+  scheduled_test_duration, scheduled_test_notes, scheduled_test_sent_at
 `;
 
 export const SORT_COLUMNS: Record<string, string> = {
@@ -496,3 +498,43 @@ export async function insertStageHistory(
     [candidateId, fromStage, toStage, note],
   );
 }
+
+export async function updateCandidateTestSchedule(
+  id: number,
+  schedule: {
+    candidateName?: string;
+    candidateEmail?: string;
+    scheduledDate: string;
+    scheduledTime: string;
+    scheduledAt: Date | string | null;
+    durationMinutes: number;
+    notes?: string;
+  },
+): Promise<CandidateRow | null> {
+  const result = await pool.query<CandidateRow>(
+    `UPDATE candidates
+     SET candidate_name = COALESCE($2, candidate_name),
+         email = COALESCE($3, email),
+         scheduled_test_date = $4,
+         scheduled_test_time = $5,
+         scheduled_test_at = $6,
+         scheduled_test_duration = $7,
+         scheduled_test_notes = $8,
+         scheduled_test_sent_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [
+      id,
+      schedule.candidateName || null,
+      schedule.candidateEmail || null,
+      schedule.scheduledDate,
+      schedule.scheduledTime,
+      schedule.scheduledAt,
+      schedule.durationMinutes,
+      schedule.notes || null,
+    ],
+  );
+  return result.rows[0] ?? null;
+}
+
+

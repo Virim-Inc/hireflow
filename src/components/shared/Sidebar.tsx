@@ -11,11 +11,10 @@ import {
   LogOut,
   Briefcase,
   Menu,
+  Share2,
 } from 'lucide-react';
-import type { Theme } from '../../App';
+import type { Theme, Page } from '../../App';
 import { useBreakpoint } from '../../lib/useMediaQuery';
-
-type Page = 'dashboard' | 'candidates' | 'jds' | 'pipeline' | 'profile';
 
 interface SidebarProps {
   currentPage: Page;
@@ -29,10 +28,11 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS: { id: Page; label: string; icon: React.ReactNode }[] = [
-  { id: 'dashboard',  label: 'Dashboard',         icon: <LayoutDashboard size={18} /> },
-  { id: 'candidates', label: 'Candidate Explorer', icon: <Users size={18} /> },
-  { id: 'jds',        label: 'Job Descriptions', icon: <Briefcase size={18} /> },
-  { id: 'pipeline',   label: 'Hiring Pipeline',    icon: <KanbanSquare size={18} /> },
+  { id: 'dashboard',  label: 'Dashboard',           icon: <LayoutDashboard size={18} /> },
+  { id: 'candidates', label: 'Candidate Explorer',  icon: <Users size={18} /> },
+  { id: 'jds',        label: 'Job Descriptions',    icon: <Briefcase size={18} /> },
+  { id: 'pipeline',   label: 'Hiring Pipeline',     icon: <KanbanSquare size={18} /> },
+  { id: 'referrals',  label: 'Candidate Referrals', icon: <Share2 size={18} /> },
 ];
 
 export function Sidebar({ currentPage, onNavigate, collapsed, onToggle, theme, onToggleTheme, onLogout, user }: SidebarProps) {

@@ -1,8 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Search, Plus, Edit2, Trash2, Briefcase, MapPin, Users, Eye, X } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Briefcase, MapPin, Users, Eye, X, Sparkles } from 'lucide-react';
 import type { JobDescription } from '../types/candidate.types';
 import { fetchJds, deleteJd, toggleJdActive } from '../services/candidateService';
 import { JdModalForm } from './JdModalForm';
+import { CreateInterviewSetModal } from '../../flowmingo/components/CreateInterviewSetModal';
 
 export function JobDescriptionsPage() {
   const [jds, setJds] = useState<JobDescription[]>([]);
@@ -17,6 +18,7 @@ export function JobDescriptionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJd, setSelectedJd] = useState<JobDescription | null>(null);
   const [viewingJd, setViewingJd] = useState<JobDescription | null>(null);
+  const [flowmingoJd, setFlowmingoJd] = useState<JobDescription | null>(null);
 
   const loadJds = async () => {
     try {
@@ -273,6 +275,14 @@ export function JobDescriptionsPage() {
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                       <button
                         className="hf-ghost-btn"
+                        style={{ padding: '6px', color: '#a855f7' }}
+                        onClick={() => setFlowmingoJd(jd)}
+                        title="Create Flowmingo AI Interview Set"
+                      >
+                        <Sparkles size={14} />
+                      </button>
+                      <button
+                        className="hf-ghost-btn"
                         style={{ padding: '6px' }}
                         onClick={() => setViewingJd(jd)}
                         title="View JD"
@@ -316,6 +326,23 @@ export function JobDescriptionsPage() {
         }}
         onSaved={handleSaved}
         initialJd={selectedJd}
+      />
+
+      {/* Flowmingo Set Creation Modal */}
+      <CreateInterviewSetModal
+        isOpen={Boolean(flowmingoJd)}
+        onClose={() => setFlowmingoJd(null)}
+        jd={
+          flowmingoJd
+            ? {
+                id: flowmingoJd.id,
+                title: flowmingoJd.title,
+                description: flowmingoJd.responsibilities || undefined,
+                requirements: flowmingoJd.requirements ? [flowmingoJd.requirements] : undefined,
+              }
+            : null
+        }
+        onSuccess={() => void loadJds()}
       />
 
       {/* View JD Details Modal */}

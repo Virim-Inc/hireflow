@@ -26,6 +26,8 @@ import candidatesRouter from './routes/candidates.route.js';
 import statsRouter from './routes/stats.route.js';
 import authRouter from './routes/auth.route.js';
 import jdRouter from './routes/jd.route.js';
+import { flowmingoWebhookRouter, flowmingoAuthenticatedRouter } from './routes/flowmingo.route.js';
+import referralsRouter from './routes/referrals.route.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -40,6 +42,10 @@ async function startServer(): Promise<void> {
   // 3. Build the Express app
   const app = express();
   app.use(cors());
+
+  // Public webhook route mounted BEFORE express.json() with raw body parser for HMAC verification
+  app.use('/api/flowmingo/webhook', express.raw({ type: 'application/json' }), flowmingoWebhookRouter);
+
   app.use(express.json());
 
   // 4. Mount routers
@@ -48,6 +54,8 @@ async function startServer(): Promise<void> {
   app.use('/api/candidates', requireAuth, candidatesRouter);
   app.use('/api/stats', requireAuth, statsRouter);
   app.use('/api/job-descriptions', requireAuth, jdRouter);
+  app.use('/api/flowmingo', requireAuth, flowmingoAuthenticatedRouter);
+  app.use('/api/referrals', requireAuth, referralsRouter);
 
   // 5. Central error handler — must be last middleware
   app.use(errorHandler);

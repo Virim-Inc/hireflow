@@ -3,12 +3,13 @@ import { LoginPage, ProfilePage, SsoCallbackPage } from './features/auth';
 import { CandidatesPage, JobDescriptionsPage } from './features/candidates';
 import { DashboardHome } from './features/dashboard';
 import { PipelinePage } from './features/pipeline';
+import { ReferralsPage } from './features/referrals';
 import { Sidebar } from './components/shared/Sidebar';
 import type { CandidateFilters } from './features/candidates/types/candidate.types';
 import { useBreakpoint } from './lib/useMediaQuery';
 import './app.css';
 
-export type Page = 'login' | 'dashboard' | 'candidates' | 'jds' | 'pipeline' | 'profile' | 'sso-callback';
+export type Page = 'login' | 'dashboard' | 'candidates' | 'jds' | 'pipeline' | 'referrals' | 'profile' | 'sso-callback';
 export type Theme = 'dark' | 'light';
 
 function App() {
@@ -68,7 +69,12 @@ function App() {
     const verifyToken = async () => {
       const token = localStorage.getItem('hf_token');
       if (!token) {
-        window.location.href = import.meta.env.VITE_PMS_LOGIN_URL;
+        if (import.meta.env.DEV) {
+          setPage('login');
+          setIsValidating(false);
+        } else {
+          window.location.href = import.meta.env.VITE_PMS_LOGIN_URL;
+        }
         return;
       }
       try {
@@ -79,14 +85,18 @@ function App() {
           const saved = localStorage.getItem('hf_currentPage');
           if (saved === 'email-ranking') {
             setPage('pipeline');
-          } else if (saved === 'dashboard' || saved === 'candidates' || saved === 'jds' || saved === 'pipeline' || saved === 'profile') {
+          } else if (saved === 'dashboard' || saved === 'candidates' || saved === 'jds' || saved === 'pipeline' || saved === 'referrals' || saved === 'profile') {
             setPage(saved as Page);
           } else {
             setPage('dashboard');
           }
         } else {
           localStorage.removeItem('hf_token');
-          setPage('login');
+          if (import.meta.env.DEV) {
+            setPage('login');
+          } else {
+            window.location.href = import.meta.env.VITE_PMS_LOGIN_URL;
+          }
         }
       } catch {
         // Network error, assume offline access if already authenticated
@@ -111,11 +121,17 @@ function App() {
 
   useEffect(() => {
     const handleUnauthorized = () => {
-      localStorage.clear();
+      localStorage.removeItem('hf_token');
+      setUser(null);
       setCandidateFilters(null);
       setSidebarCollapsed(false);
       setTheme('light');
-      window.location.href = import.meta.env.VITE_PMS_LOGIN_URL;
+      if (import.meta.env.DEV) {
+        setPage('login');
+        setIsValidating(false);
+      } else {
+        window.location.href = import.meta.env.VITE_PMS_LOGIN_URL;
+      }
     };
     window.addEventListener('hf_unauthorized', handleUnauthorized);
     return () => window.removeEventListener('hf_unauthorized', handleUnauthorized);
@@ -124,6 +140,7 @@ function App() {
   const handleLogin = (userInfo: { id: number; email: string; name: string | null; role: string }) => {
     setUser(userInfo);
     setPage('dashboard');
+    setIsValidating(false);
   };
   const handleLogout = () => {
     localStorage.clear();
@@ -190,6 +207,7 @@ function App() {
         )}
         {page === 'jds' && <JobDescriptionsPage />}
         {page === 'pipeline' && <PipelinePage />}
+        {page === 'referrals' && <ReferralsPage />}
         {page === 'profile' && <ProfilePage user={user} onNavigate={navigate} onLogout={handleLogout} />}
       </main>
     </div>
