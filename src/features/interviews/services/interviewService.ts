@@ -83,6 +83,11 @@ export async function createInterview(data: {
     role?: string;
     isRequired?: boolean;
   }>;
+  interviewerCustomSubject?: string;
+  interviewerCustomBody?: string;
+  candidateCustomSubject?: string;
+  candidateCustomBody?: string;
+  sendCandidateEmailNow?: boolean;
 }): Promise<Interview> {
   const res = await fetch(BASE, {
     method: 'POST',

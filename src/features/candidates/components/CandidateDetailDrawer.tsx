@@ -1161,13 +1161,7 @@ export function CandidateDetailDrawer({
       <ScheduleInterviewModal
         isOpen={isInterviewModalOpen}
         onClose={() => setIsInterviewModalOpen(false)}
-        candidate={{
-          id: currentCandidate.id,
-          candidate_name: currentCandidate.candidate_name,
-          email: currentCandidate.email,
-          position_label: currentCandidate.position_label,
-          position: currentCandidate.position,
-        }}
+        candidate={currentCandidate}
         onSuccess={() => {
           setCurrentCandidate((prev) => ({
             ...prev,

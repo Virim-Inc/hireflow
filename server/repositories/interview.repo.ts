@@ -686,15 +686,38 @@ export async function getDistinctInterviewers(): Promise<
     role: string;
     count: string;
   }>(
-    `SELECT 
-       TRIM(name) AS name, 
-       LOWER(TRIM(email)) AS email, 
-       COALESCE(role, 'interviewer') AS role, 
-       COUNT(*)::text AS count
-     FROM interview_participants
-     WHERE email IS NOT NULL AND TRIM(email) != '' AND name IS NOT NULL AND TRIM(name) != ''
-     GROUP BY TRIM(name), LOWER(TRIM(email)), COALESCE(role, 'interviewer')
-     ORDER BY COUNT(*) DESC, TRIM(name) ASC`,
+    `WITH combined AS (
+       SELECT 
+         CASE 
+           WHEN name LIKE '%.%' THEN INITCAP(REPLACE(name, '.', ' '))
+           ELSE INITCAP(name)
+         END AS name,
+         LOWER(TRIM(email)) AS email,
+         'Technical Evaluator' AS role,
+         1 AS count
+       FROM admin_users
+       WHERE email IS NOT NULL AND TRIM(email) != '' 
+         AND LOWER(email) NOT LIKE '%@hireflow.com' 
+         AND LOWER(email) NOT LIKE '%@pms.local'
+       
+       UNION ALL
+       
+       SELECT 
+         INITCAP(TRIM(name)) AS name,
+         LOWER(TRIM(email)) AS email,
+         COALESCE(role, 'Technical Evaluator') AS role,
+         1 AS count
+       FROM interview_participants
+       WHERE email IS NOT NULL AND TRIM(email) != '' AND name IS NOT NULL AND TRIM(name) != ''
+     )
+     SELECT 
+       MAX(name) AS name,
+       email,
+       MAX(role) AS role,
+       SUM(count)::text AS count
+     FROM combined
+     GROUP BY email
+     ORDER BY email ASC`,
   );
   return res.rows.map((r) => ({
     name: r.name,

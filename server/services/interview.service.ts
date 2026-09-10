@@ -1,10 +1,9 @@
-// server/services/interview.service.ts
-
 import crypto from 'crypto';
 import { pool } from '../config/db.js';
 import * as interviewRepo from '../repositories/interview.repo.js';
 import * as candidateRepo from '../repositories/candidate.repo.js';
 import * as emailService from './email.service.js';
+import * as zohoService from './zoho.service.js';
 import { HttpError } from '../middleware/errorHandler.js';
 import type {
   InterviewRow,
@@ -63,6 +62,11 @@ export async function createInterview(data: {
     isRequired?: boolean;
   }>;
   createdBy?: number | null;
+  interviewerCustomSubject?: string;
+  interviewerCustomBody?: string;
+  candidateCustomSubject?: string;
+  candidateCustomBody?: string;
+  sendCandidateEmailNow?: boolean;
 }): Promise<InterviewRow> {
   const {
     candidateId,
@@ -83,6 +87,11 @@ export async function createInterview(data: {
     notes,
     participants,
     createdBy,
+    interviewerCustomSubject,
+    interviewerCustomBody,
+    candidateCustomSubject,
+    candidateCustomBody,
+    sendCandidateEmailNow = true,
   } = data;
 
   if (!candidateId || !roundName || !proposedStartAt || !participants?.length) {
@@ -162,7 +171,29 @@ export async function createInterview(data: {
       client,
     );
 
-    // 2. Add participants, tokens, and dispatch availability emails
+    // 2. Fetch candidate resume attachment from Zoho WorkDrive if available
+    let resumeAttachment: { filename: string; content: Buffer; contentType?: string } | undefined = undefined;
+    if (candidate.workdrive_file_id) {
+      try {
+        const zohoRes = await zohoService.downloadWorkdriveFile(candidate.workdrive_file_id);
+        if (zohoRes.ok && zohoRes.body) {
+          const arrayBuf = await zohoRes.arrayBuffer();
+          const buffer = Buffer.from(arrayBuf);
+          const filename = candidate.workdrive_file_name || `${finalName.replace(/\s+/g, '_')}_Resume.pdf`;
+          const contentType = zohoRes.headers.get('content-type') || 'application/pdf';
+          resumeAttachment = {
+            filename,
+            content: buffer,
+            contentType,
+          };
+          console.log(`[Interview Service] Successfully prepared resume attachment for ${finalName}: ${filename} (${buffer.length} bytes)`);
+        }
+      } catch (err) {
+        console.warn(`[Interview Service] Could not fetch resume from WorkDrive for candidate ${candidateId}:`, err);
+      }
+    }
+
+    // 3. Add participants, tokens, and dispatch availability emails
     const createdParticipants = [];
     for (const p of participants) {
       const part = await interviewRepo.addParticipant(
@@ -196,7 +227,7 @@ export async function createInterview(data: {
         client,
       );
 
-      // Send Interviewer Assignment Email asynchronously
+      // Send Interviewer Assignment Email asynchronously (with custom subject/body and resume attachment)
       void emailService.sendInterviewerAssignmentEmail({
         interviewerName: part.name,
         interviewerEmail: part.email,
@@ -211,6 +242,9 @@ export async function createInterview(data: {
         durationMinutes,
         token: rawToken,
         notes: notes || null,
+        customSubject: interviewerCustomSubject,
+        customBody: interviewerCustomBody,
+        attachments: resumeAttachment ? [resumeAttachment] : undefined,
       });
 
       // If internal user, create in-app notification
