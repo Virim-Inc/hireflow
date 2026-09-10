@@ -78,10 +78,15 @@ router.post(
       {
         candidateName?: string;
         candidateEmail?: string;
+        position?: string;
+        positionLabel?: string;
         scheduledDate: string;
         scheduledTime: string;
         durationMinutes?: number;
         notes?: string;
+        meetingLink?: string;
+        customSubject?: string;
+        customBody?: string;
       }
     >,
     res: Response,

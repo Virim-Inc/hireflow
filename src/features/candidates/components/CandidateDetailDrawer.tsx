@@ -31,6 +31,7 @@ import { getCandidateFlowmingoDetails, type CandidateFlowmingoDetailsResponse } 
 import { InviteCandidateModal } from '../../flowmingo/components/InviteCandidateModal';
 import { FlowmingoReportModal } from '../../flowmingo/components/FlowmingoReportModal';
 import { ScheduleTestModal } from './ScheduleTestModal';
+import { ScheduleInterviewModal } from '../../interviews';
 import { ReferCandidateModal, extractCandidateSkills } from '../../referrals';
 import {
   STAGE_META,
@@ -76,6 +77,7 @@ export function CandidateDetailDrawer({
   const [flowmingoDetails, setFlowmingoDetails] = useState<CandidateFlowmingoDetailsResponse | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState<Candidate>(candidate);
@@ -399,6 +401,19 @@ export function CandidateDetailDrawer({
                     </div>
                     <div>
                       <span className="font-bold">Assessment Scheduled:</span> {currentCandidate.scheduled_test_date} at {currentCandidate.scheduled_test_time} ({currentCandidate.scheduled_test_duration || 45} mins)
+                      {currentCandidate.scheduled_test_link && (
+                        <div className="mt-1">
+                          <a
+                            href={currentCandidate.scheduled_test_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-semibold text-sky-700 dark:text-sky-300 hover:text-sky-900 dark:hover:text-sky-100 underline text-[11px]"
+                          >
+                            <Video size={12} className="shrink-0" />
+                            Zoho Meeting Link
+                          </a>
+                        </div>
+                      )}
                       {currentCandidate.scheduled_test_notes && (
                         <span className="block text-[11px] text-sky-700 dark:text-sky-400 mt-0.5">
                           Note: {currentCandidate.scheduled_test_notes}
@@ -468,10 +483,20 @@ export function CandidateDetailDrawer({
                   <button
                     type="button"
                     onClick={() => setIsScheduleModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl border border-sky-200 dark:border-sky-800/80 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 cursor-pointer shadow-xs transition-all duration-200 active:scale-95"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold rounded-xl border border-sky-200 dark:border-sky-800/80 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 cursor-pointer shadow-xs transition-all duration-200 active:scale-95"
                   >
                     <Calendar size={14} className="text-sky-600 dark:text-sky-400 shrink-0" />
-                    {currentCandidate.scheduled_test_date ? 'Reschedule Test' : 'Schedule Test'}
+                    {currentCandidate.scheduled_test_date ? 'Flowmingo Reinvite' : 'Flowmingo Invite'}
+                  </button>
+
+                  {/* Schedule Interview (Technical / In-person) Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsInterviewModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white cursor-pointer shadow-md shadow-indigo-500/25 transition-all duration-200 active:scale-95"
+                  >
+                    <Calendar size={14} className="text-white shrink-0" />
+                    Schedule Interview
                   </button>
 
                   {/* Open Report Button (Opens submission_url in new tab) */}
@@ -504,7 +529,7 @@ export function CandidateDetailDrawer({
                     className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-indigo-600 dark:text-indigo-400 cursor-pointer shadow-sm transition-all duration-200 active:scale-95"
                   >
                     <RotateCw size={14} className="shrink-0" />
-                    {inv ? 'Re-invite' : 'Invite'}
+                    {inv ? 'Flowmingo Test Re-invite' : 'Flowmingo Test Invite'}
                   </button>
                 </div>
               </div>
@@ -1130,6 +1155,25 @@ export function CandidateDetailDrawer({
         candidate={currentCandidate}
         onSuccess={(updated) => {
           setCurrentCandidate(updated);
+        }}
+      />
+
+      <ScheduleInterviewModal
+        isOpen={isInterviewModalOpen}
+        onClose={() => setIsInterviewModalOpen(false)}
+        candidate={{
+          id: currentCandidate.id,
+          candidate_name: currentCandidate.candidate_name,
+          email: currentCandidate.email,
+          position_label: currentCandidate.position_label,
+          position: currentCandidate.position,
+        }}
+        onSuccess={() => {
+          setCurrentCandidate((prev) => ({
+            ...prev,
+            pipeline_stage: 'in_person_interview',
+          }));
+          setSelectedStage('in_person_interview');
         }}
       />
     </div>

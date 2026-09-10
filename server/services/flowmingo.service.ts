@@ -252,9 +252,15 @@ export async function inviteCandidatesFlowmingo(payload: {
   candidates: {
     ats_candidate_id?: string;
     email?: string;
+    email_address?: string;
     name?: string;
+    full_name?: string;
+    candidate_name?: string;
+    contact_name?: string;
     firstname?: string;
+    first_name?: string;
     lastname?: string;
+    last_name?: string;
     cv_link?: string;
   }[];
   invitation_message?: string;

@@ -132,10 +132,15 @@ export async function scheduleCandidateTest(
   data: {
     candidateName?: string;
     candidateEmail?: string;
+    position?: string;
+    positionLabel?: string;
     scheduledDate: string;
     scheduledTime: string;
     durationMinutes?: number;
     notes?: string;
+    meetingLink?: string;
+    customSubject?: string;
+    customBody?: string;
   },
 ): Promise<{
   candidate: CandidateRow;
@@ -148,17 +153,23 @@ export async function scheduleCandidateTest(
   const candidate = await getCandidateById(id);
   const targetName = data.candidateName?.trim() || candidate.candidate_name;
   const targetEmail = data.candidateEmail?.trim() || candidate.email;
+  const rawPosition = data.position?.trim() || data.positionLabel?.trim() || candidate.position_label || candidate.position;
+  const finalPosition = emailService.cleanPosition(rawPosition);
   const duration = data.durationMinutes || 60;
+  const meetingLink = data.meetingLink?.trim() || candidate.scheduled_test_link || undefined;
 
   // Send email notification to candidate
   const emailStatus = await emailService.sendTestScheduleEmail({
     candidateName: targetName,
     candidateEmail: targetEmail,
-    positionLabel: candidate.position_label,
+    positionLabel: finalPosition,
     scheduledDate: data.scheduledDate,
     scheduledTime: data.scheduledTime,
     durationMinutes: duration,
     customNotes: data.notes,
+    meetingLink,
+    customSubject: data.customSubject,
+    customBody: data.customBody,
   });
 
   // Calculate parsed date timestamp if possible
@@ -172,16 +183,52 @@ export async function scheduleCandidateTest(
     scheduledAt = null;
   }
 
-  // Update candidate record
+  // Update candidate test schedule record
   const updatedCandidate = await candidateRepo.updateCandidateTestSchedule(id, {
     candidateName: data.candidateName?.trim() || undefined,
     candidateEmail: data.candidateEmail?.trim() || undefined,
+    position: finalPosition,
     scheduledDate: data.scheduledDate,
     scheduledTime: data.scheduledTime,
     scheduledAt,
     durationMinutes: duration,
     notes: data.notes,
+    meetingLink,
   });
+
+  // Automatically advance candidate stage to 'in_person_interview' if not already hired/rejected
+  if (
+    candidate.pipeline_stage !== 'in_person_interview' &&
+    candidate.pipeline_stage !== 'hired' &&
+    candidate.pipeline_stage !== 'rejected'
+  ) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await candidateRepo.updateCandidateStage(
+        client,
+        id,
+        'in_person_interview',
+        `Technical test scheduled for ${data.scheduledDate} at ${data.scheduledTime}`,
+      );
+      await candidateRepo.insertStageHistory(
+        client,
+        id,
+        candidate.pipeline_stage,
+        'in_person_interview',
+        `Technical test scheduled for ${data.scheduledDate} at ${data.scheduledTime}`,
+      );
+      await client.query('COMMIT');
+      if (updatedCandidate) {
+        updatedCandidate.pipeline_stage = 'in_person_interview';
+      }
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Failed to transition candidate stage on test schedule:', err);
+    } finally {
+      client.release();
+    }
+  }
 
   return {
     candidate: updatedCandidate || candidate,

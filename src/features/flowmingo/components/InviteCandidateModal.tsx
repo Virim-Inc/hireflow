@@ -485,7 +485,7 @@ export const InviteCandidateModal: React.FC<InviteCandidateModalProps> = ({
               ) : (
                 <>
                   <Send size={16} />
-                  <span>Send Flowmingo Invite</span>
+                  <span>Send Flowmingo Test Invite</span>
                 </>
               )}
             </button>

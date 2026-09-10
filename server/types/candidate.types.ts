@@ -68,6 +68,7 @@ export interface CandidateRow {
   scheduled_test_at?: string | null;
   scheduled_test_duration?: number | null;
   scheduled_test_notes?: string | null;
+  scheduled_test_link?: string | null;
   scheduled_test_sent_at?: string | null;
   
   // Dynamic matched job description scores

@@ -4,15 +4,21 @@ import { CandidatesPage, JobDescriptionsPage } from './features/candidates';
 import { DashboardHome } from './features/dashboard';
 import { PipelinePage } from './features/pipeline';
 import { ReferralsPage } from './features/referrals';
+import { InterviewsPage, PublicInterviewerResponsePage } from './features/interviews';
 import { Sidebar } from './components/shared/Sidebar';
 import type { CandidateFilters } from './features/candidates/types/candidate.types';
 import { useBreakpoint } from './lib/useMediaQuery';
 import './app.css';
 
-export type Page = 'login' | 'dashboard' | 'candidates' | 'jds' | 'pipeline' | 'referrals' | 'profile' | 'sso-callback';
+export type Page = 'login' | 'dashboard' | 'candidates' | 'jds' | 'pipeline' | 'referrals' | 'profile' | 'interviews' | 'sso-callback';
 export type Theme = 'dark' | 'light';
 
 function App() {
+  const [publicToken, setPublicToken] = useState<string | null>(() => {
+    const match = window.location.pathname.match(/^\/interview-response\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : null;
+  });
+
   const [page, setPage] = useState<Page>(() => {
     if (window.location.pathname === '/sso') return 'sso-callback';
     return 'login';
@@ -177,6 +183,10 @@ function App() {
     );
   }
 
+  if (publicToken) {
+    return <PublicInterviewerResponsePage token={publicToken} />;
+  }
+
   if (page === 'sso-callback') {
     return <SsoCallbackPage onLogin={handleLogin} />;
   }
@@ -207,6 +217,7 @@ function App() {
         )}
         {page === 'jds' && <JobDescriptionsPage />}
         {page === 'pipeline' && <PipelinePage />}
+        {page === 'interviews' && <InterviewsPage user={user} />}
         {page === 'referrals' && <ReferralsPage />}
         {page === 'profile' && <ProfilePage user={user} onNavigate={navigate} onLogout={handleLogout} />}
       </main>

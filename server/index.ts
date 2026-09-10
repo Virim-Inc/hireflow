@@ -28,6 +28,7 @@ import authRouter from './routes/auth.route.js';
 import jdRouter from './routes/jd.route.js';
 import { flowmingoWebhookRouter, flowmingoAuthenticatedRouter } from './routes/flowmingo.route.js';
 import referralsRouter from './routes/referrals.route.js';
+import { publicInterviewsRouter, authenticatedInterviewsRouter } from './routes/interviews.route.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -51,6 +52,8 @@ async function startServer(): Promise<void> {
   // 4. Mount routers
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);
+  app.use('/api/interviews/public', publicInterviewsRouter);
+  app.use('/api/interviews', requireAuth, authenticatedInterviewsRouter);
   app.use('/api/candidates', requireAuth, candidatesRouter);
   app.use('/api/stats', requireAuth, statsRouter);
   app.use('/api/job-descriptions', requireAuth, jdRouter);

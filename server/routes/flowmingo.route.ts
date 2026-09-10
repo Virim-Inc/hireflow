@@ -93,23 +93,40 @@ flowmingoAuthenticatedRouter.post('/invite', async (req: Request, res: Response,
       return;
     }
 
-    // Format candidates payload for Flowmingo with explicit firstname, lastname, and name
-    const flowmingoCandidates = candidates.map((c: any) => {
-      const rawName = (c.name || c.candidate_name || `${c.first_name || ''} ${c.last_name || ''}`).trim();
-      const parts = rawName.split(/\s+/).filter(Boolean);
-      const firstname = c.firstname || c.first_name || parts[0] || (c.email ? c.email.split('@')[0] : 'Candidate');
-      const lastname = c.lastname || c.last_name || (parts.length > 1 ? parts.slice(1).join(' ') : '');
-      const fullName = rawName || (lastname ? `${firstname} ${lastname}` : firstname);
+    // Format candidates payload for Flowmingo with authentic DB candidate name and all field variations
+    const flowmingoCandidates = [];
+    for (const c of candidates) {
+      let candDb: any = null;
+      if (c.id) {
+        const candRes = await pool.query('SELECT * FROM candidates WHERE id = $1', [Number(c.id)]);
+        if (candRes.rows.length) {
+          candDb = candRes.rows[0];
+        }
+      }
 
-      return {
-        ats_candidate_id: String(c.id || c.ats_candidate_id || ''),
-        email: c.email,
+      const rawName = (candDb?.candidate_name || c.name || c.candidate_name || `${c.first_name || ''} ${c.last_name || ''}`).trim();
+      const parts = rawName.split(/\s+/).filter(Boolean);
+      const firstname = c.firstname || c.first_name || parts[0] || (c.email || candDb?.email ? (c.email || candDb?.email).split('@')[0] : 'Candidate');
+      const lastname = c.lastname || c.last_name || (parts.length > 1 ? parts.slice(1).join(' ') : (parts[0] || ''));
+      const fullName = rawName || (lastname && lastname !== firstname ? `${firstname} ${lastname}` : firstname);
+      const email = (c.email || candDb?.email || '').trim();
+      const cvLink = c.cv_link || c.resume_url || (candDb?.workdrive_file_id ? `/api/candidates/${candDb.id}/resume` : undefined);
+
+      flowmingoCandidates.push({
+        ats_candidate_id: String(c.id || candDb?.id || c.ats_candidate_id || ''),
+        email,
+        email_address: email,
         name: fullName,
+        full_name: fullName,
+        candidate_name: fullName,
+        contact_name: fullName,
         firstname,
-        lastname: lastname || firstname,
-        cv_link: c.cv_link || c.resume_url || undefined,
-      };
-    });
+        first_name: firstname,
+        lastname,
+        last_name: lastname,
+        cv_link: cvLink,
+      });
+    }
 
     let personalizedMessage = (invitation_message || 'Hi {{name}}, please complete your async AI interview assessment using Flowmingo in the next 48 hours.').trim();
     if (flowmingoCandidates.length === 1) {

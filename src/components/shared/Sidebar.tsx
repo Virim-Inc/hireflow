@@ -12,6 +12,7 @@ import {
   Briefcase,
   Menu,
   Share2,
+  CalendarCheck,
 } from 'lucide-react';
 import type { Theme, Page } from '../../App';
 import { useBreakpoint } from '../../lib/useMediaQuery';
@@ -24,7 +25,7 @@ interface SidebarProps {
   theme: Theme;
   onToggleTheme: () => void;
   onLogout: () => void;
-  user: { name: string | null; email: string } | null;
+  user: { name: string | null; email: string; role?: string } | null;
 }
 
 const NAV_ITEMS: { id: Page; label: string; icon: React.ReactNode }[] = [
@@ -32,6 +33,7 @@ const NAV_ITEMS: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'candidates', label: 'Candidate Explorer',  icon: <Users size={18} /> },
   { id: 'jds',        label: 'Job Descriptions',    icon: <Briefcase size={18} /> },
   { id: 'pipeline',   label: 'Hiring Pipeline',     icon: <KanbanSquare size={18} /> },
+  { id: 'interviews', label: 'Interviews',          icon: <CalendarCheck size={18} /> },
   { id: 'referrals',  label: 'Candidate Referrals', icon: <Share2 size={18} /> },
 ];
 

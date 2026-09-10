@@ -33,7 +33,7 @@ export const SELECT_COLUMNS = `
   pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
   city, internship_completed, passout_year, college, degree,
   scheduled_test_date, scheduled_test_time, scheduled_test_at,
-  scheduled_test_duration, scheduled_test_notes, scheduled_test_sent_at
+  scheduled_test_duration, scheduled_test_notes, scheduled_test_link, scheduled_test_sent_at
 `;
 
 export const SORT_COLUMNS: Record<string, string> = {
@@ -357,9 +357,11 @@ export async function findCandidates(
 }
 
 export async function findCandidateById(
-  db: Pool | PoolClient,
-  id: number,
+  dbOrId: Pool | PoolClient | number,
+  possibleId?: number,
 ): Promise<CandidateRow | null> {
+  const db = typeof dbOrId === 'number' ? pool : dbOrId;
+  const id = typeof dbOrId === 'number' ? dbOrId : possibleId!;
   const result = await db.query<CandidateRow>(
     `SELECT ${SELECT_COLUMNS},
             (
@@ -504,22 +506,26 @@ export async function updateCandidateTestSchedule(
   schedule: {
     candidateName?: string;
     candidateEmail?: string;
+    position?: string;
     scheduledDate: string;
     scheduledTime: string;
     scheduledAt: Date | string | null;
     durationMinutes: number;
     notes?: string;
+    meetingLink?: string;
   },
 ): Promise<CandidateRow | null> {
   const result = await pool.query<CandidateRow>(
     `UPDATE candidates
      SET candidate_name = COALESCE($2, candidate_name),
          email = COALESCE($3, email),
+         position = COALESCE($9, position),
          scheduled_test_date = $4,
          scheduled_test_time = $5,
          scheduled_test_at = $6,
          scheduled_test_duration = $7,
          scheduled_test_notes = $8,
+         scheduled_test_link = $10,
          scheduled_test_sent_at = NOW()
      WHERE id = $1
      RETURNING *`,
@@ -532,6 +538,8 @@ export async function updateCandidateTestSchedule(
       schedule.scheduledAt,
       schedule.durationMinutes,
       schedule.notes || null,
+      schedule.position || null,
+      schedule.meetingLink || null,
     ],
   );
   return result.rows[0] ?? null;

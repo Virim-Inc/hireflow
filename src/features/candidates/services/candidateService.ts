@@ -134,10 +134,15 @@ export async function scheduleCandidateTest(
   data: {
     candidateName?: string;
     candidateEmail?: string;
+    position?: string;
+    positionLabel?: string;
     scheduledDate: string;
     scheduledTime: string;
     durationMinutes?: number;
     notes?: string;
+    meetingLink?: string;
+    customSubject?: string;
+    customBody?: string;
   },
 ): Promise<{
   candidate: Candidate;
