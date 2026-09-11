@@ -81,11 +81,41 @@ export function CandidateDetailDrawer({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
   const [currentCandidate, setCurrentCandidate] = useState<Candidate>(candidate);
+  const [hasInterview, setHasInterview] = useState<boolean>(
+    Boolean(
+      (candidate.interview_count && candidate.interview_count > 0) ||
+      candidate.latest_interview_id ||
+      candidate.pipeline_stage === 'in_person_interview'
+    )
+  );
   const [reportModalData, setReportModalData] = useState<{ url: string; score?: number | null }>({ url: '', score: null });
 
   useEffect(() => {
     setCurrentCandidate(candidate);
+    setHasInterview(
+      Boolean(
+        (candidate.interview_count && candidate.interview_count > 0) ||
+        candidate.latest_interview_id ||
+        candidate.pipeline_stage === 'in_person_interview'
+      )
+    );
   }, [candidate]);
+
+  useEffect(() => {
+    if (candidate.id) {
+      const token = localStorage.getItem('hf_token');
+      fetch(`/api/interviews?candidateId=${candidate.id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.interviews && data.interviews.length > 0) {
+            setHasInterview(true);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [candidate.id]);
 
   const reloadFlowmingo = async () => {
     try {
@@ -489,14 +519,14 @@ export function CandidateDetailDrawer({
                     {currentCandidate.scheduled_test_date ? 'Flowmingo Reinvite' : 'Flowmingo Invite'}
                   </button>
 
-                  {/* Schedule Interview (Technical / In-person) Button */}
+                  {/* Schedule / Reschedule Interview Button */}
                   <button
                     type="button"
                     onClick={() => setIsInterviewModalOpen(true)}
                     className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white cursor-pointer shadow-md shadow-indigo-500/25 transition-all duration-200 active:scale-95"
                   >
                     <Calendar size={14} className="text-white shrink-0" />
-                    Schedule Interview
+                    {hasInterview ? 'Reschedule Interview' : 'Schedule Interview'}
                   </button>
 
                   {/* Open Report Button (Opens submission_url in new tab) */}
@@ -1162,11 +1192,28 @@ export function CandidateDetailDrawer({
         isOpen={isInterviewModalOpen}
         onClose={() => setIsInterviewModalOpen(false)}
         candidate={currentCandidate}
-        onSuccess={() => {
-          setCurrentCandidate((prev) => ({
-            ...prev,
-            pipeline_stage: 'in_person_interview',
-          }));
+        isReschedule={hasInterview}
+        onSuccess={async () => {
+          setHasInterview(true);
+          try {
+            const token = localStorage.getItem('hf_token');
+            const res = await fetch(`/api/candidates/${candidate.id}`, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (res.ok) {
+              const freshCandidate = await res.json();
+              setCurrentCandidate(freshCandidate);
+              if (freshCandidate.latest_stage_note) {
+                setNote(freshCandidate.latest_stage_note);
+              }
+            }
+          } catch {
+            setCurrentCandidate((prev) => ({
+              ...prev,
+              pipeline_stage: 'in_person_interview',
+              interview_count: ((prev.interview_count as number) || 0) + 1,
+            }));
+          }
           setSelectedStage('in_person_interview');
         }}
       />

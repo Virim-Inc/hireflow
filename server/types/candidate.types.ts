@@ -70,6 +70,11 @@ export interface CandidateRow {
   scheduled_test_notes?: string | null;
   scheduled_test_link?: string | null;
   scheduled_test_sent_at?: string | null;
+
+  // Interview scheduling status fields
+  interview_count?: number | null;
+  latest_interview_id?: number | null;
+  latest_interview_status?: string | null;
   
   // Dynamic matched job description scores
   jd_matches?: Record<string, {

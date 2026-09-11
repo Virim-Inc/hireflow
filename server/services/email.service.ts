@@ -443,6 +443,138 @@ export async function sendHRAlternativeProposedEmail(params: SendHRAlternativePr
   return deliverEmail({ to: hrEmail, subject, html: htmlContent, text: textContent });
 }
 
+// ── 3b. Interviewer Notification: HR Confirmed Alternative Slot ───────────────
+export interface SendInterviewerConfirmedSlotParams {
+  interviewerName: string;
+  interviewerEmail: string;
+  candidateName: string;
+  positionLabel: string;
+  roundName: string;
+  interviewMode: string;
+  locationDetails?: string | null;
+  meetingLink?: string | null;
+  scheduledDate: string;
+  scheduledTime: string;
+  durationMinutes: number;
+  customNotes?: string | null;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+    contentType?: string;
+  }>;
+}
+
+export async function sendInterviewerConfirmedSlotEmail(params: SendInterviewerConfirmedSlotParams): Promise<SendEmailResult> {
+  const {
+    interviewerName,
+    interviewerEmail,
+    candidateName,
+    positionLabel: rawPosition,
+    roundName,
+    interviewMode,
+    locationDetails,
+    meetingLink,
+    scheduledDate,
+    scheduledTime,
+    durationMinutes,
+    customNotes,
+    attachments,
+  } = params;
+
+  const positionLabel = cleanPosition(rawPosition);
+  const subject = `Confirmed Schedule: ${roundName} with ${candidateName} — Virim Infotech`;
+  const modeLabel = interviewMode === 'in_person' ? 'In-Person (Office)' : interviewMode === 'phone' ? 'Phone Interview' : 'Video Conference';
+  const locationText = locationDetails || meetingLink || (interviewMode === 'in_person' ? 'Virim Infotech Office' : 'Video Call Link');
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(subject)}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; line-height: 1.6; }
+    .container { max-width: 600px; margin: 24px auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; padding: 28px 24px; }
+    .header h2 { margin: 0; font-size: 20px; font-weight: 700; }
+    .content { padding: 28px 24px; }
+    .card { background-color: #f8fafc; border-radius: 10px; border: 1px solid #cbd5e1; padding: 18px; margin: 18px 0; }
+    .btn { display: inline-block; padding: 11px 22px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13.5px; }
+    .btn-primary { background-color: #4f46e5; color: #ffffff !important; }
+    .info-badge { background-color: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 14px 16px; margin: 18px 0; font-size: 13px; color: #1e40af; }
+    .attach-badge { background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #166534; margin: 16px 0; }
+    .footer { border-top: 1px solid #f1f5f9; padding: 18px 24px; background-color: #fafafa; font-size: 12px; color: #64748b; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Interview Schedule Confirmed</h2>
+      <p style="margin: 4px 0 0; font-size: 13px; color: #e0e7ff;">Virim Infotech Talent Acquisition</p>
+    </div>
+    <div class="content">
+      <p style="font-size: 15px; margin-top: 0;">Hi <strong>${escapeHtml(interviewerName)}</strong>,</p>
+      <p style="font-size: 14px; color: #334155;">
+        HR has reviewed and confirmed the interview schedule based on the alternative time you provided for <strong>${escapeHtml(candidateName)}</strong> (${escapeHtml(positionLabel)}). The official invitation has also been dispatched to the candidate.
+      </p>
+
+      <div class="card">
+        <div style="font-size: 12px; text-transform: uppercase; font-weight: 800; color: #6366f1; letter-spacing: 0.05em; margin-bottom: 10px;">
+          📅 Confirmed Interview Details
+        </div>
+        <table style="width: 100%; font-size: 13.5px; border-collapse: collapse;">
+          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569; width: 120px;">Candidate:</td><td style="color: #0f172a; font-weight: 600;">${escapeHtml(candidateName)}</td></tr>
+          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Position:</td><td style="color: #0f172a;">${escapeHtml(positionLabel)}</td></tr>
+          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Round:</td><td style="color: #0f172a; font-weight: 600;">${escapeHtml(roundName)}</td></tr>
+          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Confirmed Date:</td><td style="color: #0f172a; font-weight: 600;">${escapeHtml(scheduledDate)}</td></tr>
+          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Confirmed Time:</td><td style="color: #0f172a; font-weight: 600;">${escapeHtml(scheduledTime)}</td></tr>
+          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Duration:</td><td style="color: #0f172a;">${durationMinutes} Minutes</td></tr>
+          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Mode:</td><td style="color: #0f172a;">${escapeHtml(modeLabel)}</td></tr>
+          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Location / Link:</td><td style="color: #0f172a;">${escapeHtml(locationText)}</td></tr>
+        </table>
+      </div>
+
+      ${meetingLink ? `
+        <div style="margin: 20px 0;">
+          <a href="${escapeHtml(meetingLink)}" class="btn btn-primary">Join Video Meeting</a>
+          <div style="font-size: 12px; color: #64748b; margin-top: 6px; word-break: break-all;">
+            Meeting Link: <a href="${escapeHtml(meetingLink)}" style="color: #4f46e5;">${escapeHtml(meetingLink)}</a>
+          </div>
+        </div>
+      ` : ''}
+
+      ${attachments?.length ? `
+        <div class="attach-badge">
+          📎 <strong>Candidate Resume Attached:</strong> ${escapeHtml(attachments.map((a) => a.filename).join(', '))}
+          <br/><span style="font-size: 11.5px; color: #15803d;">Please review the attached resume prior to the interview session.</span>
+        </div>
+      ` : ''}
+
+      ${customNotes ? `<div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; font-size: 13px; color: #92400e; margin-bottom: 16px;"><strong>HR Note:</strong> ${escapeHtml(customNotes)}</div>` : ''}
+
+      <div class="info-badge">
+        <strong>ℹ️ Schedule Confirmation:</strong><br/>
+        This email is for your confirmation and calendar reminder. The candidate has already been sent their invitation. <strong>No further action or response is required from you.</strong>
+      </div>
+
+      <p style="font-size: 14px; margin-top: 24px;">
+        Best regards,<br/>
+        <strong>HR & Talent Acquisition Team</strong><br/>
+        Virim Infotech
+      </p>
+    </div>
+    <div class="footer">
+      HireFlow Internal Recruitment Coordination · Virim Infotech
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const textContent = `Hi ${interviewerName},\n\nHR has confirmed the interview schedule based on your suggested alternative time for ${candidateName} (${positionLabel}).\n\nRound: ${roundName}\nConfirmed Date: ${scheduledDate}\nConfirmed Time: ${scheduledTime}\nDuration: ${durationMinutes} mins\nMode: ${modeLabel}\nLocation / Link: ${locationText}\n${attachments?.length ? `\n[Attached Resume: ${attachments.map((a) => a.filename).join(', ')}]\n` : ''}\nNote: This email is for your confirmation and schedule reminder. No further response or action is required.\n\nBest regards,\nHR & Talent Acquisition Team\nVirim Infotech\n`;
+
+  return deliverEmail({ to: interviewerEmail, subject, html: htmlContent, text: textContent, attachments });
+}
+
 // ── 4. Candidate Official Interview Invitation Email ──────────────────────────
 export interface SendCandidateInterviewConfirmedParams {
   candidateName: string;
@@ -480,8 +612,9 @@ export async function sendCandidateInterviewConfirmedEmail(params: SendCandidate
   } = params;
 
   const positionLabel = cleanPosition(rawPosition);
-  const subject = customSubject?.trim() || `Technical Interview Scheduled — ${roundName} | Virim Infotech`;
   const isOffice = interviewMode === 'in_person';
+  const defaultSubject = isOffice ? `Personal Interview - ${candidateName}` : `${roundName || 'Technical Interview Round 1'} - ${candidateName}`;
+  const subject = customSubject?.trim() || defaultSubject;
   const modeLabel = isOffice ? 'In-Person Office Interview' : interviewMode === 'phone' ? 'Phone Interview' : 'Video Conference';
 
   let htmlContent = '';
@@ -538,6 +671,77 @@ export async function sendCandidateInterviewConfirmedEmail(params: SendCandidate
   </div>
 </body>
 </html>`;
+  } else if (isOffice) {
+    htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(subject)}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; line-height: 1.6; }
+    .container { max-width: 600px; margin: 24px auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #ffffff; padding: 28px 24px; }
+    .header h2 { margin: 0; font-size: 20px; font-weight: 700; }
+    .content { padding: 28px 24px; }
+    .card { background-color: #f8fafc; border-radius: 10px; border: 1px solid #cbd5e1; padding: 18px; margin: 18px 0; }
+    .btn { display: inline-block; padding: 10px 20px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13px; }
+    .btn-primary { background-color: #4f46e5; color: #ffffff !important; }
+    .notice { background-color: #f1f5f9; border-left: 4px solid #6366f1; border-radius: 4px; padding: 14px 18px; margin: 18px 0; font-size: 13px; color: #334155; }
+    .footer { border-top: 1px solid #f1f5f9; padding: 18px 24px; background-color: #fafafa; font-size: 12px; color: #64748b; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Interview Invitation</h2>
+      <p style="margin: 4px 0 0; font-size: 13px; color: #e0e7ff;">Virim Infotech Talent Acquisition</p>
+    </div>
+    <div class="content">
+      <p style="font-size: 15px; margin-top: 0;">Hi <strong>${escapeHtml(candidateName)}</strong>,</p>
+      <p style="font-size: 14px; color: #334155;">
+        We are excited about your interview at Virim Infotech.
+      </p>
+      <p style="font-size: 14px; color: #334155;">
+        Your Personal Interview has been scheduled for <strong>${escapeHtml(scheduledDate)}</strong>, from <strong>${escapeHtml(scheduledTime)}</strong> at our office premises.
+      </p>
+
+      <div class="card">
+        <div style="font-size: 12px; text-transform: uppercase; font-weight: 800; color: #6366f1; letter-spacing: 0.05em; margin-bottom: 8px;">
+          🏢 Office Address
+        </div>
+        <p style="margin: 0; font-size: 13.5px; color: #1e293b; line-height: 1.6;">
+          <strong>Virim Infotech Private Limited</strong><br/>
+          ${escapeHtml(locationDetails || '7A/8A, Electronic Complex, Pardesipura, Indore, Madhya Pradesh 452003, India')}
+        </p>
+        <div style="margin-top: 10px;">
+          <a href="https://goo.gl/maps/uMLcJQ9AMEsBT6H57" class="btn btn-primary">📍 View on Google Maps</a>
+        </div>
+      </div>
+
+      ${customInstructions ? `<div class="notice"><strong>Instructions:</strong><br/>${escapeHtml(customInstructions)}</div>` : ''}
+
+      <p style="font-size: 13.5px; color: #334155;">
+        In case of any concerns, please feel free to reach us at <strong>9109206743</strong>.
+      </p>
+
+      <p style="font-size: 14px; color: #334155; margin-top: 20px;">
+        Cheers & All the best!
+      </p>
+
+      <div style="font-size: 14px; color: #334155; margin-top: 16px;">
+        Regards,<br/>
+        <strong>HR Team</strong>
+      </div>
+    </div>
+    <div class="footer">
+      Virim Infotech · Hiring & Talent Assessment Team
+    </div>
+  </div>
+</body>
+</html>`;
+
+    textContent = `Hi ${candidateName},\n\nWe are excited about your interview at Virim Infotech.\n\nYour Personal Interview has been scheduled for ${scheduledDate}, from ${scheduledTime} at our office premises.\n\nBelow is the Office Address:\n\nVirim Infotech Private Limited\n${locationDetails || '7A/8A, Electronic Complex, Pardesipura, Indore, Madhya Pradesh 452003, India'}\n\nLocation: https://goo.gl/maps/uMLcJQ9AMEsBT6H57\n${customInstructions ? `\nInstructions:\n${customInstructions}\n` : ''}\nIn case of any concerns, please feel free to reach us at 9109206743.\n\nCheers & All the best!\n\nRegards,\nHR Team\n`;
   } else {
     htmlContent = `
 <!DOCTYPE html>
@@ -552,6 +756,8 @@ export async function sendCandidateInterviewConfirmedEmail(params: SendCandidate
     .header h2 { margin: 0; font-size: 20px; font-weight: 700; }
     .content { padding: 28px 24px; }
     .card { background-color: #f8fafc; border-radius: 10px; border: 1px solid #cbd5e1; padding: 18px; margin: 18px 0; }
+    .btn { display: inline-block; padding: 11px 22px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13.5px; }
+    .btn-primary { background-color: #4f46e5; color: #ffffff !important; }
     .notice { background-color: #f1f5f9; border-left: 4px solid #6366f1; border-radius: 4px; padding: 14px 18px; margin: 18px 0; font-size: 13px; color: #334155; }
     .footer { border-top: 1px solid #f1f5f9; padding: 18px 24px; background-color: #fafafa; font-size: 12px; color: #64748b; text-align: center; }
   </style>
@@ -563,38 +769,38 @@ export async function sendCandidateInterviewConfirmedEmail(params: SendCandidate
       <p style="margin: 4px 0 0; font-size: 13px; color: #e0e7ff;">Virim Infotech Talent Acquisition</p>
     </div>
     <div class="content">
-      <p style="font-size: 15px; margin-top: 0;">Dear <strong>${escapeHtml(candidateName)}</strong>,</p>
+      <p style="font-size: 15px; margin-top: 0;">Hi <strong>${escapeHtml(candidateName)}</strong>,</p>
       <p style="font-size: 14px; color: #334155;">
-        We are pleased to invite you to your <strong>${escapeHtml(roundName)}</strong> for the <strong>${escapeHtml(positionLabel)}</strong> position at Virim Infotech.
+        We are excited about your <strong>${escapeHtml(roundName || 'Technical Interview')}</strong> at Virim Infotech!
+      </p>
+      <p style="font-size: 14px; color: #334155;">
+        Your <strong>${escapeHtml(roundName || 'Technical Interview')}</strong> has been scheduled for <strong>${escapeHtml(scheduledDate)}</strong> from <strong>${escapeHtml(scheduledTime)}</strong>.
       </p>
 
-      <div class="card">
-        <div style="font-size: 12px; text-transform: uppercase; font-weight: 800; color: #6366f1; letter-spacing: 0.05em; margin-bottom: 10px;">
-          📅 Confirmed Interview Schedule
+      ${meetingLink ? `
+        <div class="card">
+          <p style="margin: 0 0 10px; font-size: 13.5px; color: #1e293b;">Please join the meeting using the link below:</p>
+          <a href="${escapeHtml(meetingLink)}" class="btn btn-primary">Join Video Meeting</a>
+          <div style="font-size: 12px; color: #64748b; margin-top: 8px; word-break: break-all;">
+            Link: <a href="${escapeHtml(meetingLink)}" style="color: #4f46e5;">${escapeHtml(meetingLink)}</a>
+          </div>
         </div>
-        <table style="width: 100%; font-size: 13.5px; border-collapse: collapse;">
-          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569; width: 120px;">Date:</td><td style="color: #0f172a; font-weight: 600;">${escapeHtml(scheduledDate)}</td></tr>
-          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Time:</td><td style="color: #0f172a; font-weight: 600;">${escapeHtml(scheduledTime)}</td></tr>
-          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Duration:</td><td style="color: #0f172a;">${durationMinutes} Minutes</td></tr>
-          <tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Interview Mode:</td><td style="color: #0f172a;">${escapeHtml(modeLabel)}</td></tr>
-          ${isOffice && locationDetails ? `<tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Office Location:</td><td style="color: #0f172a;">${escapeHtml(locationDetails)}</td></tr>` : ''}
-          ${!isOffice && meetingLink ? `<tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Meeting Link:</td><td style="color: #4f46e5;"><a href="${escapeHtml(meetingLink)}">${escapeHtml(meetingLink)}</a></td></tr>` : ''}
-          ${interviewerName ? `<tr><td style="padding: 5px 0; font-weight: 700; color: #475569;">Interviewer:</td><td style="color: #0f172a;">${escapeHtml(interviewerName)}</td></tr>` : ''}
-        </table>
-      </div>
+      ` : `
+        <p style="font-size: 13.5px; color: #334155;">
+          Please join the meeting using the link mentioned in the email.
+        </p>
+      `}
 
       ${customInstructions ? `<div class="notice"><strong>Instructions:</strong><br/>${escapeHtml(customInstructions)}</div>` : ''}
 
-      <div class="notice">
-        <strong>Important Notice:</strong><br/>
-        If you are unable to attend at this scheduled time or need to request a change, please reply directly to this email or contact the HR Team at <strong>hr@viriminfotech.com</strong>.
-      </div>
-
-      <p style="font-size: 14px; margin-top: 24px;">
-        Best regards,<br/>
-        <strong>Talent Acquisition Team</strong><br/>
-        Virim Infotech
+      <p style="font-size: 14px; color: #334155; margin-top: 20px;">
+        Cheers and all the best!
       </p>
+
+      <div style="font-size: 14px; color: #334155; margin-top: 16px;">
+        Regards,<br/>
+        <strong>HR Team</strong>
+      </div>
     </div>
     <div class="footer">
       Virim Infotech · Hiring & Talent Assessment Team
@@ -603,7 +809,7 @@ export async function sendCandidateInterviewConfirmedEmail(params: SendCandidate
 </body>
 </html>`;
 
-    textContent = `Dear ${candidateName},\n\nYour ${roundName} for ${positionLabel} at Virim Infotech is scheduled.\n\nDate: ${scheduledDate}\nTime: ${scheduledTime}\nDuration: ${durationMinutes} mins\nMode: ${modeLabel}\n${locationDetails ? `Location: ${locationDetails}\n` : ''}${meetingLink ? `Link: ${meetingLink}\n` : ''}\nIf you need to reschedule or have questions, please reply directly to this email.\n\nBest regards,\nTalent Acquisition Team\nVirim Infotech\n`;
+    textContent = `Hi ${candidateName},\n\nWe are excited about your ${roundName || 'Technical Interview'} at Virim Infotech!\n\nYour ${roundName || 'Technical Interview'} has been scheduled for ${scheduledDate} from ${scheduledTime}.\n\n${meetingLink ? `Please join the meeting using the link below:\n${meetingLink}` : 'Please join the meeting using the link mentioned in the email.'}\n${customInstructions ? `\nInstructions:\n${customInstructions}\n` : ''}\nCheers and all the best!\n\nRegards,\nHR Team\n`;
   }
 
   return deliverEmail({ to: candidateEmail, subject, html: htmlContent, text: textContent });

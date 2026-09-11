@@ -38,9 +38,13 @@ interface ScheduleInterviewModalProps {
     email: string;
     position_label?: string;
     position?: string;
+    pipeline_stage?: string;
+    interview_count?: number | null;
+    latest_interview_id?: number | null;
     workdrive_file_id?: string | null;
     workdrive_file_name?: string | null;
   };
+  isReschedule?: boolean;
   jobDescriptionId?: number | null;
   onSuccess?: (interview: Interview) => void;
 }
@@ -50,6 +54,7 @@ const ROUND_PRESETS = [
   'Technical Round 2',
   'System Design',
   'Managerial Round',
+  'Personal Interview',
   'HR Discussion',
 ];
 
@@ -170,42 +175,116 @@ Talent Acquisition Team
 Virim Infotech`;
 }
 
+function calculateEndTime(startTimeStr: string, durationMinutes: number): string {
+  const match = startTimeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return '';
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const meridian = match[3].toUpperCase();
+
+  if (meridian === 'PM' && hours < 12) hours += 12;
+  if (meridian === 'AM' && hours === 12) hours = 0;
+
+  const totalMins = hours * 60 + minutes + durationMinutes;
+  const endHours24 = Math.floor(totalMins / 60) % 24;
+  const endMins = totalMins % 60;
+
+  const endMeridian = endHours24 >= 12 ? 'PM' : 'AM';
+  let endHours12 = endHours24 % 12;
+  if (endHours12 === 0) endHours12 = 12;
+
+  return `${endHours12}:${String(endMins).padStart(2, '0')} ${endMeridian}`;
+}
+
+function generateDefaultCandidateSubject(params: {
+  roundName: string;
+  candidateName: string;
+  interviewMode: 'video' | 'in_person' | 'phone';
+}): string {
+  const cName = params.candidateName.trim() || 'Candidate Name';
+  if (params.interviewMode === 'in_person') {
+    return `Personal Interview - ${cName}`;
+  }
+  return `${params.roundName || 'Technical Interview Round 1'} - ${cName}`;
+}
+
 function generateDefaultCandidateBody(params: {
   candidateName: string;
-  position: string;
   roundName: string;
   date: string;
   time: string;
-  durationText: string;
-  modeLabel: string;
-  locationText: string;
-  notes: string;
+  durationMinutes: number;
+  interviewMode: 'video' | 'in_person' | 'phone';
+  meetingLink?: string;
+  locationDetails?: string;
+  notes?: string;
+  isTomorrow?: boolean;
 }): string {
-  return `Dear ${params.candidateName.trim() || 'Candidate'},
+  const cName = params.candidateName.trim() || 'Candidate Name';
+  const endTime = calculateEndTime(params.time, params.durationMinutes);
+  const timeRange = endTime ? `${params.time} to ${endTime}` : params.time;
 
-We are pleased to invite you to your ${params.roundName} for the ${params.position} position at Virim Infotech.
+  if (params.interviewMode === 'in_person') {
+    return `Hi ${cName},
+ 
+We are excited about your interview at Virim Infotech.
 
-📅 Confirmed Interview Schedule:
-- Date: ${params.date}
-- Time: ${params.time}
-- Duration: ${params.durationText}
-- Mode: ${params.modeLabel}
-- ${params.locationText}
-${params.notes.trim() ? `\nInstructions:\n${params.notes.trim()}\n` : ''}
-Please be prepared and punctual. If you need to reschedule or have questions, please reply directly to this email or contact hr@viriminfotech.com.
+Your Personal Interview has been scheduled for ${params.date}, from ${timeRange} at our office premises.
+ 
+Below is the Office Address:
+ 
+Virim Infotech Private Limited
+7A/8A, Electronic Complex, Pardesipura, Indore, Madhya Pradesh 452003, India
+ 
+Location: https://goo.gl/maps/uMLcJQ9AMEsBT6H57
+${params.notes?.trim() ? `\nInstructions:\n${params.notes.trim()}\n` : ''}
+In case of any concerns, please feel free to reach us at 9109206743.
+ 
+Cheers & All the best!
+ 
+HR Team`;
+  }
 
-Best regards,
-Talent Acquisition Team
-Virim Infotech`;
+  // Video call interview (default)
+  const scheduledTimePhrase = params.isTomorrow
+    ? `tomorrow from ${timeRange}`
+    : `${params.date} from ${timeRange}`;
+
+  const cleanLink = params.meetingLink?.trim();
+  const linkText = cleanLink
+    ? `Please join the meeting using the link below:\n${cleanLink}`
+    : 'Please join the meeting using the link mentioned in the email.';
+
+  return `Hi ${cName}, 
+
+We are excited about your ${params.roundName || 'Technical Interview'} at Virim Infotech! 
+
+Your ${params.roundName || 'Technical Interview'} has been scheduled for ${scheduledTimePhrase}. 
+
+${linkText}
+${params.notes?.trim() ? `\nInstructions:\n${params.notes.trim()}\n` : ''}
+Cheers and all the best! 
+
+Regards, 
+
+HR Team`;
 }
 
 export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
   isOpen,
   onClose,
   candidate,
+  isReschedule: propIsReschedule,
   jobDescriptionId,
   onSuccess,
 }) => {
+  const isReschedule = Boolean(
+    propIsReschedule ||
+    (candidate.interview_count && candidate.interview_count > 0) ||
+    candidate.latest_interview_id ||
+    candidate.pipeline_stage === 'in_person_interview'
+  );
+
   const getTomorrowString = () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -225,7 +304,7 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
   const [isCustomRound, setIsCustomRound] = useState(false);
   const [interviewType, setInterviewType] = useState('technical');
   const [interviewMode, setInterviewMode] = useState<'video' | 'in_person' | 'phone'>('video');
-  const [locationDetails, setLocationDetails] = useState('Indore Office · 4th Floor · Room 2');
+  const [locationDetails, setLocationDetails] = useState('Virim Infotech · 7A/8A, Electronic Complex, Pardesipura, Indore');
   const [meetingLink, setMeetingLink] = useState('https://meet.zoho.in/join-interview');
   
   const [date, setDate] = useState(getTomorrowString());
@@ -352,7 +431,7 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
       setRoundName('Technical Round 1');
       setIsCustomRound(false);
       setInterviewMode('video');
-      setLocationDetails('Indore Office · 4th Floor · Room 2');
+      setLocationDetails('Virim Infotech · 7A/8A, Electronic Complex, Pardesipura, Indore');
       setMeetingLink('https://meet.zoho.in/join-interview');
       setNotes('');
       setError(null);
@@ -405,23 +484,30 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
       );
     }
 
+    const isTomorrowSelected = date === getTomorrowString();
+
     if (!isCandidateSubjectCustomized) {
       setCandidateSubject(
-        `Technical Interview Scheduled — ${roundName} | Virim Infotech`,
+        generateDefaultCandidateSubject({
+          roundName,
+          candidateName,
+          interviewMode,
+        }),
       );
     }
     if (!isCandidateBodyCustomized) {
       setCandidateBody(
         generateDefaultCandidateBody({
           candidateName,
-          position,
           roundName,
           date: formattedDate,
           time,
-          durationText,
-          modeLabel,
-          locationText,
+          durationMinutes: duration,
+          interviewMode,
+          meetingLink,
+          locationDetails,
           notes,
+          isTomorrow: isTomorrowSelected,
         }),
       );
     }
@@ -430,11 +516,15 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
     candidateName,
     position,
     roundName,
+    date,
     formattedDate,
     time,
+    duration,
     durationText,
+    interviewMode,
     modeLabel,
     locationText,
+    meetingLink,
     notes,
     interviewerNamesText,
     resumeFileName,
@@ -556,20 +646,26 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
   };
 
   const handleResetCandidateEmail = () => {
+    const isTomorrowSelected = date === getTomorrowString();
     setCandidateSubject(
-      `Technical Interview Scheduled — ${roundName} | Virim Infotech`,
+      generateDefaultCandidateSubject({
+        roundName,
+        candidateName,
+        interviewMode,
+      }),
     );
     setCandidateBody(
       generateDefaultCandidateBody({
         candidateName,
-        position,
         roundName,
         date: formattedDate,
         time,
-        durationText,
-        modeLabel,
-        locationText,
+        durationMinutes: duration,
+        interviewMode,
+        meetingLink,
+        locationDetails,
         notes,
+        isTomorrow: isTomorrowSelected,
       }),
     );
     setIsCandidateSubjectCustomized(false);
@@ -689,7 +785,7 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 m-0">
-                Schedule Interview
+                {isReschedule ? 'Reschedule Interview' : 'Schedule Interview'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 m-0 mt-0.5">
                 Assign interviewer, attach resume & customize invitation emails
@@ -838,7 +934,12 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
-                    onClick={() => setInterviewMode('video')}
+                    onClick={() => {
+                      setInterviewMode('video');
+                      if (roundName === 'Personal Interview') {
+                        setRoundName('Technical Round 1');
+                      }
+                    }}
                     className={`py-2 px-3 text-xs font-bold rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
                       interviewMode === 'video'
                         ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 shadow-xs'
@@ -849,7 +950,12 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setInterviewMode('in_person')}
+                    onClick={() => {
+                      setInterviewMode('in_person');
+                      if (roundName === 'Technical Round 1') {
+                        setRoundName('Personal Interview');
+                      }
+                    }}
                     className={`py-2 px-3 text-xs font-bold rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
                       interviewMode === 'in_person'
                         ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 shadow-xs'
@@ -914,6 +1020,7 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
                   type="date"
                   required
                   value={date}
+                  min={new Date().toISOString().split('T')[0]}
                   onChange={(e) => setDate(e.target.value)}
                   className="w-full px-3.5 py-2.5 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
@@ -1425,7 +1532,7 @@ export const ScheduleInterviewModal: React.FC<ScheduleInterviewModalProps> = ({
               className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 transition-all cursor-pointer disabled:opacity-50"
             >
               <Send size={13} />
-              {loading ? 'Dispatching...' : 'Schedule  Invites'}
+              {loading ? 'Dispatching...' : isReschedule ? 'Reschedule & Send Invites' : 'Schedule & Send Invites'}
             </button>
           </div>
         </div>

@@ -79,7 +79,7 @@ export const SelectAlternativeTimeModal: React.FC<SelectAlternativeTimeModalProp
         {/* Body */}
         <div className="p-6 space-y-4 overflow-y-auto">
           <div className="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 text-xs text-amber-900 dark:text-amber-300">
-            <strong>Interviewer Note:</strong> The interviewer is unavailable for the original proposed time. Select one of the alternative slots below to finalize the schedule and notify the candidate.
+            <strong>Interviewer Note:</strong> The interviewer suggested alternative slots. Select one below to finalize the schedule. Both the candidate and interviewer will be emailed the confirmed schedule.
           </div>
 
           <div className="space-y-2.5">
@@ -142,7 +142,7 @@ export const SelectAlternativeTimeModal: React.FC<SelectAlternativeTimeModalProp
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
           <p className="text-[11px] text-slate-500 dark:text-slate-400 m-0">
-            Candidate will receive the official invite immediately.
+            Candidate & interviewer will both be notified immediately.
           </p>
           <div className="flex items-center gap-2">
             <button

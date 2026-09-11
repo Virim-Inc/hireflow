@@ -60,6 +60,11 @@ export interface Candidate {
   scheduled_test_link?: string | null;
   scheduled_test_sent_at?: string | null;
 
+  // Interview scheduling status fields
+  interview_count?: number | null;
+  latest_interview_id?: number | null;
+  latest_interview_status?: string | null;
+
   jd_matches?: Record<string, {
     overall_score: number;
     technical_score: number;

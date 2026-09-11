@@ -205,18 +205,23 @@ export async function scheduleCandidateTest(
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const testNoteText = `Technical test scheduled for ${data.scheduledDate} at ${data.scheduledTime}`;
+      const combinedNote = candidate.latest_stage_note?.trim()
+        ? `${candidate.latest_stage_note.trim()}\n\n${testNoteText}`
+        : testNoteText;
+
       await candidateRepo.updateCandidateStage(
         client,
         id,
         'in_person_interview',
-        `Technical test scheduled for ${data.scheduledDate} at ${data.scheduledTime}`,
+        combinedNote,
       );
       await candidateRepo.insertStageHistory(
         client,
         id,
         candidate.pipeline_stage,
         'in_person_interview',
-        `Technical test scheduled for ${data.scheduledDate} at ${data.scheduledTime}`,
+        testNoteText,
       );
       await client.query('COMMIT');
       if (updatedCandidate) {

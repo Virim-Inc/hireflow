@@ -36,6 +36,27 @@ function formatTimeDisplay(dateObj: Date): string {
   });
 }
 
+export function extractInterviewNotesAndEmail(rawNotes?: string | null): {
+  notes: string | null;
+  candidateCustomSubject?: string | null;
+  candidateCustomBody?: string | null;
+} {
+  if (!rawNotes) return { notes: null };
+  try {
+    const parsed = JSON.parse(rawNotes);
+    if (parsed && typeof parsed === 'object' && ('candidateCustomBody' in parsed || 'candidateCustomSubject' in parsed || 'notes' in parsed)) {
+      return {
+        notes: parsed.notes || null,
+        candidateCustomSubject: parsed.candidateCustomSubject || null,
+        candidateCustomBody: parsed.candidateCustomBody || null,
+      };
+    }
+  } catch {
+    // legacy plain text
+  }
+  return { notes: rawNotes };
+}
+
 // ── 1. Create / Schedule Interview ───────────────────────────────────────────
 export async function createInterview(data: {
   candidateId: number;
@@ -134,22 +155,36 @@ export async function createInterview(data: {
       candidate.pipeline_stage !== 'hired' &&
       candidate.pipeline_stage !== 'rejected'
     ) {
+      const interviewNoteText = `Interview scheduled: ${roundName} (${interviewMode})`;
+      const combinedNote = candidate.latest_stage_note?.trim()
+        ? `${candidate.latest_stage_note.trim()}\n\n${interviewNoteText}`
+        : interviewNoteText;
+
       await candidateRepo.updateCandidateStage(
         client,
         candidateId,
         'in_person_interview',
-        `Interview scheduled: ${roundName} (${interviewMode})`,
+        combinedNote,
       );
       await candidateRepo.insertStageHistory(
         client,
         candidateId,
         candidate.pipeline_stage,
         'in_person_interview',
-        `Interview scheduled: ${roundName} (${interviewMode})`,
+        interviewNoteText,
       );
     }
 
     // 1. Create interview record in 'awaiting_interviewer'
+    let notesData: string | null = notes || null;
+    if (candidateCustomSubject || candidateCustomBody || notes) {
+      notesData = JSON.stringify({
+        notes: notes || null,
+        candidateCustomSubject: candidateCustomSubject || null,
+        candidateCustomBody: candidateCustomBody || null,
+      });
+    }
+
     const interview = await interviewRepo.createInterview(
       {
         candidate_id: candidateId,
@@ -165,7 +200,7 @@ export async function createInterview(data: {
         duration_minutes: durationMinutes,
         timezone,
         status: 'awaiting_interviewer',
-        notes: notes || null,
+        notes: notesData,
         created_by: createdBy || null,
       },
       client,
@@ -369,23 +404,30 @@ export async function processInterviewerResponse(params: {
           candidate.pipeline_stage !== 'hired' &&
           candidate.pipeline_stage !== 'rejected'
         ) {
+          const confirmNoteText = `Interview confirmed by interviewer: ${currentInterview.round_name}`;
+          const combinedNote = candidate.latest_stage_note?.trim()
+            ? `${candidate.latest_stage_note.trim()}\n\n${confirmNoteText}`
+            : confirmNoteText;
+
           await candidateRepo.updateCandidateStage(
             client,
             candidate.id,
             'in_person_interview',
-            `Interview confirmed by interviewer: ${currentInterview.round_name}`,
+            combinedNote,
           );
           await candidateRepo.insertStageHistory(
             client,
             candidate.id,
             candidate.pipeline_stage,
             'in_person_interview',
-            `Interview confirmed by interviewer: ${currentInterview.round_name}`,
+            confirmNoteText,
           );
         }
 
         const startDate = new Date(currentInterview.scheduled_start_at || Date.now());
         const endDate = new Date(currentInterview.scheduled_end_at || startDate.getTime() + currentInterview.duration_minutes * 60000);
+
+        const { candidateCustomSubject, candidateCustomBody } = extractInterviewNotesAndEmail(currentInterview.notes);
 
         // Dispatches Official Candidate Confirmation Email
         void emailService.sendCandidateInterviewConfirmedEmail({
@@ -400,6 +442,8 @@ export async function processInterviewerResponse(params: {
           scheduledTime: `${formatTimeDisplay(startDate)} – ${formatTimeDisplay(endDate)}`,
           durationMinutes: currentInterview.duration_minutes,
           interviewerName: actorName || undefined,
+          customSubject: candidateCustomSubject || undefined,
+          customBody: candidateCustomBody || undefined,
         });
 
         // Notify HR
@@ -689,23 +733,51 @@ export async function selectAlternativeSlot(interviewId: number, slotId: number,
       candidate.pipeline_stage !== 'hired' &&
       candidate.pipeline_stage !== 'rejected'
     ) {
+      const finalizeNoteText = `Interview finalized by HR: ${interview.round_name}`;
+      const combinedNote = candidate.latest_stage_note?.trim()
+        ? `${candidate.latest_stage_note.trim()}\n\n${finalizeNoteText}`
+        : finalizeNoteText;
+
       await candidateRepo.updateCandidateStage(
         client,
         candidate.id,
         'in_person_interview',
-        `Interview finalized by HR: ${interview.round_name}`,
+        combinedNote,
       );
       await candidateRepo.insertStageHistory(
         client,
         candidate.id,
         candidate.pipeline_stage,
         'in_person_interview',
-        `Interview finalized by HR: ${interview.round_name}`,
+        finalizeNoteText,
       );
+    }
+
+    // Fetch candidate resume attachment from Zoho WorkDrive if available
+    let resumeAttachment: { filename: string; content: Buffer; contentType?: string } | undefined = undefined;
+    if (candidate?.workdrive_file_id) {
+      try {
+        const zohoRes = await zohoService.downloadWorkdriveFile(candidate.workdrive_file_id);
+        if (zohoRes.ok && zohoRes.body) {
+          const arrayBuf = await zohoRes.arrayBuffer();
+          const buffer = Buffer.from(arrayBuf);
+          const filename = candidate.workdrive_file_name || `${(candidate.candidate_name || 'Candidate').replace(/\s+/g, '_')}_Resume.pdf`;
+          const contentType = zohoRes.headers.get('content-type') || 'application/pdf';
+          resumeAttachment = {
+            filename,
+            content: buffer,
+            contentType,
+          };
+          console.log(`[Interview Service] Successfully prepared resume attachment for interviewer notification: ${filename} (${buffer.length} bytes)`);
+        }
+      } catch (err) {
+        console.warn(`[Interview Service] Could not fetch resume from WorkDrive for candidate ${candidate?.id}:`, err);
+      }
     }
 
     // Dispatch official candidate invitation email
     if (candidate) {
+      const { candidateCustomSubject, candidateCustomBody } = extractInterviewNotesAndEmail(interview.notes);
       void emailService.sendCandidateInterviewConfirmedEmail({
         candidateName: candidate.candidate_name,
         candidateEmail: candidate.email,
@@ -717,7 +789,52 @@ export async function selectAlternativeSlot(interviewId: number, slotId: number,
         scheduledDate: formatDateDisplay(startDate),
         scheduledTime: `${formatTimeDisplay(startDate)} – ${formatTimeDisplay(endDate)}`,
         durationMinutes: interview.duration_minutes,
+        customSubject: candidateCustomSubject || undefined,
+        customBody: candidateCustomBody || undefined,
       });
+    }
+
+    // Fetch all participants to inform interviewer(s) about the finalized slot
+    const partRes = await client.query<{
+      id: number;
+      user_id: number | null;
+      name: string;
+      email: string;
+      role: string;
+    }>(
+      `SELECT id, user_id, name, email, role FROM interview_participants WHERE interview_id = $1`,
+      [interviewId],
+    );
+
+    for (const part of partRes.rows) {
+      void emailService.sendInterviewerConfirmedSlotEmail({
+        interviewerName: part.name,
+        interviewerEmail: part.email,
+        candidateName: candidate?.candidate_name || 'Candidate',
+        positionLabel: candidate?.position_label || 'Software Engineer',
+        roundName: interview.round_name,
+        interviewMode: interview.interview_mode,
+        locationDetails: interview.location_details,
+        meetingLink: interview.meeting_link,
+        scheduledDate: formatDateDisplay(startDate),
+        scheduledTime: `${formatTimeDisplay(startDate)} – ${formatTimeDisplay(endDate)}`,
+        durationMinutes: interview.duration_minutes,
+        attachments: resumeAttachment ? [resumeAttachment] : undefined,
+      });
+
+      if (part.user_id) {
+        await interviewRepo.createNotification(
+          {
+            user_id: part.user_id,
+            interview_id: interviewId,
+            type: 'interview_finalized',
+            title: 'Interview Schedule Confirmed',
+            message: `HR has confirmed your suggested time for ${candidate?.candidate_name || 'Candidate'}'s ${interview.round_name} on ${formatDateDisplay(startDate)} at ${formatTimeDisplay(startDate)}. The invitation has been sent to the candidate.`,
+            action_link: `/interviews?tab=upcoming&interviewId=${interviewId}`,
+          },
+          client,
+        );
+      }
     }
 
     await interviewRepo.logInterviewEvent(
@@ -726,7 +843,7 @@ export async function selectAlternativeSlot(interviewId: number, slotId: number,
         event_type: 'hr_selected_alternative',
         actor_type: 'recruiter',
         actor_user_id: hrUserId || null,
-        description: `HR finalized interview slot for ${formatDateDisplay(startDate)} at ${formatTimeDisplay(startDate)}. Official confirmation email sent to candidate.`,
+        description: `HR finalized interview slot for ${formatDateDisplay(startDate)} at ${formatTimeDisplay(startDate)}. Official confirmation emails sent to candidate and interviewer(s).`,
       },
       client,
     );

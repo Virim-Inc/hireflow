@@ -33,7 +33,10 @@ export const SELECT_COLUMNS = `
   pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
   city, internship_completed, passout_year, college, degree,
   scheduled_test_date, scheduled_test_time, scheduled_test_at,
-  scheduled_test_duration, scheduled_test_notes, scheduled_test_link, scheduled_test_sent_at
+  scheduled_test_duration, scheduled_test_notes, scheduled_test_link, scheduled_test_sent_at,
+  (SELECT COUNT(*) FROM interviews WHERE candidate_id = candidates.id AND status NOT IN ('cancelled'))::int AS interview_count,
+  (SELECT id FROM interviews WHERE candidate_id = candidates.id AND status NOT IN ('cancelled') ORDER BY id DESC LIMIT 1) AS latest_interview_id,
+  (SELECT status FROM interviews WHERE candidate_id = candidates.id AND status NOT IN ('cancelled') ORDER BY id DESC LIMIT 1) AS latest_interview_status
 `;
 
 export const SORT_COLUMNS: Record<string, string> = {

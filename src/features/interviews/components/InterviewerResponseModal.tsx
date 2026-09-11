@@ -212,6 +212,7 @@ export const InterviewerResponseModal: React.FC<InterviewerResponseModalProps> =
                         type="date"
                         required
                         value={s.date}
+                        min={new Date().toISOString().split('T')[0]}
                         onChange={(e) => handleSlotChange(idx, 'date', e.target.value)}
                         className="w-full px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                       />
