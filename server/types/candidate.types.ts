@@ -61,6 +61,20 @@ export interface CandidateRow {
   passout_year: number | null;
   college: string | null;
   degree: string | null;
+
+  // Test Scheduling fields
+  scheduled_test_date?: string | null;
+  scheduled_test_time?: string | null;
+  scheduled_test_at?: string | null;
+  scheduled_test_duration?: number | null;
+  scheduled_test_notes?: string | null;
+  scheduled_test_link?: string | null;
+  scheduled_test_sent_at?: string | null;
+
+  // Interview scheduling status fields
+  interview_count?: number | null;
+  latest_interview_id?: number | null;
+  latest_interview_status?: string | null;
   
   // Dynamic matched job description scores
   jd_matches?: Record<string, {
@@ -157,7 +171,7 @@ export interface StatsSummaryRow {
   candidates_yesterday: string;
   candidates_last_7_days: string;
   candidates_last_30_days: string;
-  from_form: string;
+  from_workdrive: string;
   from_email: string;
   stage_screening: string;
   stage_shortlisted: string;

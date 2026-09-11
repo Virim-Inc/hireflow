@@ -1,5 +1,6 @@
 import { pool } from '../config/db.js';
 import * as candidateRepo from '../repositories/candidate.repo.js';
+import * as emailService from './email.service.js';
 import { PIPELINE_STAGES, isPipelineStage } from '../types/candidate.types.js';
 import type {
   CandidateRow,
@@ -82,7 +83,7 @@ export async function getCandidateMeta(): Promise<{
   return {
     ...meta,
     stages: PIPELINE_STAGES,
-    sources: ['form', 'email'],
+    sources: ['workdrive', 'email'],
   };
 }
 
@@ -125,3 +126,118 @@ export async function moveStage(
     client.release();
   }
 }
+
+export async function scheduleCandidateTest(
+  id: number,
+  data: {
+    candidateName?: string;
+    candidateEmail?: string;
+    position?: string;
+    positionLabel?: string;
+    scheduledDate: string;
+    scheduledTime: string;
+    durationMinutes?: number;
+    notes?: string;
+    meetingLink?: string;
+    customSubject?: string;
+    customBody?: string;
+  },
+): Promise<{
+  candidate: CandidateRow;
+  emailStatus: { sent: boolean; messageId?: string; simulated?: boolean };
+}> {
+  if (!data.scheduledDate || !data.scheduledTime) {
+    throw new HttpError(400, 'Scheduled date and time are required.');
+  }
+
+  const candidate = await getCandidateById(id);
+  const targetName = data.candidateName?.trim() || candidate.candidate_name;
+  const targetEmail = data.candidateEmail?.trim() || candidate.email;
+  const rawPosition = data.position?.trim() || data.positionLabel?.trim() || candidate.position_label || candidate.position;
+  const finalPosition = emailService.cleanPosition(rawPosition);
+  const duration = data.durationMinutes || 60;
+  const meetingLink = data.meetingLink?.trim() || candidate.scheduled_test_link || undefined;
+
+  // Send email notification to candidate
+  const emailStatus = await emailService.sendTestScheduleEmail({
+    candidateName: targetName,
+    candidateEmail: targetEmail,
+    positionLabel: finalPosition,
+    scheduledDate: data.scheduledDate,
+    scheduledTime: data.scheduledTime,
+    durationMinutes: duration,
+    customNotes: data.notes,
+    meetingLink,
+    customSubject: data.customSubject,
+    customBody: data.customBody,
+  });
+
+  // Calculate parsed date timestamp if possible
+  let scheduledAt: Date | null = null;
+  try {
+    const combined = new Date(`${data.scheduledDate} ${data.scheduledTime}`);
+    if (!isNaN(combined.getTime())) {
+      scheduledAt = combined;
+    }
+  } catch {
+    scheduledAt = null;
+  }
+
+  // Update candidate test schedule record
+  const updatedCandidate = await candidateRepo.updateCandidateTestSchedule(id, {
+    candidateName: data.candidateName?.trim() || undefined,
+    candidateEmail: data.candidateEmail?.trim() || undefined,
+    position: finalPosition,
+    scheduledDate: data.scheduledDate,
+    scheduledTime: data.scheduledTime,
+    scheduledAt,
+    durationMinutes: duration,
+    notes: data.notes,
+    meetingLink,
+  });
+
+  // Automatically advance candidate stage to 'in_person_interview' if not already hired/rejected
+  if (
+    candidate.pipeline_stage !== 'in_person_interview' &&
+    candidate.pipeline_stage !== 'hired' &&
+    candidate.pipeline_stage !== 'rejected'
+  ) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const testNoteText = `Technical test scheduled for ${data.scheduledDate} at ${data.scheduledTime}`;
+      const combinedNote = candidate.latest_stage_note?.trim()
+        ? `${candidate.latest_stage_note.trim()}\n\n${testNoteText}`
+        : testNoteText;
+
+      await candidateRepo.updateCandidateStage(
+        client,
+        id,
+        'in_person_interview',
+        combinedNote,
+      );
+      await candidateRepo.insertStageHistory(
+        client,
+        id,
+        candidate.pipeline_stage,
+        'in_person_interview',
+        testNoteText,
+      );
+      await client.query('COMMIT');
+      if (updatedCandidate) {
+        updatedCandidate.pipeline_stage = 'in_person_interview';
+      }
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Failed to transition candidate stage on test schedule:', err);
+    } finally {
+      client.release();
+    }
+  }
+
+  return {
+    candidate: updatedCandidate || candidate,
+    emailStatus,
+  };
+}
+

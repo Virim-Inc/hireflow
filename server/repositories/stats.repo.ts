@@ -26,7 +26,7 @@ export async function fetchStatsSummary(): Promise<StatsSummaryRow> {
       COUNT(*) FILTER (WHERE DATE(COALESCE(submitted_at, processed_at, NOW())) = CURRENT_DATE - INTERVAL '1 day')::text AS candidates_yesterday,
       COUNT(*) FILTER (WHERE COALESCE(submitted_at, processed_at, NOW()) >= CURRENT_DATE - INTERVAL '7 days')::text AS candidates_last_7_days,
       COUNT(*) FILTER (WHERE COALESCE(submitted_at, processed_at, NOW()) >= CURRENT_DATE - INTERVAL '30 days')::text AS candidates_last_30_days,
-      COUNT(*) FILTER (WHERE LOWER(source) IN ('form', 'workdrive'))::text AS from_form,
+      COUNT(*) FILTER (WHERE LOWER(source) IN ('form', 'workdrive'))::text AS from_workdrive,
       COUNT(*) FILTER (WHERE LOWER(source) = 'email')::text AS from_email,
       COUNT(*) FILTER (WHERE pipeline_stage = 'screening')::text AS stage_screening,
       COUNT(*) FILTER (WHERE pipeline_stage = 'shortlisted')::text AS stage_shortlisted,

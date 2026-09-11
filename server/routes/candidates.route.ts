@@ -68,6 +68,40 @@ router.patch(
   },
 );
 
+// POST /api/candidates/:id/schedule-test
+router.post(
+  '/:id/schedule-test',
+  async (
+    req: Request<
+      { id: string },
+      unknown,
+      {
+        candidateName?: string;
+        candidateEmail?: string;
+        position?: string;
+        positionLabel?: string;
+        scheduledDate: string;
+        scheduledTime: string;
+        durationMinutes?: number;
+        notes?: string;
+        meetingLink?: string;
+        customSubject?: string;
+        customBody?: string;
+      }
+    >,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const id = candidateService.parseCandidateId(req.params.id);
+      const result = await candidateService.scheduleCandidateTest(id, req.body);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 async function streamResume(req: Request<{ id: string }>, res: Response, next: NextFunction, forceDownload: boolean) {
   let nodeStream: Readable | null = null;
   try {

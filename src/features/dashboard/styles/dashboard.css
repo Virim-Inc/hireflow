@@ -500,7 +500,7 @@
 .daily-stats-card {
   appearance: none;
   width: 100%;
-  padding: 18px;
+  padding: 15px;
   border-radius: 20px;
   border: 1px solid var(--hf-border);
   background: color-mix(in oklab, var(--hf-card-bg) 88%, transparent);
@@ -525,7 +525,7 @@
 .daily-stats-card-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   width: 100%;
 }
 
@@ -536,6 +536,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 10px;
+  flex-shrink: 0;
   transition: transform 0.2s ease;
 }
 
@@ -729,4 +730,42 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════
+   Dashboard Page Responsive Overrides
+═══════════════════════════════════════════ */
+@media (max-width: 760px) {
+  .daily-stats-picker {
+    display: flex !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    max-width: 100% !important;
+    scrollbar-width: none; /* Hide scrollbars for cleaner premium look */
+  }
+  .daily-stats-picker::-webkit-scrollbar {
+    display: none;
+  }
+  .daily-stats-picker-btn {
+    flex-shrink: 0 !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .dash-controls-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .dash-toggle-switch {
+    width: 100% !important;
+    justify-content: space-around !important;
+    display: flex !important;
+  }
+  .dash-toggle-btn {
+    flex: 1 !important;
+    text-align: center !important;
+  }
+}
+
 

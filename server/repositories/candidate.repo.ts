@@ -31,7 +31,12 @@ export const SELECT_COLUMNS = `
   workdrive_file_id, workdrive_file_name,
   source_folder_id, processed_folder_id,
   pipeline_stage, pipeline_stage_updated_at, latest_stage_note,
-  city, internship_completed, passout_year, college, degree
+  city, internship_completed, passout_year, college, degree,
+  scheduled_test_date, scheduled_test_time, scheduled_test_at,
+  scheduled_test_duration, scheduled_test_notes, scheduled_test_link, scheduled_test_sent_at,
+  (SELECT COUNT(*) FROM interviews WHERE candidate_id = candidates.id AND status NOT IN ('cancelled'))::int AS interview_count,
+  (SELECT id FROM interviews WHERE candidate_id = candidates.id AND status NOT IN ('cancelled') ORDER BY id DESC LIMIT 1) AS latest_interview_id,
+  (SELECT status FROM interviews WHERE candidate_id = candidates.id AND status NOT IN ('cancelled') ORDER BY id DESC LIMIT 1) AS latest_interview_status
 `;
 
 export const SORT_COLUMNS: Record<string, string> = {
@@ -104,16 +109,28 @@ export function buildWhereClause(query: CandidatesQuery): {
     where.push(`NOT EXISTS (SELECT 1 FROM candidate_job_matches WHERE candidate_id = candidates.id AND overall_score >= 50)`);
   }
 
-  if (isPipelineStage(query.stage)) {
-    where.push(`pipeline_stage = $${idx}`);
-    params.push(query.stage);
-    idx++;
+  if (query.stage) {
+    const rawStages = typeof query.stage === 'string' ? query.stage.split(',') : Array.isArray(query.stage) ? query.stage : [query.stage];
+    const validStages = rawStages.map((s: string) => s.trim()).filter(isPipelineStage);
+    if (validStages.length === 1) {
+      where.push(`pipeline_stage = $${idx}`);
+      params.push(validStages[0]);
+      idx++;
+    } else if (validStages.length > 1) {
+      where.push(`pipeline_stage = ANY($${idx})`);
+      params.push(validStages);
+      idx++;
+    }
   }
 
   if (query.source) {
-    where.push(`LOWER(source) = LOWER($${idx})`);
-    params.push(query.source);
-    idx++;
+    if (query.source.toLowerCase() === 'workdrive') {
+      where.push(`LOWER(source) IN ('form', 'workdrive')`);
+    } else {
+      where.push(`LOWER(source) = LOWER($${idx})`);
+      params.push(query.source);
+      idx++;
+    }
   }
 
   if (query.position) {
@@ -122,9 +139,10 @@ export function buildWhereClause(query: CandidatesQuery): {
     idx++;
   }
 
-  if (query.city) {
-    where.push(`city = $${idx}`);
-    params.push(query.city);
+  const cityFilters = parseMultiValue(query.city);
+  if (cityFilters.length) {
+    where.push(`city = ANY($${idx})`);
+    params.push(cityFilters);
     idx++;
   }
 
@@ -134,24 +152,26 @@ export function buildWhereClause(query: CandidatesQuery): {
     where.push('internship_completed = false');
   }
 
-  if (query.passout_year) {
-    const year = parseInt(query.passout_year, 10);
-    if (!isNaN(year)) {
-      where.push(`passout_year = $${idx}`);
-      params.push(year);
-      idx++;
-    }
-  }
-
-  if (query.college) {
-    where.push(`college = $${idx}`);
-    params.push(query.college);
+  const passoutYearFilters = parseMultiValue(query.passout_year)
+    .map((y) => parseInt(y, 10))
+    .filter((y) => !isNaN(y));
+  if (passoutYearFilters.length) {
+    where.push(`passout_year = ANY($${idx})`);
+    params.push(passoutYearFilters);
     idx++;
   }
 
-  if (query.degree) {
-    where.push(`degree = $${idx}`);
-    params.push(query.degree);
+  const collegeFilters = parseMultiValue(query.college);
+  if (collegeFilters.length) {
+    where.push(`college = ANY($${idx})`);
+    params.push(collegeFilters);
+    idx++;
+  }
+
+  const degreeFilters = parseMultiValue(query.degree);
+  if (degreeFilters.length) {
+    where.push(`degree = ANY($${idx})`);
+    params.push(degreeFilters);
     idx++;
   }
 
@@ -340,9 +360,11 @@ export async function findCandidates(
 }
 
 export async function findCandidateById(
-  db: Pool | PoolClient,
-  id: number,
+  dbOrId: Pool | PoolClient | number,
+  possibleId?: number,
 ): Promise<CandidateRow | null> {
+  const db = typeof dbOrId === 'number' ? pool : dbOrId;
+  const id = typeof dbOrId === 'number' ? dbOrId : possibleId!;
   const result = await db.query<CandidateRow>(
     `SELECT ${SELECT_COLUMNS},
             (
@@ -481,3 +503,49 @@ export async function insertStageHistory(
     [candidateId, fromStage, toStage, note],
   );
 }
+
+export async function updateCandidateTestSchedule(
+  id: number,
+  schedule: {
+    candidateName?: string;
+    candidateEmail?: string;
+    position?: string;
+    scheduledDate: string;
+    scheduledTime: string;
+    scheduledAt: Date | string | null;
+    durationMinutes: number;
+    notes?: string;
+    meetingLink?: string;
+  },
+): Promise<CandidateRow | null> {
+  const result = await pool.query<CandidateRow>(
+    `UPDATE candidates
+     SET candidate_name = COALESCE($2, candidate_name),
+         email = COALESCE($3, email),
+         position = COALESCE($9, position),
+         scheduled_test_date = $4,
+         scheduled_test_time = $5,
+         scheduled_test_at = $6,
+         scheduled_test_duration = $7,
+         scheduled_test_notes = $8,
+         scheduled_test_link = $10,
+         scheduled_test_sent_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [
+      id,
+      schedule.candidateName || null,
+      schedule.candidateEmail || null,
+      schedule.scheduledDate,
+      schedule.scheduledTime,
+      schedule.scheduledAt,
+      schedule.durationMinutes,
+      schedule.notes || null,
+      schedule.position || null,
+      schedule.meetingLink || null,
+    ],
+  );
+  return result.rows[0] ?? null;
+}
+
+

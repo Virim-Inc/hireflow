@@ -48,9 +48,9 @@ export function AnalyticsView({ stats, loading, error, onRetry, onNavigate }: An
   const pctReject = total > 0 ? ((reject / total) * 100).toFixed(0) : '0';
 
   // Calculate source metrics
-  const form = stats?.sourceBreakdown?.form ?? 0;
+  const workdrive = stats?.sourceBreakdown?.workdrive ?? 0;
   const email = stats?.sourceBreakdown?.email ?? 0;
-  const formPct = total > 0 ? ((form / total) * 100).toFixed(0) : '50';
+  const workdrivePct = total > 0 ? ((workdrive / total) * 100).toFixed(0) : '50';
   const emailPct = total > 0 ? ((email / total) * 100).toFixed(0) : '50';
 
   // Make ranges user-friendly in subtitles
@@ -165,8 +165,8 @@ export function AnalyticsView({ stats, loading, error, onRetry, onNavigate }: An
                   <div className="source-ratio-bar">
                     <div 
                       className="source-fill bg-blue-intense" 
-                      style={{ width: `${formPct}%` }}
-                      title={`Form applications: ${formPct}%`}
+                      style={{ width: `${workdrivePct}%` }}
+                      title={`Workdrive applications: ${workdrivePct}%`}
                     ></div>
                     <div 
                       className="source-fill bg-pink-intense" 
@@ -178,8 +178,8 @@ export function AnalyticsView({ stats, loading, error, onRetry, onNavigate }: An
                     <div className="source-legend-cell">
                       <span className="source-marker bg-blue-intense"></span>
                       <div>
-                        <strong>Web Form</strong>
-                        <span>{formPct}% ({form} profiles)</span>
+                        <strong>Workdrive Folder</strong>
+                        <span>{workdrivePct}% ({workdrive} profiles)</span>
                       </div>
                     </div>
                     <div className="source-legend-cell">

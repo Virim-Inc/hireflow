@@ -70,6 +70,17 @@
   --hf-silver-glow:     rgba(148, 163, 184, 0.25);
   --hf-bronze:          #D97706;
   --hf-bronze-glow:     rgba(217, 119, 6, 0.25);
+
+  /* Gradient theme configuration (Dark Mode defaults) */
+  --hf-panel-bg-gradient: radial-gradient(circle at top right, color-mix(in oklab, var(--hf-accent) 18%, transparent), transparent 35%),
+                          linear-gradient(160deg, color-mix(in oklab, var(--hf-card-bg) 80%, black 6%), var(--hf-card-bg));
+  --hf-drawer-shell-gradient: radial-gradient(circle at top right, color-mix(in oklab, var(--hf-accent-glow) 50%, transparent), transparent 40%),
+                              radial-gradient(circle at bottom left, color-mix(in oklab, var(--hf-accent-glow) 30%, transparent), transparent 45%),
+                              linear-gradient(160deg, color-mix(in oklab, var(--hf-bg) 94%, black 6%), var(--hf-bg));
+  --hf-app-bg-gradient: radial-gradient(circle at 0% 0%, color-mix(in oklab, var(--hf-accent) 8%, transparent), transparent 45%),
+                        radial-gradient(circle at 100% 0%, color-mix(in oklab, #8b5cf6 6%, transparent), transparent 45%),
+                        radial-gradient(circle at 50% 100%, color-mix(in oklab, var(--hf-accent) 4%, transparent), transparent 50%),
+                        linear-gradient(180deg, #090A0F, #0E1017 60%, #08090D);
 }
 
 /* ── Light mode ── */
@@ -138,6 +149,16 @@
   --hf-silver-glow:     rgba(100, 116, 139, 0.20);
   --hf-bronze:          #B45309;
   --hf-bronze-glow:     rgba(180, 83, 9, 0.20);
+
+  /* Gradient theme configuration (Light Mode overrides) */
+  --hf-panel-bg-gradient: radial-gradient(circle at top right, color-mix(in oklab, var(--hf-accent-glow) 68%, transparent), transparent 34%),
+                          linear-gradient(160deg, color-mix(in oklab, white 86%, var(--hf-accent-glow) 14%), color-mix(in oklab, white 96%, var(--hf-accent-glow) 4%));
+  --hf-drawer-shell-gradient: radial-gradient(circle at top right, color-mix(in oklab, var(--hf-accent-glow) 80%, transparent), transparent 40%),
+                              radial-gradient(circle at bottom left, color-mix(in oklab, var(--hf-accent-glow) 40%, transparent), transparent 45%),
+                              linear-gradient(160deg, color-mix(in oklab, #f8fafc 94%, var(--hf-accent-glow) 6%), #e2e8f0);
+  --hf-app-bg-gradient: radial-gradient(circle at 0% 0%, color-mix(in oklab, var(--hf-accent-glow) 50%, transparent), transparent 40%),
+                        radial-gradient(circle at 100% 0%, color-mix(in oklab, #8b5cf6 15%, transparent), transparent 40%),
+                        linear-gradient(180deg, #F8FAFC, #F1F5F9 60%, #E2E8F0);
 }
 
 /* ═══════════════════════════════════════════
@@ -146,7 +167,7 @@
 .hf-app {
   display: flex;
   min-height: 100dvh;
-  background: var(--hf-bg);
+  background: var(--hf-app-bg-gradient);
   color: var(--hf-text-primary);
   font-family: 'Inter', 'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   transition: background 0.3s ease, color 0.3s ease;
@@ -164,12 +185,24 @@
   z-index: -1;
 }
 .hf-app--dark::before {
-  background: radial-gradient(circle at 15% 40%, rgba(99, 102, 241, 0.06), transparent 45%);
-  animation: hf-bg-pulse 12s ease-in-out infinite alternate;
+  background: radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--hf-accent) 15%, transparent), transparent 50%);
+  animation: hf-bg-pulse 18s ease-in-out infinite alternate;
 }
 .hf-app--dark::after {
-  background: radial-gradient(circle at 85% 70%, rgba(139, 92, 246, 0.05), transparent 50%);
-  animation: hf-bg-pulse 15s ease-in-out infinite alternate-reverse;
+  background: radial-gradient(circle at 80% 70%, color-mix(in oklab, #8b5cf6 10%, transparent), transparent 55%);
+  animation: hf-bg-pulse 24s ease-in-out infinite alternate-reverse;
+}
+
+/* Subtle texture overlay for light mode */
+.hf-app--light::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 10% 20%, color-mix(in oklab, var(--hf-accent-glow) 60%, transparent), transparent 45%),
+    radial-gradient(circle at 90% 80%, color-mix(in oklab, #8b5cf6 20%, transparent), transparent 45%);
 }
 
 /* Subtle texture overlay for light mode */
@@ -645,3 +678,134 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ═══════════════════════════════════════════
+   Mobile Sidebar & Backdrop Overrides
+   (≤768px viewport responsive styles)
+═══════════════════════════════════════════ */
+
+/* Mobile hamburger button */
+.hf-mobile-hamburger {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--hf-surface-2);
+  border: 1px solid var(--hf-border);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--hf-text-primary);
+  z-index: 110;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px var(--hf-shadow);
+}
+
+.hf-mobile-hamburger:hover {
+  background: var(--hf-surface-3);
+  border-color: var(--hf-border-glow);
+}
+
+/* Backdrop for mobile sidebar */
+.hf-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 150;
+  animation: hf-fade-in 0.25s ease forwards;
+}
+
+@keyframes hf-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .hf-mobile-hamburger {
+    display: flex;
+  }
+
+  /* Force mobile sidebar layout */
+  .hf-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100dvh;
+    z-index: 200;
+    width: 240px !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .hf-sidebar--mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  /* Since sidebar is fixed overlay, main content has no sibling width constraint */
+  .hf-main-content {
+    width: 100%;
+    padding-top: 60px !important; /* Space for fixed mobile header/toggle */
+  }
+}
+
+/* ── Overrides to match PMS Dark Mode theme exactly ── */
+.dark .hf-app,
+.hf-app--dark {
+  /* Use PMS colors */
+  --hf-bg:              var(--background);
+  --hf-surface:         var(--card);
+  --hf-surface-2:       var(--secondary);
+  --hf-surface-3:       var(--accent);
+
+  --hf-border:          var(--border);
+  --hf-border-glow:     color-mix(in oklab, var(--primary) 30%, transparent);
+
+  --hf-text-primary:    var(--foreground);
+  --hf-text-secondary:  var(--muted-foreground);
+  --hf-text-muted:      color-mix(in oklab, var(--foreground) 40%, transparent);
+
+  --hf-card-bg:         var(--secondary);
+  --hf-card-hover-bg:   var(--accent);
+  --hf-shadow:          rgba(0, 0, 0, 0.4);
+  --hf-toolbar-bg:      var(--background);
+
+  --hf-accent:          var(--primary);
+  --hf-accent-dim:      color-mix(in oklab, var(--primary) 80%, black);
+  --hf-accent-glow:     color-mix(in oklab, var(--primary) 15%, transparent);
+  --hf-accent-text:     var(--primary);
+
+  /* Flat gradients to override the glowing blue/purple panels */
+  --hf-panel-bg-gradient: linear-gradient(180deg, var(--card), var(--card));
+  --hf-drawer-shell-gradient: linear-gradient(180deg, var(--background), var(--background));
+  --hf-app-bg-gradient: linear-gradient(180deg, var(--background), var(--background));
+}
+
+/* Style primary button to match PMS primary color in dark mode */
+.dark .hf-primary-btn {
+  background: var(--primary) !important;
+  border-color: color-mix(in oklab, var(--primary) 20%, white) !important;
+  color: var(--primary-foreground) !important;
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--primary) 30%, transparent) !important;
+}
+.dark .hf-primary-btn:hover {
+  background: color-mix(in oklab, var(--primary) 85%, white) !important;
+  box-shadow: 0 6px 20px color-mix(in oklab, var(--primary) 40%, transparent) !important;
+}
+
+/* Hide ambient glow orbs in dark mode for flat, clean PMS look */
+.dark .hf-app::before,
+.dark .hf-app::after {
+  display: none !important;
+  content: none !important;
+}
+.dark .hf-app {
+  background: var(--background) !important;
+}
+

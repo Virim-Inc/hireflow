@@ -173,7 +173,7 @@
 .dash-metric-badge {
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 10px 12px;
   border-radius: 999px;
   background: color-mix(in oklab, var(--hf-success) 10%, transparent);
 }
@@ -694,9 +694,32 @@
 
 @media (max-width: 600px) {
   .chart-controls-box {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: column !important;
+    align-items: stretch !important;
     gap: 8px;
     margin-top: 10px;
   }
-}
+  
+  .chart-range-picker {
+    width: 100% !important;
+  }
+  
+  .chart-range-select-trigger {
+    width: 100% !important;
+  }
+
+  .chart-panel-card {
+    min-height: 280px !important;
+  }
+  
+  .chart-panel-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  
+  .chart-legend {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+}

@@ -1,0 +1,216 @@
+<mxfile host="app.diagrams.net" modified="2026-09-02T13:30:00.000Z" agent="HireFlow" version="21.0.0" type="device">
+  <diagram id="hireflow-e2e-clean" name="HireFlow E2E Recruitment Architecture">
+    <mxGraphModel dx="1600" dy="1800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="2600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Top Title Header -->
+        <mxCell id="title" value="&lt;b style='font-size:24px;color:#1e1b4b;'&gt;HireFlow — End-to-End Recruitment &amp; AI Interview Architecture&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:13px;color:#64748b;'&gt;Automated pipeline from candidate resume parsing, JD scoring, Flowmingo AI interview assessment, to internal hire and partner referrals&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8fafc;strokeColor=#cbd5e1;strokeWidth=1.5;arcSize=10;align=center;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="40" width="1200" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================== -->
+        <!-- PHASE 1: APPLICATION & EXTRACTION                              -->
+        <!-- ============================================================== -->
+        <mxCell id="p1_box" value="PHASE 1: APPLICATION, WORKFLOW EXTRACTION &amp; SCORING" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#f0f9ff;strokeColor=#0284c7;strokeWidth=2;fontColor=#0369a1;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="150" width="1500" height="210" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n1" value="&lt;b style='font-size:13px;color:#0369a1;'&gt;1. Candidate Applies&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Fills form &amp; uploads resume PDF on Careers Portal&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#38bdf8;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="140" y="210" width="230" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n2" value="&lt;b style='font-size:13px;color:#0369a1;'&gt;2. Zoho WorkDrive&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Resume PDF stored securely in designated cloud folder&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#38bdf8;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="210" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n3" value="&lt;b style='font-size:13px;color:#0369a1;'&gt;3. n8n / AI Workflow Engine&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Extracts categorized skills (Frontend, Backend, DB, AI/ML, Cloud), experience, education&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#38bdf8;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="690" y="210" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n4" value="&lt;b style='font-size:13px;color:#0369a1;'&gt;4. JD Match Scoring&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Computes technical, experience &amp; project match scores vs active Job Descriptions&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#38bdf8;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="210" width="270" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n5" value="&lt;b style='font-size:13px;color:#0369a1;'&gt;5. PostgreSQL DB&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Profile saved with initial status:&lt;br/&gt;&lt;code style='background:#e0f2fe;color:#0284c7;font-weight:bold;'&gt;pipeline_stage = 'screening'&lt;/code&gt;&lt;/span&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#e0f2fe;strokeColor=#0284c7;strokeWidth=2;fontColor:#0369a1;" vertex="1" parent="1">
+          <mxGeometry x="1330" y="200" width="230" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Connectors Phase 1 -->
+        <mxCell id="c1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0284c7;" edge="1" parent="1" source="n1" target="n2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0284c7;" edge="1" parent="1" source="n2" target="n3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0284c7;" edge="1" parent="1" source="n3" target="n4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0284c7;" edge="1" parent="1" source="n4" target="n5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================== -->
+        <!-- PHASE 2: RECRUITER SCREENING                                   -->
+        <!-- ============================================================== -->
+        <mxCell id="p2_box" value="PHASE 2: HIREFLOW UI SCREENING &amp; RECRUITER REVIEW" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#f8fafc;strokeColor=#64748b;strokeWidth=2;fontColor=#334155;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="400" width="1500" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n6" value="&lt;b style='font-size:13px;color:#1e293b;'&gt;6. Displayed on HireFlow UI&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Candidate listed on &lt;b&gt;Candidates Page&lt;/b&gt;, &lt;b&gt;Pipeline&lt;/b&gt;, &amp; &lt;b&gt;Email Ranking&lt;/b&gt; with match scores and skill chips&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#94a3b8;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="465" width="370" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="d1" value="&lt;b style='font-size:13px;color:#92400e;'&gt;Meets Initial Criteria?&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:10px;color:#78350f;'&gt;Review match scores &amp; skill fit&lt;/span&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;strokeWidth=2;fontColor:#92400e;" vertex="1" parent="1">
+          <mxGeometry x="720" y="450" width="220" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n_rej1" value="&lt;b style='font-size:12px;color:#991b1b;'&gt;Archive / Rejected&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:10px;color:#7f1d1d;'&gt;Moved to rejected stage&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#f87171;strokeWidth=1.5;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="250" y="490" width="190" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Connectors Phase 2 -->
+        <mxCell id="c5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#64748b;" edge="1" parent="1" source="n5" target="n6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#64748b;" edge="1" parent="1" source="n6" target="d1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c7" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#ef4444;fontColor=#ef4444;fontStyle=1;" edge="1" parent="1" source="d1" target="n_rej1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================== -->
+        <!-- PHASE 3: FLOWMINGO AI INTERVIEW LIFECYCLE                      -->
+        <!-- ============================================================== -->
+        <mxCell id="p3_box" value="PHASE 3: FLOWMINGO AI INTERVIEW AUTOMATION &amp; ASSESSMENT" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#faf5ff;strokeColor=#a855f7;strokeWidth=2;fontColor=#6b21a8;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="670" width="1500" height="250" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n7" value="&lt;b style='font-size:13px;color:#6b21a8;'&gt;7. Click 'Invite to AI Interview'&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Recruiter selects target role / Flowmingo Interview Set&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d8b4fe;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="140" y="745" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n8" value="&lt;b style='font-size:13px;color:#6b21a8;'&gt;8. Flowmingo API &amp; Auto Stage&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Creates candidate &amp; unique interview link.&lt;br/&gt;&lt;b style='color:#7e22ce;'&gt;Auto-transitions stage:&lt;/b&gt;&lt;br/&gt;&lt;code style='background:#f3e8ff;color:#6b21a8;font-weight:bold;'&gt;pipeline_stage = 'ai_interview'&lt;/code&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#9333ea;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="735" width="270" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n9" value="&lt;b style='font-size:13px;color:#6b21a8;'&gt;9. Automated Email Sent&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Candidate receives email with their personalized AI interview link&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d8b4fe;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="750" y="745" width="230" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n10" value="&lt;b style='font-size:13px;color:#6b21a8;'&gt;10. Candidate Takes AI Test&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Completes video/voice technical &amp; behavioral evaluation in Flowmingo test room&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d8b4fe;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="745" width="250" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n11" value="&lt;b style='font-size:13px;color:#6b21a8;'&gt;11. Flowmingo AI Evaluation&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Generates comprehensive scores (0-10), answer transcripts, and report URL&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d8b4fe;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1330" y="745" width="230" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Connectors Phase 3 -->
+        <mxCell id="c8" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#10b981;fontColor=#10b981;fontStyle=1;" edge="1" parent="1" source="d1" target="n7">
+          <mxGeometry relative="1" as="geometry">
+            <Array points="830 630", "260 630" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#a855f7;" edge="1" parent="1" source="n7" target="n8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#a855f7;" edge="1" parent="1" source="n8" target="n9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#a855f7;" edge="1" parent="1" source="n9" target="n10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#a855f7;" edge="1" parent="1" source="n10" target="n11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================== -->
+        <!-- PHASE 4: RESULTS INGESTION & UI REPORT                         -->
+        <!-- ============================================================== -->
+        <mxCell id="p4_box" value="PHASE 4: RESULTS INGESTION &amp; REPORT DISPLAY" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#f0fdf4;strokeColor=#16a34a;strokeWidth=2;fontColor=#14532d;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="960" width="1500" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n12" value="&lt;b style='font-size:13px;color:#15803d;'&gt;12. Webhook &amp; DB Sync&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;HireFlow receives completed test webhook. Updates candidate score &amp; report submission link&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#86efac;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="1025" width="290" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n13" value="&lt;b style='font-size:13px;color:#15803d;'&gt;13. HireFlow UI Score &amp; Report Display&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Candidate row displays &lt;b style='color:#16a34a;'&gt;Flowmingo Score Badge (e.g. 8.8/10)&lt;/b&gt;&lt;br/&gt;Recruiter clicks &lt;b&gt;'View Flowmingo Report'&lt;/b&gt; to view AI report modal &amp; transcript&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#22c55e;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="1015" width="430" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="d2" value="&lt;b style='font-size:13px;color:#92400e;'&gt;Hiring Decision&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:10px;color:#78350f;'&gt;Evaluate AI Interview score&lt;/span&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#f59e0b;strokeWidth=2;fontColor:#92400e;" vertex="1" parent="1">
+          <mxGeometry x="410" y="1010" width="240" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Connectors Phase 4 -->
+        <mxCell id="c13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#16a34a;" edge="1" parent="1" source="n11" target="n12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#16a34a;" edge="1" parent="1" source="n12" target="n13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#16a34a;" edge="1" parent="1" source="n13" target="d2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================== -->
+        <!-- PHASE 5: BRANCHING PATHS                                       -->
+        <!-- ============================================================== -->
+        <mxCell id="p5_box" value="PHASE 5: INTERNAL IN-PERSON PIPELINE OR PARTNER COMPANY REFERRAL" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=15;spacingTop=8;fontStyle=1;fontSize=13;fillColor=#fff1f2;strokeColor=#f43f5e;strokeWidth=2;fontColor=#881337;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1230" width="1500" height="300" as="geometry" />
+        </mxCell>
+
+        <!-- Path A -->
+        <mxCell id="pathA1" value="&lt;b style='font-size:13px;color:#1e40af;'&gt;PATH A: In-Person Interview&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Move candidate to &lt;code style='background:#dbeafe;color:#1e40af;font-weight:bold;'&gt;in_person_interview&lt;/code&gt; in internal pipeline&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="140" y="1310" width="310" height="85" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pathA2" value="&lt;b style='font-size:13px;color:#065f46;'&gt;Job Offer &amp; Hired 🎉&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#047857;'&gt;Candidate accepts offer &amp; status transitions to &lt;b&gt;'Hired'&lt;/b&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ecfdf5;strokeColor=#10b981;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="140" y="1425" width="310" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Path B -->
+        <mxCell id="pathB1" value="&lt;b style='font-size:13px;color:#9f1239;'&gt;PATH B: Refer to Partner Company&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Open &lt;b&gt;'Refer Candidate Modal'&lt;/b&gt;&lt;br/&gt;• Select Partner Company from Searchable Dropdown&lt;br/&gt;• Auto-populate Flowmingo score &amp; DB skills into Key Strengths&lt;br/&gt;• Customize verified rounds &amp; recommendation notes&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe4e6;strokeColor=#f43f5e;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="1300" width="460" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pathB2" value="&lt;b style='font-size:13px;color:#9f1239;'&gt;Track in Referrals Hub&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:11px;color:#475569;'&gt;Track candidate referral status across partner companies (&lt;i&gt;Shared, Interviewing, Offered, Hired&lt;/i&gt;)&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fb7185;strokeWidth=2;arcSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="1320" width="460" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Path C -->
+        <mxCell id="pathC" value="&lt;b style='font-size:12px;color:#991b1b;'&gt;Archive / Rejected&lt;/b&gt;&lt;br/&gt;&lt;span style='font-size:10px;color:#7f1d1d;'&gt;Does not meet score threshold&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#f87171;strokeWidth=1.5;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="450" y="1450" width="190" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Connectors Phase 5 -->
+        <mxCell id="c16" value="Strong Fit for Internal Job" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#3b82f6;fontColor=#1d4ed8;fontStyle=1;" edge="1" parent="1" source="d2" target="pathA1">
+          <mxGeometry relative="1" as="geometry">
+            <Array points="530 1190", "295 1190" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#10b981;" edge="1" parent="1" source="pathA1" target="pathA2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c18" value="Great Fit for Partner Network" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#e11d48;fontColor=#be123c;fontStyle=1;" edge="1" parent="1" source="d2" target="pathB1">
+          <mxGeometry relative="1" as="geometry">
+            <Array points="530 1190", "810 1190" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c19" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#f43f5e;" edge="1" parent="1" source="pathB1" target="pathB2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c20" value="Low Score" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#ef4444;fontColor=#ef4444;fontStyle=1;" edge="1" parent="1" source="d2" target="pathC">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

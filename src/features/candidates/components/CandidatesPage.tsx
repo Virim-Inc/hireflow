@@ -1,5 +1,13 @@
-import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, Filter, Plus, RefreshCw, Search, Users, X } from 'lucide-react';
+import { startTransition, useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import { AlertTriangle, ArrowUpDown, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, RefreshCw, Search, Users, X, LayoutGrid, TableProperties } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import gsap from 'gsap';
 import { AnimatedCount } from '../../../components/shared/AnimatedCount';
 import {
@@ -159,12 +167,12 @@ function buildInitialFilters(initialFilters?: Partial<CandidateFilters> | null):
   };
 }
 
-interface FilterOption {
+export interface FilterOption {
   label: string;
   value: string;
 }
 
-function FilterDropdown({
+export function FilterDropdown({
   label,
   value,
   options,
@@ -257,7 +265,8 @@ function FilterDropdown({
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value.slice(0, 50))}
+                maxLength={50}
                 className="hf-modern-select-search-input"
                 autoFocus
               />
@@ -289,21 +298,428 @@ function FilterDropdown({
   );
 }
 
+interface MultiSelectFilterProps {
+  label: string;
+  placeholder: string;
+  options: string[];
+  selectedValues: string[];
+  inputValue: string;
+  onInputValueChange: (value: string) => void;
+  onValueChange: (values: string[]) => void;
+  onRemoveValue: (value: string) => void;
+}
+
+function MultiSelectFilter({
+  label,
+  placeholder,
+  options,
+  selectedValues,
+  inputValue,
+  onInputValueChange,
+  onValueChange,
+  onRemoveValue,
+}: MultiSelectFilterProps) {
+  const anchor = useComboboxAnchor();
+  const pluralLabel = label.toLowerCase() === 'city' ? 'cities' : `${label.toLowerCase()}s`;
+
+  return (
+    <div className="hf-select-field hf-skill-select">
+      <span>{label}</span>
+      <Combobox
+        multiple
+        autoHighlight
+        items={options}
+        value={selectedValues}
+        inputValue={inputValue}
+        onInputValueChange={onInputValueChange}
+        onValueChange={(val) => onValueChange(Array.isArray(val) ? val : [])}
+        className="hf-skill-combobox-root"
+      >
+        <ComboboxChips ref={anchor} className="hf-skill-combobox">
+          <ComboboxValue>
+            {(values) => (
+              <ComboboxTrigger className="hf-skill-combobox-input">
+                <div className="hf-skill-combobox-values">
+                  {values.length > 0 ? (
+                    <div className="hf-selected-skills-summary">
+                      {values.map((value) => (
+                        <button
+                          type="button"
+                          key={value}
+                          className="hf-selected-skill-item"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onRemoveValue(value);
+                          }}
+                          aria-label={`Remove ${value}`}
+                        >
+                          <span className="hf-selected-skill-text">{value}</span>
+                          <span className="hf-selected-skill-remove">
+                            <X size={12} />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="hf-skill-combobox-placeholder">{placeholder}</span>
+                  )}
+                </div>
+                <ComboboxToggle className="hf-skill-combobox-toggle hf-skill-combobox-toggle--field" aria-label={`Toggle ${label} dropdown`}>
+                  <ChevronDown size={14} />
+                </ComboboxToggle>
+              </ComboboxTrigger>
+            )}
+          </ComboboxValue>
+        </ComboboxChips>
+        <ComboboxContent anchor={anchor} className="hf-skill-combobox-menu">
+          <div
+            className="hf-skill-dropdown-search"
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <Search size={15} />
+            <ComboboxChipsInput
+              className="hf-skill-dropdown-search-input"
+              placeholder={`Search ${pluralLabel}`}
+              autoFocus
+              onKeyDown={(event) => {
+                if (event.key === 'Backspace' && !inputValue && selectedValues.length) {
+                  event.preventDefault();
+                  onRemoveValue(selectedValues[selectedValues.length - 1]);
+                }
+              }}
+            />
+          </div>
+          <ComboboxEmpty className="hf-skill-combobox-empty">No matching {pluralLabel}</ComboboxEmpty>
+          <ComboboxList className="hf-skill-combobox-list">
+            {(item) => (
+              <ComboboxItem key={item} value={item} className="hf-skill-combobox-option">
+                <span>{item}</span>
+                <Check size={14} />
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+    </div>
+  );
+}
+
+export function ModernDatePicker({
+  label,
+  value,
+  onChange,
+  direction = 'down',
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  direction?: 'down' | 'up';
+}) {
+  const [open, setOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (value) return new Date(value);
+    return new Date();
+  });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (value) {
+      setCurrentDate(new Date(value));
+    }
+  }, [value]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  const daysGrid: Array<{ day: number; currentMonth: boolean; dateString: string }> = [];
+
+  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+    const d = daysInPrevMonth - i;
+    const prevMonthDate = new Date(year, month - 1, d);
+    daysGrid.push({
+      day: d,
+      currentMonth: false,
+      dateString: formatDateString(prevMonthDate),
+    });
+  }
+
+  for (let i = 1; i <= daysInMonth; i++) {
+    const currMonthDate = new Date(year, month, i);
+    daysGrid.push({
+      day: i,
+      currentMonth: true,
+      dateString: formatDateString(currMonthDate),
+    });
+  }
+
+  const remainingCells = 42 - daysGrid.length;
+  for (let i = 1; i <= remainingCells; i++) {
+    const nextMonthDate = new Date(year, month + 1, i);
+    daysGrid.push({
+      day: i,
+      currentMonth: false,
+      dateString: formatDateString(nextMonthDate),
+    });
+  }
+
+  function formatDateString(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function handlePrevMonth() {
+    setCurrentDate(new Date(year, month - 1, 1));
+  }
+
+  function handleNextMonth() {
+    setCurrentDate(new Date(year, month + 1, 1));
+  }
+
+  function handleSelectDay(dateStr: string) {
+    onChange(dateStr);
+    setOpen(false);
+  }
+
+  function handleClear() {
+    onChange('');
+    setOpen(false);
+  }
+
+  function handleToday() {
+    const todayStr = formatDateString(new Date());
+    onChange(todayStr);
+    setCurrentDate(new Date());
+    setOpen(false);
+  }
+
+  const displayLabel = value
+    ? new Intl.DateTimeFormat('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(value))
+    : 'dd-mm-yyyy';
+
+  return (
+    <div ref={containerRef} className={`hf-select-field hf-modern-select ${open ? 'is-open' : ''}`} style={{ position: 'relative' }}>
+      <span>{label}</span>
+      <button
+        type="button"
+        className={`hf-modern-select-trigger ${open ? 'is-open' : ''}`}
+        onClick={() => setOpen(!open)}
+        style={{ cursor: 'pointer' }}
+      >
+        <span className="hf-modern-select-value">{displayLabel}</span>
+        <ChevronDown size={14} />
+      </button>
+
+      {open && (
+        <div 
+          className="hf-date-picker-menu" 
+          style={{ 
+            position: 'absolute', 
+            ...(direction === 'up' 
+              ? { bottom: '100%', marginBottom: '8px' } 
+              : { top: '100%', marginTop: '8px' }
+            ),
+            left: 0, 
+            zIndex: 1000 
+          }}
+        >
+          <div className="hf-date-picker-header">
+            <button type="button" onClick={handlePrevMonth} className="hf-date-picker-nav-btn">
+              <ChevronLeft size={14} />
+            </button>
+            <strong className="hf-date-picker-month-label">{monthNames[month]} {year}</strong>
+            <button type="button" onClick={handleNextMonth} className="hf-date-picker-nav-btn">
+              <ChevronRight size={14} />
+            </button>
+          </div>
+
+          <div className="hf-date-picker-weekdays">
+            {daysOfWeek.map((day) => (
+              <span key={day} className="hf-date-picker-weekday">{day}</span>
+            ))}
+          </div>
+
+          <div className="hf-date-picker-days-grid">
+            {daysGrid.map((item, idx) => {
+              const isSelected = item.dateString === value;
+              const isToday = item.dateString === formatDateString(new Date());
+              return (
+                <button
+                  key={`${item.dateString}-${idx}`}
+                  type="button"
+                  onClick={() => handleSelectDay(item.dateString)}
+                  className={`hf-date-picker-day-btn ${!item.currentMonth ? 'is-outside' : ''} ${isSelected ? 'is-selected' : ''} ${isToday ? 'is-today' : ''}`}
+                >
+                  {item.day}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="hf-date-picker-footer">
+            <button type="button" onClick={handleClear} className="hf-date-picker-clear-btn">Clear</button>
+            <button type="button" onClick={handleToday} className="hf-date-picker-today-btn">Today</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ExtractedNoteFields {
+  hometown: string;
+  tenth: string;
+  twelfth: string;
+  ugPg: string;
+  familyBackground: string;
+  otherNote: string;
+}
+
+function cleanNoteValue(val: string): string {
+  const clean = val.trim();
+  if (!clean) return '-';
+  const lower = clean.toLowerCase();
+  if (['----', '-', 'not specified', 'none', 'null', 'undefined', 'n/a'].includes(lower)) return '-';
+  return clean;
+}
+
+function parseRecruiterNote(noteText: string | null | undefined): ExtractedNoteFields {
+  const result: ExtractedNoteFields = {
+    hometown: '-', tenth: '-', twelfth: '-', ugPg: '-', familyBackground: '-', otherNote: '',
+  };
+  if (!noteText) return result;
+  const otherLines: string[] = [];
+  noteText.split('\n').forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    const colonIdx = trimmed.indexOf(':');
+    if (colonIdx > 0) {
+      const key = trimmed.slice(0, colonIdx).trim().toLowerCase();
+      const val = cleanNoteValue(trimmed.slice(colonIdx + 1));
+      if (key.includes('hometown')) { result.hometown = val; }
+      else if (key.includes('10th')) { result.tenth = val; }
+      else if (key.includes('12th')) { result.twelfth = val; }
+      else if (key.includes('ug') || key.includes('pg') || key.includes('passout')) { result.ugPg = val; }
+      else if (key.includes('family')) { result.familyBackground = val; }
+      else if (key.includes('internship') || key.includes('project')) { if (val !== '-') otherLines.push(trimmed); }
+      else { otherLines.push(trimmed); }
+    } else { otherLines.push(trimmed); }
+  });
+  result.otherNote = otherLines.join('\n');
+  return result;
+}
+
+function splitCandidateName(name: string | null | undefined): { firstName: string; lastName: string } {
+  if (!name) return { firstName: '-', lastName: '-' };
+  const parts = name.trim().split(/\s+/);
+  return parts.length === 1
+    ? { firstName: parts[0], lastName: '-' }
+    : { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+}
+
+const getInitialState = (initialFilters: Partial<CandidateFilters> | null | undefined) => {
+  const hasInitialFilters = initialFilters && Object.keys(initialFilters).length > 0;
+
+  if (!hasInitialFilters) {
+    const saved = sessionStorage.getItem('hf_candidate_filters');
+    if (saved) {
+      try {
+        const loadedFilters = JSON.parse(saved);
+        return {
+          activeFilters: loadedFilters,
+          search: loadedFilters.search || '',
+          skill: parseSkillFilters(loadedFilters.skill || ''),
+          jdIds: (loadedFilters.jd_id || '').split(',').map((id: string) => parseInt(id.trim(), 10)).filter(Number.isInteger),
+          city: parseSkillFilters(loadedFilters.city || ''),
+          passoutYear: parseSkillFilters(loadedFilters.passout_year || ''),
+          college: parseSkillFilters(loadedFilters.college || ''),
+          degree: parseSkillFilters(loadedFilters.degree || ''),
+        };
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  const activeFilters = buildInitialFilters(initialFilters);
+  return {
+    activeFilters,
+    search: activeFilters.search || '',
+    skill: parseSkillFilters(activeFilters.skill || ''),
+    jdIds: (activeFilters.jd_id || '').split(',').map((id: string) => parseInt(id.trim(), 10)).filter(Number.isInteger),
+    city: parseSkillFilters(activeFilters.city || ''),
+    passoutYear: parseSkillFilters(activeFilters.passout_year || ''),
+    college: parseSkillFilters(activeFilters.college || ''),
+    degree: parseSkillFilters(activeFilters.degree || ''),
+    stage: parseSkillFilters(activeFilters.stage || ''),
+  };
+};
+
 export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<CandidateFilters> | null }) {
   const heroRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const skillAnchor = useComboboxAnchor();
   const jdAnchor = useComboboxAnchor();
-  const [filters, setFilters] = useState<CandidateFilters>(() => buildInitialFilters(initialFilters));
-  const [searchInput, setSearchInput] = useState(() => initialFilters?.search ?? '');
+
+  const initialState = useMemo(() => getInitialState(initialFilters), [initialFilters]);
+
+  const [pendingFilters, setPendingFilters] = useState<CandidateFilters>(initialState.activeFilters);
+  const [filters, setFilters] = useState<CandidateFilters>(initialState.activeFilters);
+  const [searchInput, setSearchInput] = useState(initialState.search);
   const [skillInput, setSkillInput] = useState('');
-  const [skillFilters, setSkillFilters] = useState<string[]>(() => parseSkillFilters(initialFilters?.skill ?? ''));
+  const [skillFilters, setSkillFilters] = useState<string[]>(initialState.skill);
   const [jds, setJds] = useState<JobDescription[]>([]);
-  const [selectedJdIds, setSelectedJdIds] = useState<number[]>(() => {
-    const raw = initialFilters?.jd_id ?? '';
-    return raw.split(',').map(id => parseInt(id.trim(), 10)).filter(Number.isInteger);
-  });
+  const [selectedJdIds, setSelectedJdIds] = useState<number[]>(initialState.jdIds);
   const [jdInput, setJdInput] = useState('');
+  const [cityInput, setCityInput] = useState('');
+  const [cityFilters, setCityFilters] = useState<string[]>(initialState.city);
+  const [passoutYearInput, setPassoutYearInput] = useState('');
+  const [passoutYearFilters, setPassoutYearFilters] = useState<string[]>(initialState.passoutYear);
+  const [collegeInput, setCollegeInput] = useState('');
+  const [collegeFilters, setCollegeFilters] = useState<string[]>(initialState.college);
+  const [degreeInput, setDegreeInput] = useState('');
+  const [degreeFilters, setDegreeFilters] = useState<string[]>(initialState.degree);
+  const [stageInput, setStageInput] = useState('');
+  const [stageFilters, setStageFilters] = useState<string[]>(initialState.stage || []);
+
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>(
+    () => (sessionStorage.getItem('hf_candidate_view_mode') as 'grid' | 'table') || 'grid'
+  );
+
+  useEffect(() => {
+    sessionStorage.setItem('hf_candidate_view_mode', viewMode);
+  }, [viewMode]);
+
+  useEffect(() => {
+    sessionStorage.setItem('hf_candidate_filters', JSON.stringify(filters));
+  }, [filters]);
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [stats, setStats] = useState<CandidateStats | null>(null);
@@ -318,6 +734,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   const [totalPages, setTotalPages] = useState(1);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(true);
+  const hasLoadedMeta = useRef(false);
 
   function syncSkillFilter(nextSkills: string[]) {
     setSkillFilters(nextSkills);
@@ -337,19 +754,58 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     syncJdFilter(selectedJdIds.filter((id) => id !== jdIdToRemove));
   }
 
+  function syncCityFilter(nextCities: string[]) {
+    setCityFilters(nextCities);
+    updateFilter('city', nextCities.join(', '));
+  }
+
+  function removeCityFilter(cityToRemove: string) {
+    syncCityFilter(cityFilters.filter((city) => city !== cityToRemove));
+  }
+
+  function syncPassoutYearFilter(nextYears: string[]) {
+    setPassoutYearFilters(nextYears);
+    updateFilter('passout_year', nextYears.join(', '));
+  }
+
+  function removePassoutYearFilter(yearToRemove: string) {
+    syncPassoutYearFilter(passoutYearFilters.filter((year) => year !== yearToRemove));
+  }
+
+  function syncCollegeFilter(nextColleges: string[]) {
+    setCollegeFilters(nextColleges);
+    updateFilter('college', nextColleges.join(', '));
+  }
+
+  function removeCollegeFilter(collegeToRemove: string) {
+    syncCollegeFilter(collegeFilters.filter((college) => college !== collegeToRemove));
+  }
+
+  function syncDegreeFilter(nextDegrees: string[]) {
+    setDegreeFilters(nextDegrees);
+    updateFilter('degree', nextDegrees.join(', '));
+  }
+
+  function removeDegreeFilter(degreeToRemove: string) {
+    syncDegreeFilter(degreeFilters.filter((degree) => degree !== degreeToRemove));
+  }
+
+  function syncStageFilter(nextStages: string[]) {
+    setStageFilters(nextStages);
+    updateFilter('stage', nextStages.join(',') as any);
+  }
+
+  function removeStageFilter(stageToRemove: string) {
+    syncStageFilter(stageFilters.filter((stage) => stage !== stageToRemove));
+  }
+
   useEffect(() => {
     fetchJds()
       .then(setJds)
       .catch(console.error);
   }, []);
 
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setFilters((current) => ({ ...current, search: searchInput, page: 1 }));
-    }, 250);
 
-    return () => window.clearTimeout(timeout);
-  }, [searchInput]);
 
   useEffect(() => {
     if (!heroRef.current) return;
@@ -370,15 +826,20 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     );
   }, [loading, candidates]);
 
-  const loadPage = useCallback(async (includeMeta = false) => {
+  const loadPage = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const shouldFetchMeta = !hasLoadedMeta.current;
+    if (shouldFetchMeta) {
+      hasLoadedMeta.current = true;
+    }
 
     try {
       const requests: [Promise<Awaited<ReturnType<typeof fetchCandidates>>>, Promise<CandidateStats>, Promise<CandidateMeta | null>] = [
         fetchCandidates(filters),
         fetchStats(),
-        includeMeta || !meta ? fetchCandidateMeta() : Promise.resolve(null),
+        shouldFetchMeta ? fetchCandidateMeta() : Promise.resolve(null),
       ];
 
       const [candidateRes, statsRes, metaRes] = await Promise.all(requests);
@@ -388,11 +849,14 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
       setStats(statsRes);
       if (metaRes) setMeta(metaRes);
     } catch (err) {
+      if (shouldFetchMeta) {
+        hasLoadedMeta.current = false;
+      }
       setError(err instanceof Error ? err.message : 'Failed to load candidates');
     } finally {
       setLoading(false);
     }
-  }, [filters, meta]);
+  }, [filters]);
 
   const loadHistory = useCallback(async (candidateId: number) => {
     setHistoryLoading(true);
@@ -414,10 +878,10 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      void loadPage(!meta);
+      void loadPage();
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [loadPage, meta]);
+  }, [loadPage]);
 
   useEffect(() => {
     if (!selected) return;
@@ -434,7 +898,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
       startTransition(() => {
         setSelected((current) => (current?.id === updated.id ? updated : current));
       });
-      await Promise.all([loadPage(false), loadHistory(candidate.id)]);
+      await Promise.all([loadPage(), loadHistory(candidate.id)]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update candidate stage');
     } finally {
@@ -443,17 +907,128 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
   }
 
   function updateFilter<K extends keyof CandidateFilters>(key: K, value: CandidateFilters[K]) {
+    setPendingFilters((current) => ({ ...current, [key]: value, page: key === 'page' ? value as number : 1 }));
+  }
+
+  function handleNavigateOrSort<K extends keyof CandidateFilters>(key: K, value: CandidateFilters[K]) {
+    setPendingFilters((current) => ({ ...current, [key]: value, page: key === 'page' ? value as number : 1 }));
     setFilters((current) => ({ ...current, [key]: value, page: key === 'page' ? value as number : 1 }));
   }
+
+  function handleApplyFilters() {
+    const nextFilters = {
+      ...pendingFilters,
+      search: searchInput,
+      page: 1,
+    };
+    setPendingFilters(nextFilters);
+    setFilters(nextFilters);
+  }
+
+  const handleExportToCSV = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const firstPageFilters = { ...filters, page: 1, limit: 200 };
+      const res = await fetchCandidates(firstPageFilters);
+      
+      let allCandidates = [...res.data];
+      const totalCount = res.total;
+      const totalPagesToFetch = Math.ceil(totalCount / 200);
+      
+      if (totalPagesToFetch > 1) {
+        const fetchPromises = [];
+        for (let p = 2; p <= totalPagesToFetch; p++) {
+          fetchPromises.push(fetchCandidates({ ...filters, page: p, limit: 200 }));
+        }
+        const results = await Promise.all(fetchPromises);
+        results.forEach((r) => {
+          allCandidates = allCandidates.concat(r.data);
+        });
+      }
+      
+      const headers = [
+        'ID',
+        'Name',
+        'Email',
+        'Phone',
+        'Stage',
+        'Score',
+        'Grade',
+        'Recommendation',
+        'Experience (Years)',
+        'Job Title',
+        'Highest Degree',
+        'College',
+        'Degree',
+        'Graduation Year',
+        'City',
+        'Position',
+        'Programming Languages',
+        'LinkedIn',
+        'Source',
+        'Recruiter Note'
+      ];
+      
+      const csvRows = [
+        headers.join(','),
+        ...allCandidates.map((c) => {
+          const rowValues = [
+            c.id,
+            c.candidate_name || '',
+            c.email || '',
+            c.phone || '',
+            c.pipeline_stage || '',
+            c.best_score !== null && c.best_score !== undefined ? c.best_score : '',
+            c.best_grade || '',
+            c.best_recommendation || '',
+            c.years_of_exp !== null && c.years_of_exp !== undefined ? c.years_of_exp : '',
+            c.current_job_title || '',
+            c.highest_degree || '',
+            c.college || '',
+            c.degree || '',
+            c.passout_year !== null && c.passout_year !== undefined ? c.passout_year : '',
+            c.city || '',
+            c.position_label || '',
+            c.programming_langs || '',
+            c.linkedin || '',
+            c.source || '',
+            c.latest_stage_note || ''
+          ];
+          
+          return rowValues
+            .map((val) => {
+              const strVal = String(val).replace(/"/g, '""');
+              return `"${strVal}"`;
+            })
+            .join(',');
+        })
+      ];
+      
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().slice(0, 10);
+      link.setAttribute('download', `candidates_export_${timestamp}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export CSV');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const positionOptions: FilterOption[] = [
     { label: 'All positions', value: '' },
     ...(meta?.positions.map((position) => ({ label: position, value: position })) ?? []),
-  ];
-
-  const cityOptions: FilterOption[] = [
-    { label: 'All cities', value: '' },
-    ...(meta?.cities.map((city) => ({ label: city, value: city })) ?? []),
   ];
 
   const internshipOptions: FilterOption[] = [
@@ -462,30 +1037,10 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
     { label: 'No', value: 'false' },
   ];
 
-  const passoutYearOptions: FilterOption[] = [
-    { label: 'All passout years', value: '' },
-    ...(meta?.passoutYears.map((year) => ({ label: String(year), value: String(year) })) ?? []),
-  ];
-
-  const collegeOptions: FilterOption[] = [
-    { label: 'All colleges', value: '' },
-    ...(meta?.colleges.map((college) => ({ label: college, value: college })) ?? []),
-  ];
-
-  const degreeOptions: FilterOption[] = [
-    { label: 'All degrees', value: '' },
-    ...(meta?.degrees.map((degree) => ({ label: degree, value: degree })) ?? []),
-  ];
-
   const sourceOptions: FilterOption[] = [
     { label: 'All sources', value: '' },
-    { label: 'Form', value: 'form' },
+    { label: 'Workdrive', value: 'workdrive' },
     { label: 'Email', value: 'email' },
-  ];
-
-  const stageOptions: FilterOption[] = [
-    { label: 'All stages', value: '' },
-    ...STAGE_META.map((stage) => ({ label: getStageLabel(stage.id), value: stage.id })),
   ];
 
   const recommendationOptions: FilterOption[] = [
@@ -523,7 +1078,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
         <div className="hf-hero-copy">
           <div className="hf-hero-title-row">
             <h1 className="hf-animate-text">Candidates</h1>
-            <button className="hf-primary-btn" onClick={() => void loadPage(true)}>
+            <button className="hf-primary-btn" onClick={() => void loadPage()}>
               <RefreshCw size={15} />
               Refresh Data
             </button>
@@ -567,11 +1122,41 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
             <h2>Filters</h2>
           </div>
           <div className="hf-inline-meta">
+            <button
+              className="hf-primary-btn"
+              onClick={handleApplyFilters}
+              disabled={loading}
+              title={loading ? "Loading candidates..." : "Apply current filters"}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Search size={14} />
+              Apply Filters
+            </button>
             <button className="hf-ghost-btn" onClick={() => setShowFilters((current) => !current)}>
               {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
-            <button className="hf-ghost-btn" onClick={() => { setSearchInput(''); setSkillInput(''); setSkillFilters([]); setSelectedJdIds([]); setFilters(DEFAULT_FILTERS); }}>
+            <button
+              className="hf-ghost-btn"
+              onClick={() => {
+                setSearchInput('');
+                setSkillInput('');
+                setSkillFilters([]);
+                setSelectedJdIds([]);
+                setCityInput('');
+                setCityFilters([]);
+                setPassoutYearInput('');
+                setPassoutYearFilters([]);
+                setCollegeInput('');
+                setCollegeFilters([]);
+                setDegreeInput('');
+                setDegreeFilters([]);
+                setStageInput('');
+                setStageFilters([]);
+                setPendingFilters(DEFAULT_FILTERS);
+                setFilters(DEFAULT_FILTERS);
+              }}
+            >
               <Filter size={14} />
               Clear Filters
             </button>
@@ -587,10 +1172,15 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   <Search size={15} />
                   <input
                     value={searchInput}
-                    onChange={(event) => setSearchInput(event.target.value)}
+                    onChange={(event) => setSearchInput(event.target.value.slice(0, 150))}
+                    maxLength={150}
                     placeholder="Search candidate"
-                  />
-                </div>
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        handleApplyFilters();
+                      }
+                    }}
+                  />                </div>
               </label>
 
               <div className="hf-select-field hf-skill-select" style={{ minWidth: '220px' }}>
@@ -649,7 +1239,11 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                     </ComboboxValue>
                   </ComboboxChips>
                   <ComboboxContent anchor={jdAnchor} className="hf-skill-combobox-menu">
-                    <div className="hf-skill-dropdown-search">
+                    <div
+                      className="hf-skill-dropdown-search"
+                      onClick={(event) => event.stopPropagation()}
+                      onPointerDown={(event) => event.stopPropagation()}
+                    >
                       <Search size={15} />
                       <ComboboxChipsInput
                         className="hf-skill-dropdown-search-input"
@@ -729,7 +1323,11 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                     </ComboboxValue>
                   </ComboboxChips>
                   <ComboboxContent anchor={skillAnchor} className="hf-skill-combobox-menu">
-                    <div className="hf-skill-dropdown-search">
+                    <div
+                      className="hf-skill-dropdown-search"
+                      onClick={(event) => event.stopPropagation()}
+                      onPointerDown={(event) => event.stopPropagation()}
+                    >
                       <Search size={15} />
                       <ComboboxChipsInput
                         className="hf-skill-dropdown-search-input"
@@ -757,15 +1355,70 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
               </div>
 
               <FilterDropdown label="Position" value={filters.position} options={positionOptions} onChange={(value) => updateFilter('position', value)} />
-              <FilterDropdown label="City" value={filters.city} options={cityOptions} onChange={(value) => updateFilter('city', value)} />
-              <FilterDropdown label="Internship" value={filters.internship_completed} options={internshipOptions} onChange={(value) => updateFilter('internship_completed', value)} />
-              <FilterDropdown label="Passout Year" value={filters.passout_year} options={passoutYearOptions} onChange={(value) => updateFilter('passout_year', value)} />
-              <FilterDropdown label="College" value={filters.college} options={collegeOptions} onChange={(value) => updateFilter('college', value)} />
-              <FilterDropdown label="Degree" value={filters.degree} options={degreeOptions} onChange={(value) => updateFilter('degree', value)} />
-              <FilterDropdown label="Source" value={filters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
-              <FilterDropdown label="Stage" value={filters.stage} options={stageOptions} onChange={(value) => updateFilter('stage', value as CandidateFilters['stage'])} direction="up" />
-              <FilterDropdown label="Recommendation" value={filters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} direction="up" />
-              <FilterDropdown label="Qualified" value={filters.qualified} options={qualifiedOptions} onChange={(value) => updateFilter('qualified', value)} direction="up" />
+              <MultiSelectFilter
+                label="City"
+                placeholder="Select cities"
+                options={meta?.cities ?? []}
+                selectedValues={cityFilters}
+                inputValue={cityInput}
+                onInputValueChange={setCityInput}
+                onValueChange={syncCityFilter}
+                onRemoveValue={removeCityFilter}
+              />
+              <FilterDropdown label="Internship" value={pendingFilters.internship_completed} options={internshipOptions} onChange={(value) => updateFilter('internship_completed', value)} />
+              <MultiSelectFilter
+                label="Passout Year"
+                placeholder="Select years"
+                options={meta?.passoutYears.map(String) ?? []}
+                selectedValues={passoutYearFilters}
+                inputValue={passoutYearInput}
+                onInputValueChange={setPassoutYearInput}
+                onValueChange={syncPassoutYearFilter}
+                onRemoveValue={removePassoutYearFilter}
+              />
+              <MultiSelectFilter
+                label="College"
+                placeholder="Select colleges"
+                options={meta?.colleges ?? []}
+                selectedValues={collegeFilters}
+                inputValue={collegeInput}
+                onInputValueChange={setCollegeInput}
+                onValueChange={syncCollegeFilter}
+                onRemoveValue={removeCollegeFilter}
+              />
+              <MultiSelectFilter
+                label="Degree"
+                placeholder="Select degrees"
+                options={meta?.degrees ?? []}
+                selectedValues={degreeFilters}
+                inputValue={degreeInput}
+                onInputValueChange={setDegreeInput}
+                onValueChange={syncDegreeFilter}
+                onRemoveValue={removeDegreeFilter}
+              />
+              <FilterDropdown label="Source" value={pendingFilters.source} options={sourceOptions} onChange={(value) => updateFilter('source', value)} />
+              <MultiSelectFilter
+                label="Stage"
+                placeholder="Select stages"
+                options={STAGE_META.map((s) => s.label)}
+                selectedValues={stageFilters.map((id) => STAGE_META.find((s) => s.id === id)?.label || id)}
+                inputValue={stageInput}
+                onInputValueChange={setStageInput}
+                onValueChange={(selectedLabels) => {
+                  const selectedIds = selectedLabels.map((lbl) => {
+                    const found = STAGE_META.find((s) => s.label.toLowerCase() === lbl.toLowerCase() || s.id.toLowerCase() === lbl.toLowerCase());
+                    return found ? found.id : lbl;
+                  });
+                  syncStageFilter(selectedIds);
+                }}
+                onRemoveValue={(labelToRemove) => {
+                  const found = STAGE_META.find((s) => s.label.toLowerCase() === labelToRemove.toLowerCase() || s.id.toLowerCase() === labelToRemove.toLowerCase());
+                  const idToRemove = found ? found.id : labelToRemove;
+                  removeStageFilter(idToRemove);
+                }}
+              />
+              <FilterDropdown label="Recommendation" value={pendingFilters.recommendation} options={recommendationOptions} onChange={(value) => updateFilter('recommendation', value)} direction="up" />
+              <FilterDropdown label="Qualified" value={pendingFilters.qualified} options={qualifiedOptions} onChange={(value) => updateFilter('qualified', value)} direction="up" />
 
               <label className="hf-select-field">
                 <span>Minimum score</span>
@@ -773,41 +1426,85 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   type="number"
                   min="0"
                   max="100"
-                  value={filters.min_score}
+                  value={pendingFilters.min_score}
                   onChange={(event) => updateFilter('min_score', event.target.value)}
                   placeholder="0"
                 />
               </label>
 
-              <label className="hf-select-field">
-                <span>Date from</span>
-                <input type="date" value={filters.date_from} onChange={(event) => updateFilter('date_from', event.target.value)} />
-              </label>
+              <ModernDatePicker
+                label="Date from"
+                value={pendingFilters.date_from}
+                onChange={(value) => updateFilter('date_from', value)}
+              />
 
-              <label className="hf-select-field">
-                <span>Date to</span>
-                <input type="date" value={filters.date_to} onChange={(event) => updateFilter('date_to', event.target.value)} />
-              </label>
+              <ModernDatePicker
+                label="Date to"
+                value={pendingFilters.date_to}
+                onChange={(value) => updateFilter('date_to', value)}
+              />
 
               <FilterDropdown
                 label="Sort by"
-                value={filters.sort}
+                value={pendingFilters.sort}
                 options={sortOptions}
-                onChange={(value) => updateFilter('sort', value)}
+                onChange={(value) => handleNavigateOrSort('sort', value)}
                 leadingIcon={<ArrowUpDown size={14} />}
                 direction="up"
               />
 
-              <FilterDropdown label="Order" value={filters.order} options={orderOptions} onChange={(value) => updateFilter('order', value as 'asc' | 'desc')} direction="up" />
+              <FilterDropdown label="Order" value={pendingFilters.order} options={orderOptions} onChange={(value) => handleNavigateOrSort('order', value as 'asc' | 'desc')} direction="up" />
+
             </div>
           </>
         )}
       </section>
 
-      <section className="hf-results-head">
+      <section className="hf-results-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h3>Applicants</h3>
           <p>{total} matched</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Grid / Table toggle */}
+          <div style={{ display: 'flex', background: 'var(--hf-surface-2)', border: '1px solid var(--hf-border)', borderRadius: '8px', padding: '2px', gap: '2px' }}>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              title="Card Grid"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 11px',
+                borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+                background: viewMode === 'grid' ? 'var(--hf-accent)' : 'transparent',
+                color: viewMode === 'grid' ? '#fff' : 'var(--hf-text-muted)',
+              }}
+            >
+              <LayoutGrid size={13} /> Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              title="Data Table"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 11px',
+                borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+                background: viewMode === 'table' ? 'var(--hf-accent)' : 'transparent',
+                color: viewMode === 'table' ? '#fff' : 'var(--hf-text-muted)',
+              }}
+            >
+              <TableProperties size={13} /> Table
+            </button>
+          </div>
+
+          <button
+            onClick={handleExportToCSV}
+            className="hf-primary-btn"
+            disabled={loading || total === 0}
+            title="Export matching candidates to CSV"
+            style={{ height: '36px', padding: '0 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            {loading ? 'Exporting...' : 'Export CSV'}
+          </button>
         </div>
       </section>
 
@@ -871,6 +1568,50 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
           <Users size={36} />
           <p>No candidates match these filters yet.</p>
         </div>
+      ) : viewMode === 'table' ? (
+        <div className="pl-table-container glass-card" style={{ padding: '20px', overflowX: 'auto', marginTop: '16px' }}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>First Name</TableHead>
+                <TableHead>Last Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Hometown</TableHead>
+                <TableHead style={{ textAlign: 'center' }}>10th</TableHead>
+                <TableHead style={{ textAlign: 'center' }}>12th</TableHead>
+                <TableHead style={{ textAlign: 'center' }}>UG/PG Year</TableHead>
+                <TableHead>Family Background</TableHead>
+                <TableHead>Recruiter Note</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {candidates.map((c) => {
+                const { firstName, lastName } = splitCandidateName(c.candidate_name);
+                const parsed = parseRecruiterNote(c.latest_stage_note);
+                return (
+                  <TableRow key={c.id} onClick={() => setSelected(c)} style={{ cursor: 'pointer' }}>
+                    <TableCell style={{ fontWeight: 500 }}>{firstName}</TableCell>
+                    <TableCell style={{ fontWeight: 500 }}>{lastName}</TableCell>
+                    <TableCell>{c.email || '-'}</TableCell>
+                    <TableCell>{c.phone || '-'}</TableCell>
+                    <TableCell>{parsed.hometown}</TableCell>
+                    <TableCell style={{ textAlign: 'center' }}>{parsed.tenth}</TableCell>
+                    <TableCell style={{ textAlign: 'center' }}>{parsed.twelfth}</TableCell>
+                    <TableCell style={{ textAlign: 'center' }}>{parsed.ugPg}</TableCell>
+                    <TableCell>{parsed.familyBackground}</TableCell>
+                    <TableCell
+                      style={{ maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      title={parsed.otherNote || c.latest_stage_note || undefined}
+                    >
+                      {parsed.otherNote || c.latest_stage_note || '-'}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
         <div ref={gridRef} className="hf-candidate-grid">
           {candidates.map((candidate) => {
@@ -903,15 +1644,20 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                     </div>
                   </div>
 
-                  <div className="hf-inline-meta">
-                    <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`}>
+                  <div className="hf-inline-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', alignItems: 'center' }}>
+                    <span className={`hf-stage-badge hf-stage-badge--${candidate.pipeline_stage}`} title="Current hiring stage">
+                      <span style={{ fontSize: '10px', opacity: 0.65, marginRight: '2px' }}>Stage:</span>
                       {getStageLabel(candidate.pipeline_stage)}
                     </span>
-                    <span className={`hf-rec-badge ${recommendationClass(candidate.best_recommendation ?? '')}`}>
-                      {candidate.best_recommendation || 'Pending review'}
+                    <span className={`hf-rec-badge ${recommendationClass(candidate.best_recommendation ?? '')}`} title="AI-generated hiring recommendation">
+                      <span style={{ fontSize: '10px', opacity: 0.65, marginRight: '2px' }}>AI Match:</span>
+                      {candidate.best_recommendation || 'Pending'}
                     </span>
-                    <span className={`hf-source-badge ${sourceClass(candidate.source)}`}>
-                      {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 'Form'}
+                    <span className={`hf-source-badge ${sourceClass(candidate.source)}`} title="Where this application came from">
+                      <span style={{ fontSize: '10px', opacity: 0.65, marginRight: '2px' }}>Source:</span>
+                      {(candidate.source ?? '').toLowerCase().includes('email') ? 'Email' : 
+                       (candidate.source ?? '').toLowerCase().includes('workdrive') ? 'Workdrive' : 
+                       (candidate.source ? candidate.source.charAt(0).toUpperCase() + candidate.source.slice(1) : 'Form')}
                     </span>
                   </div>
 
@@ -966,7 +1712,7 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
                   </div>
 
                   <p className="hf-card-summary">
-                    {Object.keys(candidate.jd_matches || {}).length > 0 
+                    {Object.keys(candidate.jd_matches || {}).length > 0
                       ? `Evaluated against ${Object.keys(candidate.jd_matches || {}).length} active job role${Object.keys(candidate.jd_matches || {}).length > 1 ? 's' : ''}.`
                       : 'Open to inspect AI assessment and resume fit details.'}
                   </p>
@@ -1014,15 +1760,14 @@ export function CandidatesPage({ initialFilters }: { initialFilters?: Partial<Ca
         <div className="hf-pagination">
           <span>Page {filters.page} of {totalPages}</span>
           <div>
-            <button className="hf-ghost-btn" disabled={filters.page <= 1} onClick={() => updateFilter('page', filters.page - 1)}>Previous</button>
-            <button className="hf-ghost-btn" disabled={filters.page >= totalPages} onClick={() => updateFilter('page', filters.page + 1)}>Next</button>
-          </div>
-        </div>
+            <button className="hf-ghost-btn" disabled={filters.page <= 1} onClick={() => handleNavigateOrSort('page', filters.page - 1)}>Previous</button>
+            <button className="hf-ghost-btn" disabled={filters.page >= totalPages} onClick={() => handleNavigateOrSort('page', filters.page + 1)}>Next</button>
+          </div>        </div>
       )}
 
       {selected && (
         <CandidateDetailDrawer
-          key={`${selected.id}-${selected.pipeline_stage}-${selected.pipeline_stage_updated_at}-${selected.latest_stage_note ?? ''}`}
+          key={`${selected.id}-${selected.pipeline_stage}-${selected.pipeline_stage_updated_at}-${selected.latest_stage_note ?? ''}-${selected.scheduled_test_date ?? ''}`}
           candidate={selected}
           history={history}
           historyLoading={historyLoading}

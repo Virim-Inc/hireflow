@@ -18,10 +18,8 @@
   padding: 28px;
   border-radius: 28px;
   border: 1px solid var(--hf-border);
-  background:
-    radial-gradient(circle at top right, color-mix(in oklab, var(--hf-accent) 22%, transparent), transparent 34%),
-    linear-gradient(160deg, color-mix(in oklab, var(--hf-card-bg) 75%, black 8%), var(--hf-card-bg));
-  box-shadow: 0 30px 70px color-mix(in oklab, var(--hf-shadow) 82%, transparent);
+  background: var(--hf-panel-bg-gradient);
+  box-shadow: 0 20px 50px color-mix(in oklab, var(--hf-shadow) 20%, transparent);
 }
 
 .hf-kicker {
@@ -82,7 +80,15 @@
   padding: 12px 14px;
   border-radius: 16px;
   border: 1px solid var(--hf-border);
-  background: color-mix(in oklab, var(--hf-surface-2) 82%, transparent);
+  background: var(--hf-panel-bg-gradient);
+  box-shadow: 0 4px 15px color-mix(in oklab, var(--hf-shadow) 10%, transparent);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hf-mini-stat-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--hf-border-glow);
+  box-shadow: 0 8px 20px color-mix(in oklab, var(--hf-shadow) 15%, transparent);
 }
 
 .hf-mini-stat-card span {
@@ -236,6 +242,15 @@
   overflow: visible;
 }
 
+.hf-panel,
+.hf-filter-panel,
+.hf-candidate-card,
+.hf-empty-state {
+  background: var(--hf-panel-bg-gradient) !important;
+  border: 1px solid var(--hf-border) !important;
+  box-shadow: 0 15px 35px color-mix(in oklab, var(--hf-shadow) 12%, transparent) !important;
+}
+
 .hf-panel--stretch {
   min-height: 100%;
 }
@@ -342,8 +357,10 @@
   z-index: 2;
 }
 
+.hf-skill-select:focus-within,
+.hf-skill-select:has(.is-open),
 .hf-skill-select.is-open {
-  z-index: 26;
+  z-index: 50;
 }
 
 .hf-skill-combobox {
@@ -387,13 +404,31 @@
   display: inline-flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 6px;
+  gap: 12px;
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
   white-space: nowrap;
+  padding-bottom: 8px;
+}
+
+.hf-selected-skills-summary::-webkit-scrollbar {
+  height: 4px;
+}
+
+.hf-selected-skills-summary::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hf-selected-skills-summary::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--hf-border) 50%, transparent);
+  border-radius: 2px;
+}
+
+.hf-selected-skills-summary::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--hf-accent) 60%, transparent);
 }
 
 .hf-selected-skill-item {
@@ -457,10 +492,11 @@
   left: 0;
   right: 0;
   z-index: 40;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-  max-height: 260px;
-  overflow-y: auto;
+  max-height: 280px;
+  overflow-y: hidden;
   padding: 8px;
   border-radius: 18px;
   border: 1px solid color-mix(in oklab, var(--hf-accent) 20%, var(--hf-border));
@@ -468,6 +504,31 @@
   box-shadow: 0 22px 48px color-mix(in oklab, var(--hf-shadow) 86%, transparent);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+}
+
+.hf-skill-combobox-list {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hf-skill-combobox-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hf-skill-combobox-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hf-skill-combobox-list::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--hf-border) 40%, transparent);
+  border-radius: 3px;
+}
+
+.hf-skill-combobox-list::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--hf-border) 60%, transparent);
 }
 
 .hf-skill-dropdown-search {
@@ -892,6 +953,9 @@
 .hf-candidate-card:hover,
 .hf-candidate-card:focus-within {
   z-index: 10;
+  transform: translateY(-3px);
+  border-color: var(--hf-border-glow) !important;
+  box-shadow: 0 15px 35px color-mix(in oklab, var(--hf-shadow) 24%, transparent) !important;
 }
 
 .hf-candidate-card--skeleton .hf-card-main,
@@ -1134,9 +1198,9 @@
   color: var(--hf-text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .hf-skill-chip--more {
@@ -1277,8 +1341,8 @@
 }
 
 .hf-rec--consider {
-  color: var(--hf-warning);
-  background: color-mix(in oklab, var(--hf-warning-bg) 92%, transparent);
+  color: var(--hf-success);
+  background: color-mix(in oklab, var(--hf-success-bg) 92%, transparent);
 }
 
 .hf-rec--reject {
@@ -1294,6 +1358,11 @@
 .hf-source--form {
   color: var(--hf-accent-text);
   background: color-mix(in oklab, var(--hf-accent-glow) 88%, transparent);
+}
+
+.hf-source--workdrive {
+  color: var(--hf-success);
+  background: color-mix(in oklab, var(--hf-success-bg) 92%, transparent);
 }
 
 .hf-empty-state {
@@ -1335,8 +1404,9 @@
 .hf-drawer-shell {
   position: fixed;
   inset: 0;
-  z-index: 80;
-  background: color-mix(in oklab, var(--hf-bg) 92%, black 10%);
+  z-index: 1000;
+  background: var(--hf-drawer-shell-gradient);
+  color: var(--hf-text-primary);
   overflow-y: auto;
 }
 
@@ -1381,6 +1451,9 @@
   padding: 24px;
   border-radius: 28px;
   margin-top: 4px;
+  background: var(--hf-panel-bg-gradient) !important;
+  border: 1px solid var(--hf-border) !important;
+  box-shadow: 0 15px 35px color-mix(in oklab, var(--hf-shadow) 20%, transparent);
 }
 
 .hf-detail-stats-row {
@@ -1394,8 +1467,15 @@
   padding: 16px 18px;
   border-radius: 20px;
   border: 1px solid var(--hf-border);
-  background: color-mix(in oklab, var(--hf-card-bg) 90%, transparent);
-  box-shadow: 0 12px 30px color-mix(in oklab, var(--hf-shadow) 16%, transparent);
+  background: var(--hf-panel-bg-gradient);
+  box-shadow: 0 10px 25px color-mix(in oklab, var(--hf-shadow) 12%, transparent);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hf-detail-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--hf-border-glow);
+  box-shadow: 0 14px 30px color-mix(in oklab, var(--hf-shadow) 20%, transparent);
 }
 
 .hf-detail-stat-card span {
@@ -1785,10 +1865,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 12px 20px;
   border-radius: 16px;
   background: color-mix(in oklab, var(--hf-card-bg) 80%, transparent);
   border: 1px solid var(--hf-border);
+  min-width: 0;
 }
 
 .hf-resume-topbar-info {
@@ -1797,6 +1879,15 @@
   gap: 10px;
   font-weight: 500;
   color: var(--hf-text-primary);
+  min-width: 0;
+  flex: 1;
+}
+
+.hf-resume-topbar-info span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .hf-resume-preview-frame {
@@ -2262,19 +2353,423 @@
 /* ── Scrollable Skills Overview Tags ── */
 .hf-skill-section-tags-scrollable {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
+  max-height: 100px;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 4px 0 6px;
 }
 
 .hf-skill-section-tags-scrollable::-webkit-scrollbar {
-  height: 4px;
+  width: 4px;
 }
 
 .hf-skill-section-tags-scrollable::-webkit-scrollbar-thumb {
   background-color: var(--hf-border);
   border-radius: 99px;
+}
+
+/* ── Premium Custom Date Picker Dropdown ── */
+.hf-date-picker-menu {
+  width: 280px;
+  background: color-mix(in oklab, var(--hf-card-bg) 95%, transparent);
+  border: 1px solid var(--hf-border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 36px color-mix(in oklab, var(--hf-shadow) 28%, transparent);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+}
+
+.hf-date-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.hf-date-picker-nav-btn {
+  background: var(--hf-surface-2);
+  border: 1px solid var(--hf-border);
+  color: var(--hf-text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hf-date-picker-nav-btn:hover {
+  background: var(--hf-surface-3);
+  color: var(--hf-text-primary);
+  border-color: var(--hf-border-glow);
+}
+
+.hf-date-picker-month-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--hf-text-primary);
+}
+
+.hf-date-picker-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.hf-date-picker-weekday {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--hf-text-muted);
+  text-transform: uppercase;
+}
+
+.hf-date-picker-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.hf-date-picker-day-btn {
+  background: transparent;
+  border: none;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--hf-text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.hf-date-picker-day-btn:hover {
+  background: var(--hf-surface-2);
+}
+
+.hf-date-picker-day-btn.is-outside {
+  color: var(--hf-text-muted);
+  opacity: 0.4;
+}
+
+.hf-date-picker-day-btn.is-selected {
+  background: var(--hf-accent);
+  color: var(--hf-bg);
+  box-shadow: 0 4px 10px var(--hf-border-glow);
+}
+
+.hf-date-picker-day-btn.is-today {
+  border: 1.5px solid var(--hf-accent);
+}
+
+.hf-date-picker-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  border-top: 1px solid var(--hf-border);
+  padding-top: 10px;
+}
+
+.hf-date-picker-clear-btn,
+.hf-date-picker-today-btn {
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.hf-date-picker-clear-btn {
+  color: var(--hf-danger);
+}
+
+.hf-date-picker-clear-btn:hover {
+  background: color-mix(in oklab, var(--hf-danger-bg) 20%, transparent);
+}
+
+.hf-date-picker-today-btn {
+  color: var(--hf-accent-text);
+}
+
+.hf-date-picker-today-btn:hover {
+  background: var(--hf-surface-2);
+}
+
+/* ── Profile Drawer UI Overrides ── */
+.hf-tab-btn.active {
+  background: linear-gradient(135deg, var(--hf-surface-2), color-mix(in oklab, var(--hf-accent-glow) 35%, var(--hf-surface-2))) !important;
+  border-color: var(--hf-border) !important;
+  color: var(--hf-text-primary) !important;
+  box-shadow: 0 4px 15px color-mix(in oklab, var(--hf-shadow) 10%, transparent) !important;
+}
+
+.hf-drawer-jd-score-tab--active {
+  background-color: var(--hf-card-bg) !important;
+  color: var(--hf-accent-text) !important;
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--hf-shadow) 16%, transparent) !important;
+}
+
+/* Circular Score Indicator */
+.hf-score-pill--xl {
+  border-radius: 50% !important;
+  aspect-ratio: 1 !important;
+  border-width: 2px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.hf-score-pill--xl.hf-score-pill--high {
+  background: radial-gradient(circle, color-mix(in oklab, var(--hf-success) 14%, transparent) 0%, color-mix(in oklab, var(--hf-success) 4%, transparent) 100%) !important;
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--hf-success) 22%, transparent) !important;
+}
+
+.hf-score-pill--xl.hf-score-pill--mid {
+  background: radial-gradient(circle, color-mix(in oklab, var(--hf-warning) 14%, transparent) 0%, color-mix(in oklab, var(--hf-warning) 4%, transparent) 100%) !important;
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--hf-warning) 22%, transparent) !important;
+}
+
+.hf-score-pill--xl.hf-score-pill--low {
+  background: radial-gradient(circle, color-mix(in oklab, var(--hf-danger) 14%, transparent) 0%, color-mix(in oklab, var(--hf-danger) 4%, transparent) 100%) !important;
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--hf-danger) 22%, transparent) !important;
+}
+
+/* ═══════════════════════════════════════════
+   Candidates Page Responsive Overrides
+═══════════════════════════════════════════ */
+
+/* Card text wrapping/truncation to handle long values (stress proofing) */
+.hf-card-person h4 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hf-card-person p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hf-contact-line a,
+.hf-contact-line span {
+  word-break: break-all;
+  white-space: normal;
+}
+
+/* Base resets for card elements to prevent blowout */
+.hf-candidate-grid > * {
+  min-width: 0;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  /* Stack Hero section */
+  .hf-hero {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+  
+  .hf-hero-aside {
+    margin-top: 0;
+    width: 100%;
+  }
+
+  /* Adjust mini stats row */
+  .hf-mini-stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+
+  /* Filters layout grid */
+  .hf-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px;
+  }
+
+  /* Candidate main layout split grid */
+  .hf-dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hf-page {
+    padding: 16px 12px 30px;
+    gap: 16px;
+  }
+
+  /* Full Screen Mobile Takeover for Candidate Detail Drawer */
+  .hf-drawer-shell {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    z-index: 210 !important;
+    overflow-y: auto !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hf-drawer-topbar {
+    padding: 12px 16px !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 220 !important;
+    box-shadow: 0 4px 16px var(--hf-shadow) !important;
+  }
+
+  .hf-drawer-body {
+    padding: 16px 12px 30px !important;
+    flex: 1;
+    overflow-y: auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* Stack drawer hero */
+  .hf-drawer-hero {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+    justify-items: center;
+    gap: 16px;
+    padding: 18px !important;
+    border-radius: 20px !important;
+  }
+
+  .hf-drawer-hero-copy {
+    text-align: center !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hf-drawer-avatar {
+    width: 64px !important;
+    height: 64px !important;
+    font-size: 1.4rem !important;
+    border-radius: 18px !important;
+  }
+
+  /* Stats row stacking */
+  .hf-detail-stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+
+  /* Stacking interior grids in drawer */
+  .hf-drawer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .hf-contact-line {
+    justify-content: center !important;
+    gap: 8px 12px !important;
+  }
+
+  /* Filter grid single column */
+  .hf-filter-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Compact candidate cards */
+  .hf-candidate-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+    gap: 12px;
+  }
+
+  .hf-card-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hf-card-footer select {
+    width: 100%;
+    flex: none;
+  }
+
+  /* Pagination stacking */
+  .hf-pagination {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px;
+    padding-top: 10px;
+  }
+
+  .hf-pagination > div {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Smaller viewports mini stats */
+  .hf-mini-stats-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Detail drawer stats stacking */
+  .hf-detail-stats-row {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .hf-card-stats {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+}
+/* -------------------------------------------
+   Table View Styles
+   ------------------------------------------- */
+.pl-table-container {
+  background: var(--hf-surface);
+  border: 1px solid var(--hf-border);
+  border-radius: 20px;
+  box-shadow:
+    0 1px 3px var(--hf-shadow),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.pl-table-container tr {
+  transition: background-color 0.18s ease;
+}
+
+.pl-table-container tr:hover {
+  background-color: var(--hf-surface-2) !important;
+}
+
+.pl-table-container th {
+  color: var(--hf-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid var(--hf-border);
+}
+
+.pl-table-container td {
+  color: var(--hf-text-secondary);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--hf-border);
+  padding: 14px 16px;
 }

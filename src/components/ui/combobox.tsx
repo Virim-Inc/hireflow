@@ -185,7 +185,7 @@ export function Combobox({
 
   return (
     <ComboboxContext.Provider value={contextValue}>
-      <div ref={rootRef} className={cn(className)}>
+      <div ref={rootRef} className={cn(className, open && "is-open")}>
         {children}
       </div>
     </ComboboxContext.Provider>
@@ -270,8 +270,9 @@ export const ComboboxChipsInput = React.forwardRef<
       ref={ref}
       value={query}
       className={cn(className)}
+      maxLength={100}
       onChange={(event) => {
-        setQuery(event.target.value)
+        setQuery(event.target.value.slice(0, 100))
         setHighlightedIndex(0)
         setOpen(true)
         onChange?.(event)

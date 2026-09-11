@@ -61,11 +61,11 @@ export function MetricsPanel({ stats, loading, onNavigate }: MetricsPanelProps) 
         <div className="dash-metric-breakdown">
           <button 
             className="dash-metric-breakdown-btn" 
-            onClick={() => openCandidates({ source: 'form' })}
+            onClick={() => openCandidates({ source: 'workdrive' })}
             disabled={loading}
           >
-            <span>From Form</span>
-            <strong>{loading ? '...' : (stats?.sourceBreakdown?.form ?? 0)}</strong>
+            <span>From Workdrive</span>
+            <strong>{loading ? '...' : (stats?.sourceBreakdown?.workdrive ?? 0)}</strong>
           </button>
           <button 
             className="dash-metric-breakdown-btn" 

@@ -218,7 +218,7 @@ export function DashboardHome({ onNavigate }: DashboardHomeProps) {
               <StatCard
                 label="Total Candidates"
                 value={loading ? '...' : <AnimatedCount value={stats?.totalCandidates ?? 0} />}
-                helper={loading ? 'Loading candidates' : `${stats?.sourceBreakdown.form ?? 0} form and ${stats?.sourceBreakdown.email ?? 0} email applications`}
+                helper={loading ? 'Loading candidates' : `${stats?.sourceBreakdown.workdrive ?? 0} Workdrive and ${stats?.sourceBreakdown.email ?? 0} email applications`}
                 breakdown={[
                   { label: 'Today', value: loading ? '...' : <AnimatedCount value={stats?.activeToday ?? 0} />, onClick: () => openCandidates({ date_from: today, date_to: today }) },
                   { label: 'This Month', value: loading ? '...' : <AnimatedCount value={stats?.activeThisMonth ?? 0} />, onClick: () => openCandidates({ date_from: monthStart, date_to: today }) },

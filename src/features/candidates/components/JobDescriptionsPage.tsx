@@ -1,8 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Search, Plus, Edit2, Trash2, Briefcase, MapPin, Users } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Briefcase, MapPin, Users, Eye, X, Sparkles } from 'lucide-react';
 import type { JobDescription } from '../types/candidate.types';
 import { fetchJds, deleteJd, toggleJdActive } from '../services/candidateService';
 import { JdModalForm } from './JdModalForm';
+import { CreateInterviewSetModal } from '../../flowmingo/components/CreateInterviewSetModal';
 
 export function JobDescriptionsPage() {
   const [jds, setJds] = useState<JobDescription[]>([]);
@@ -16,6 +17,8 @@ export function JobDescriptionsPage() {
   // Modal control
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedJd, setSelectedJd] = useState<JobDescription | null>(null);
+  const [viewingJd, setViewingJd] = useState<JobDescription | null>(null);
+  const [flowmingoJd, setFlowmingoJd] = useState<JobDescription | null>(null);
 
   const loadJds = async () => {
     try {
@@ -148,7 +151,8 @@ export function JobDescriptionsPage() {
             type="text"
             placeholder="Search by title, department, or location..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value.slice(0, 150))}
+            maxLength={150}
             style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--hf-text-primary)' }}
           />
         </div>
@@ -271,6 +275,22 @@ export function JobDescriptionsPage() {
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                       <button
                         className="hf-ghost-btn"
+                        style={{ padding: '6px', color: '#a855f7' }}
+                        onClick={() => setFlowmingoJd(jd)}
+                        title="Create Flowmingo AI Interview Set"
+                      >
+                        <Sparkles size={14} />
+                      </button>
+                      <button
+                        className="hf-ghost-btn"
+                        style={{ padding: '6px' }}
+                        onClick={() => setViewingJd(jd)}
+                        title="View JD"
+                      >
+                        <Eye size={14} />
+                      </button>
+                      <button
+                        className="hf-ghost-btn"
                         style={{ padding: '6px' }}
                         onClick={() => {
                           setSelectedJd(jd);
@@ -307,6 +327,217 @@ export function JobDescriptionsPage() {
         onSaved={handleSaved}
         initialJd={selectedJd}
       />
+
+      {/* Flowmingo Set Creation Modal */}
+      <CreateInterviewSetModal
+        isOpen={Boolean(flowmingoJd)}
+        onClose={() => setFlowmingoJd(null)}
+        jd={
+          flowmingoJd
+            ? {
+                id: flowmingoJd.id,
+                title: flowmingoJd.title,
+                description: flowmingoJd.responsibilities || undefined,
+                requirements: flowmingoJd.requirements ? [flowmingoJd.requirements] : undefined,
+              }
+            : null
+        }
+        onSuccess={() => void loadJds()}
+      />
+
+      {/* View JD Details Modal */}
+      {viewingJd && (
+        <div className="hf-modal-overlay" onClick={() => setViewingJd(null)}>
+          <div 
+            className="hf-modal-container glass-card" 
+            onClick={e => e.stopPropagation()}
+            style={{ 
+              maxWidth: '750px', 
+              width: '95%', 
+              padding: '24px', 
+              maxHeight: '90vh', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              overflow: 'hidden',
+              gap: 0
+            }}
+          >
+            <div 
+              className="hf-modal-header" 
+              style={{ 
+                borderBottom: '1px solid var(--hf-border)', 
+                paddingBottom: '16px', 
+                marginBottom: '20px',
+                flexShrink: 0
+              }}
+            >
+              <div>
+                <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--hf-text-muted, #94a3b8)' }}>Job Description Details</span>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: '700', margin: '4px 0 0 0', color: 'var(--hf-text-primary)' }}>{viewingJd.title}</h3>
+              </div>
+              <button 
+                className="hf-modal-close" 
+                onClick={() => setViewingJd(null)} 
+                aria-label="Close modal"
+                style={{ background: 'transparent', border: 'none', color: 'var(--hf-text-muted)', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Scrollable Modal Body */}
+            <div 
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '20px', 
+                flex: 1, 
+                overflowY: 'auto', 
+                paddingRight: '8px',
+                paddingBottom: '12px',
+                fontSize: '13px',
+                color: 'var(--hf-text-secondary)'
+              }}
+            >
+              {/* JD Specs Grid */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '12px 24px',
+                backgroundColor: 'rgba(255, 255, 255, 0.01)',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '1px solid var(--hf-border)'
+              }}>
+                <div>
+                  <span style={{ color: 'var(--hf-text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', marginBottom: '2px' }}>Department</span>
+                  <strong>{viewingJd.department || '—'}</strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--hf-text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', marginBottom: '2px' }}>Location & Mode</span>
+                  <strong>{viewingJd.location || '—'} ({viewingJd.work_mode || '—'})</strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--hf-text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', marginBottom: '2px' }}>Employment Type</span>
+                  <strong>{viewingJd.employment_type || '—'}</strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--hf-text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', marginBottom: '2px' }}>Experience Range</span>
+                  <strong>{viewingJd.experience_min} - {viewingJd.experience_max} years</strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--hf-text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', marginBottom: '2px' }}>Openings</span>
+                  <strong>{viewingJd.openings || '—'} position(s)</strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--hf-text-muted, #94a3b8)', display: 'block', fontSize: '11px', textTransform: 'uppercase', marginBottom: '2px' }}>Target Education</span>
+                  <strong>{viewingJd.education || '—'} {viewingJd.specialization ? `(${viewingJd.specialization})` : ''}</strong>
+                </div>
+              </div>
+
+              {/* Skills Section */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <strong style={{ color: 'var(--hf-text-muted)', fontSize: '12px', textTransform: 'uppercase' }}>Required Skills</strong>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {(Array.isArray(viewingJd.required_skills) ? viewingJd.required_skills : []).length ? (
+                      (viewingJd.required_skills as string[]).map(skill => (
+                        <span key={skill} className="hf-skill-chip" style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', color: 'var(--hf-primary)' }}>{skill}</span>
+                      ))
+                    ) : (
+                      <span style={{ color: 'var(--hf-text-muted)', fontSize: '12px' }}>No required skills entered</span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <strong style={{ color: 'var(--hf-text-muted)', fontSize: '12px', textTransform: 'uppercase' }}>Preferred Skills</strong>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {(Array.isArray(viewingJd.preferred_skills) ? viewingJd.preferred_skills : []).length ? (
+                      (viewingJd.preferred_skills as string[]).map(skill => (
+                        <span key={skill} className="hf-skill-chip" style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--hf-border)' }}>{skill}</span>
+                      ))
+                    ) : (
+                      <span style={{ color: 'var(--hf-text-muted)', fontSize: '12px' }}>No preferred skills entered</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed Descriptions */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {viewingJd.requirements && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <strong style={{ color: 'var(--hf-text-muted)', textTransform: 'uppercase', fontSize: '12px' }}>Key Requirements</strong>
+                    <p style={{
+                      margin: 0,
+                      whiteSpace: 'pre-wrap',
+                      fontSize: '13px',
+                      lineHeight: '1.7',
+                      backgroundColor: 'rgba(0,0,0,0.15)',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--hf-border)'
+                    }}>{viewingJd.requirements}</p>
+                  </div>
+                )}
+
+                {viewingJd.responsibilities && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <strong style={{ color: 'var(--hf-text-muted)', textTransform: 'uppercase', fontSize: '12px' }}>Key Responsibilities</strong>
+                    <p style={{
+                      margin: 0,
+                      whiteSpace: 'pre-wrap',
+                      fontSize: '13px',
+                      lineHeight: '1.7',
+                      backgroundColor: 'rgba(0,0,0,0.15)',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--hf-border)'
+                    }}>{viewingJd.responsibilities}</p>
+                  </div>
+                )}
+
+                {viewingJd.nice_to_have && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <strong style={{ color: 'var(--hf-text-muted)', textTransform: 'uppercase', fontSize: '12px' }}>Nice To Have</strong>
+                    <p style={{
+                      margin: 0,
+                      whiteSpace: 'pre-wrap',
+                      fontSize: '13px',
+                      lineHeight: '1.7',
+                      backgroundColor: 'rgba(0,0,0,0.15)',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--hf-border)'
+                    }}>{viewingJd.nice_to_have}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div 
+              style={{ 
+                borderTop: '1px solid var(--hf-border)', 
+                paddingTop: '16px', 
+                marginTop: '20px',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                flexShrink: 0
+              }}
+            >
+              <button 
+                type="button" 
+                className="hf-primary-btn" 
+                onClick={() => setViewingJd(null)}
+                style={{ padding: '8px 20px', borderRadius: '8px' }}
+              >
+                Close View
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
